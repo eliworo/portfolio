@@ -15,7 +15,7 @@
 // Source: schema.json
 export type CallToAction = {
   _type: "callToAction";
-  heading: string;
+  heading?: string;
   text?: string;
   buttonText?: string;
   link?: Link;
@@ -111,13 +111,145 @@ export type BlockContent = Array<{
   _key: string;
 }>;
 
+export type Project = {
+  _id: string;
+  _type: "project";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  slug?: Slug;
+  year?: string;
+  projectType?: {
+    _ref: string;
+    _type: "reference";
+    _weak?: boolean;
+    [internalGroqTypeReferenceTo]?: "projectType";
+  };
+  categories?: Array<{
+    _ref: string;
+    _type: "reference";
+    _weak?: boolean;
+    _key: string;
+    [internalGroqTypeReferenceTo]?: "category";
+  }>;
+  description?: string;
+  coverImage?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  media?: Array<{
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    caption?: string;
+    material?: string;
+    dimensions?: string;
+    year?: string;
+    category?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "category";
+    };
+    _type: "image";
+    _key: string;
+  } | {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
+    };
+    media?: unknown;
+    caption?: string;
+    _type: "file";
+    _key: string;
+  }>;
+  body?: BlockContent;
+  publishedAt?: string;
+  featured?: boolean;
+  visible?: boolean;
+};
+
+export type Category = {
+  _id: string;
+  _type: "category";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  slug?: Slug;
+  description?: string;
+};
+
+export type ProjectType = {
+  _id: string;
+  _type: "projectType";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  slug?: Slug;
+  description?: string;
+  visibleInNav?: boolean;
+};
+
+export type Homepage = {
+  _id: string;
+  _type: "homepage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  logo?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  showLogo?: boolean;
+  heroImage?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+};
+
 export type Settings = {
   _id: string;
   _type: "settings";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  title: string;
+  title?: string;
   description?: Array<{
     children?: Array<{
       marks?: Array<string>;
@@ -172,18 +304,15 @@ export type Page = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  name: string;
-  slug: Slug;
-  heading: string;
+  name?: string;
+  slug?: Slug;
+  heading?: string;
   subheading?: string;
-  pageBuilder?: Array<
-    | ({
-        _key: string;
-      } & CallToAction)
-    | ({
-        _key: string;
-      } & InfoSection)
-  >;
+  pageBuilder?: Array<{
+    _key: string;
+  } & CallToAction | {
+    _key: string;
+  } & InfoSection>;
 };
 
 export type Post = {
@@ -192,11 +321,11 @@ export type Post = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  title: string;
-  slug: Slug;
+  title?: string;
+  slug?: Slug;
   content?: BlockContent;
   excerpt?: string;
-  coverImage: {
+  coverImage?: {
     asset?: {
       _ref: string;
       _type: "reference";
@@ -224,9 +353,9 @@ export type Person = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  firstName: string;
-  lastName: string;
-  picture: {
+  firstName?: string;
+  lastName?: string;
+  picture?: {
     asset?: {
       _ref: string;
       _type: "reference";
@@ -252,21 +381,17 @@ export type SanityAssistInstructionTask = {
 
 export type SanityAssistTaskStatus = {
   _type: "sanity.assist.task.status";
-  tasks?: Array<
-    {
-      _key: string;
-    } & SanityAssistInstructionTask
-  >;
+  tasks?: Array<{
+    _key: string;
+  } & SanityAssistInstructionTask>;
 };
 
 export type SanityAssistSchemaTypeAnnotations = {
   _type: "sanity.assist.schemaType.annotations";
   title?: string;
-  fields?: Array<
-    {
-      _key: string;
-    } & SanityAssistSchemaTypeField
-  >;
+  fields?: Array<{
+    _key: string;
+  } & SanityAssistSchemaTypeField>;
 };
 
 export type SanityAssistOutputType = {
@@ -281,7 +406,7 @@ export type SanityAssistOutputField = {
 
 export type SanityAssistInstructionContext = {
   _type: "sanity.assist.instruction.context";
-  reference: {
+  reference?: {
     _ref: string;
     _type: "reference";
     _weak?: boolean;
@@ -314,28 +439,23 @@ export type AssistInstructionContext = {
 
 export type SanityAssistInstructionUserInput = {
   _type: "sanity.assist.instruction.userInput";
-  message: string;
+  message?: string;
   description?: string;
 };
 
 export type SanityAssistInstructionPrompt = Array<{
-  children?: Array<
-    | {
-        marks?: Array<string>;
-        text?: string;
-        _type: "span";
-        _key: string;
-      }
-    | ({
-        _key: string;
-      } & SanityAssistInstructionFieldRef)
-    | ({
-        _key: string;
-      } & SanityAssistInstructionContext)
-    | ({
-        _key: string;
-      } & SanityAssistInstructionUserInput)
-  >;
+  children?: Array<{
+    marks?: Array<string>;
+    text?: string;
+    _type: "span";
+    _key: string;
+  } | {
+    _key: string;
+  } & SanityAssistInstructionFieldRef | {
+    _key: string;
+  } & SanityAssistInstructionContext | {
+    _key: string;
+  } & SanityAssistInstructionUserInput>;
   style?: "normal";
   listItem?: never;
   markDefs?: null;
@@ -356,24 +476,19 @@ export type SanityAssistInstruction = {
   title?: string;
   userId?: string;
   createdById?: string;
-  output?: Array<
-    | ({
-        _key: string;
-      } & SanityAssistOutputField)
-    | ({
-        _key: string;
-      } & SanityAssistOutputType)
-  >;
+  output?: Array<{
+    _key: string;
+  } & SanityAssistOutputField | {
+    _key: string;
+  } & SanityAssistOutputType>;
 };
 
 export type SanityAssistSchemaTypeField = {
   _type: "sanity.assist.schemaType.field";
   path?: string;
-  instructions?: Array<
-    {
-      _key: string;
-    } & SanityAssistInstruction
-  >;
+  instructions?: Array<{
+    _key: string;
+  } & SanityAssistInstruction>;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -483,7 +598,7 @@ export type Geopoint = {
 
 export type Slug = {
   _type: "slug";
-  current: string;
+  current?: string;
   source?: string;
 };
 
@@ -494,38 +609,7 @@ export type SanityAssetSourceData = {
   url?: string;
 };
 
-export type AllSanitySchemaTypes =
-  | CallToAction
-  | Link
-  | InfoSection
-  | BlockContent
-  | Settings
-  | Page
-  | Post
-  | Person
-  | SanityAssistInstructionTask
-  | SanityAssistTaskStatus
-  | SanityAssistSchemaTypeAnnotations
-  | SanityAssistOutputType
-  | SanityAssistOutputField
-  | SanityAssistInstructionContext
-  | AssistInstructionContext
-  | SanityAssistInstructionUserInput
-  | SanityAssistInstructionPrompt
-  | SanityAssistInstructionFieldRef
-  | SanityAssistInstruction
-  | SanityAssistSchemaTypeField
-  | SanityImagePaletteSwatch
-  | SanityImagePalette
-  | SanityImageDimensions
-  | SanityImageHotspot
-  | SanityImageCrop
-  | SanityFileAsset
-  | SanityImageAsset
-  | SanityImageMetadata
-  | Geopoint
-  | Slug
-  | SanityAssetSourceData;
+export type AllSanitySchemaTypes = CallToAction | Link | InfoSection | BlockContent | Project | Category | ProjectType | Homepage | Settings | Page | Post | Person | SanityAssistInstructionTask | SanityAssistTaskStatus | SanityAssistSchemaTypeAnnotations | SanityAssistOutputType | SanityAssistOutputField | SanityAssistInstructionContext | AssistInstructionContext | SanityAssistInstructionUserInput | SanityAssistInstructionPrompt | SanityAssistInstructionFieldRef | SanityAssistInstruction | SanityAssistSchemaTypeField | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageHotspot | SanityImageCrop | SanityFileAsset | SanityImageAsset | SanityImageMetadata | Geopoint | Slug | SanityAssetSourceData;
 export declare const internalGroqTypeReferenceTo: unique symbol;
 // Source: ./sanity/lib/queries.ts
 // Variable: settingsQuery
@@ -536,7 +620,7 @@ export type SettingsQueryResult = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  title: string;
+  title?: string;
   description?: Array<{
     children?: Array<{
       marks?: Array<string>;
@@ -589,85 +673,71 @@ export type SettingsQueryResult = {
 export type GetPageQueryResult = {
   _id: string;
   _type: "page";
-  name: string;
-  slug: Slug;
-  heading: string;
+  name: string | null;
+  slug: Slug | null;
+  heading: string | null;
   subheading: string | null;
-  pageBuilder: Array<
-    | {
-        _key: string;
-        _type: "callToAction";
-        heading: string;
+  pageBuilder: Array<{
+    _key: string;
+    _type: "callToAction";
+    heading?: string;
+    text?: string;
+    buttonText?: string;
+    link: {
+      _type: "link";
+      linkType?: "href" | "page" | "post";
+      href?: string;
+      page: string | null;
+      post: string | null;
+      openInNewTab?: boolean;
+    } | null;
+  } | {
+    _key: string;
+    _type: "infoSection";
+    heading?: string;
+    subheading?: string;
+    content: Array<{
+      children?: Array<{
+        marks?: Array<string>;
         text?: string;
-        buttonText?: string;
-        link: {
-          _type: "link";
-          linkType?: "href" | "page" | "post";
-          href?: string;
-          page: string | null;
-          post: string | null;
-          openInNewTab?: boolean;
-        } | null;
-      }
-    | {
+        _type: "span";
         _key: string;
-        _type: "infoSection";
-        heading?: string;
-        subheading?: string;
-        content: Array<{
-          children?: Array<{
-            marks?: Array<string>;
-            text?: string;
-            _type: "span";
-            _key: string;
-          }>;
-          style?:
-            | "blockquote"
-            | "h1"
-            | "h2"
-            | "h3"
-            | "h4"
-            | "h5"
-            | "h6"
-            | "normal";
-          listItem?: "bullet" | "number";
-          markDefs: Array<{
-            linkType?: "href" | "page" | "post";
-            href?: string;
-            page: string | null;
-            post: string | null;
-            openInNewTab?: boolean;
-            _type: "link";
-            _key: string;
-          }> | null;
-          level?: number;
-          _type: "block";
-          _key: string;
-        }> | null;
-      }
-  > | null;
+      }>;
+      style?: "blockquote" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "normal";
+      listItem?: "bullet" | "number";
+      markDefs: Array<{
+        linkType?: "href" | "page" | "post";
+        href?: string;
+        page: string | null;
+        post: string | null;
+        openInNewTab?: boolean;
+        _type: "link";
+        _key: string;
+      }> | null;
+      level?: number;
+      _type: "block";
+      _key: string;
+    }> | null;
+  }> | null;
 } | null;
 // Variable: sitemapData
 // Query: *[_type == "page" || _type == "post" && defined(slug.current)] | order(_type asc) {    "slug": slug.current,    _type,    _updatedAt,  }
-export type SitemapDataResult = Array<
-  | {
-      slug: string;
-      _type: "page";
-      _updatedAt: string;
-    }
-  | {
-      slug: string;
-      _type: "post";
-      _updatedAt: string;
-    }
->;
+export type SitemapDataResult = Array<{
+  slug: string | null;
+  _type: "page";
+  _updatedAt: string;
+} | {
+  slug: string | null;
+  _type: "post";
+  _updatedAt: string;
+}>;
 // Variable: allPostsQuery
 // Query: *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) {      _id,  "status": select(_originalId in path("drafts.**") => "draft", "published"),  "title": coalesce(title, "Untitled"),  "slug": slug.current,  excerpt,  coverImage,  "date": coalesce(date, _updatedAt),  "author": author->{firstName, lastName, picture},  }
 export type AllPostsQueryResult = Array<{
   _id: string;
   status: "draft" | "published";
-  title: string;
-  slug: string;
+  title: string | "Untitled";
+  slug: string | null;
   excerpt: string | null;
   coverImage: {
     asset?: {
@@ -681,11 +751,11 @@ export type AllPostsQueryResult = Array<{
     crop?: SanityImageCrop;
     alt?: string;
     _type: "image";
-  };
+  } | null;
   date: string;
   author: {
-    firstName: string;
-    lastName: string;
+    firstName: string | null;
+    lastName: string | null;
     picture: {
       asset?: {
         _ref: string;
@@ -698,7 +768,7 @@ export type AllPostsQueryResult = Array<{
       crop?: SanityImageCrop;
       alt?: string;
       _type: "image";
-    };
+    } | null;
   } | null;
 }>;
 // Variable: morePostsQuery
@@ -706,8 +776,8 @@ export type AllPostsQueryResult = Array<{
 export type MorePostsQueryResult = Array<{
   _id: string;
   status: "draft" | "published";
-  title: string;
-  slug: string;
+  title: string | "Untitled";
+  slug: string | null;
   excerpt: string | null;
   coverImage: {
     asset?: {
@@ -721,11 +791,11 @@ export type MorePostsQueryResult = Array<{
     crop?: SanityImageCrop;
     alt?: string;
     _type: "image";
-  };
+  } | null;
   date: string;
   author: {
-    firstName: string;
-    lastName: string;
+    firstName: string | null;
+    lastName: string | null;
     picture: {
       asset?: {
         _ref: string;
@@ -738,7 +808,7 @@ export type MorePostsQueryResult = Array<{
       crop?: SanityImageCrop;
       alt?: string;
       _type: "image";
-    };
+    } | null;
   } | null;
 }>;
 // Variable: postQuery
@@ -768,8 +838,8 @@ export type PostQueryResult = {
   }> | null;
   _id: string;
   status: "draft" | "published";
-  title: string;
-  slug: string;
+  title: string | "Untitled";
+  slug: string | null;
   excerpt: string | null;
   coverImage: {
     asset?: {
@@ -783,11 +853,11 @@ export type PostQueryResult = {
     crop?: SanityImageCrop;
     alt?: string;
     _type: "image";
-  };
+  } | null;
   date: string;
   author: {
-    firstName: string;
-    lastName: string;
+    firstName: string | null;
+    lastName: string | null;
     picture: {
       asset?: {
         _ref: string;
@@ -800,31 +870,244 @@ export type PostQueryResult = {
       crop?: SanityImageCrop;
       alt?: string;
       _type: "image";
-    };
+    } | null;
   } | null;
 } | null;
 // Variable: postPagesSlugs
 // Query: *[_type == "post" && defined(slug.current)]  {"slug": slug.current}
 export type PostPagesSlugsResult = Array<{
-  slug: string;
+  slug: string | null;
 }>;
 // Variable: pagesSlugs
 // Query: *[_type == "page" && defined(slug.current)]  {"slug": slug.current}
 export type PagesSlugsResult = Array<{
-  slug: string;
+  slug: string | null;
 }>;
+// Variable: worksPageQuery
+// Query: *[_type == "works"][0]{    titleImage{      asset->{        url,        metadata {          dimensions        }      }    },    description,    featuredProjects[]->{      _id,      title,      slug,      mainImage{        asset->{          url        }      },      excerpt,      "projectType": projectType->title    }  }
+export type WorksPageQueryResult = null;
+// Variable: projectTypesQuery
+// Query: *[_type == "projectType" && visibleInNav == true] | order(title asc) {    _id,    title,    "slug": slug.current,    description  }
+export type ProjectTypesQueryResult = Array<{
+  _id: string;
+  title: string | null;
+  slug: string | null;
+  description: string | null;
+}>;
+// Variable: projectsByTypeQuery
+// Query: *[_type == "project" && projectType->slug.current == $typeSlug] | order(orderRank asc) {    _id,    title,    slug,    mainImage{      asset->{        url      }    },    excerpt,    "projectType": projectType->title  }
+export type ProjectsByTypeQueryResult = Array<{
+  _id: string;
+  title: string | null;
+  slug: Slug | null;
+  mainImage: null;
+  excerpt: null;
+  projectType: string | null;
+}>;
+// Variable: allProjectsQuery
+// Query: *[_type == "project"] | order(orderRank asc) {    _id,    title,    slug,    mainImage{      asset->{        url      }    },    excerpt,    "projectType": projectType->title  }
+export type AllProjectsQueryResult = Array<{
+  _id: string;
+  title: string | null;
+  slug: Slug | null;
+  mainImage: null;
+  excerpt: null;
+  projectType: string | null;
+}>;
+// Variable: navigationQuery
+// Query: *[_type == "navigation"][0]{    logoE{      asset->{        url,        metadata {          dimensions        }      }    },    mainItems[]{      title,      slug,      logo{        asset->{          url,          metadata {            dimensions          }        }      },      subItems[]{        title,        slug,        logo{          asset->{            url,            metadata {              dimensions            }          }        }      }    }  }
+export type NavigationQueryResult = null;
+// Variable: navigationImagesQuery
+// Query: {  "works": *[_type == "works"][0]{    titleImage{asset->{url}}  },  "about": *[_type == "about"][0]{    titleImage{asset->{url}}  },  "commissions": *[_type == "commissions"][0]{    titleImage{asset->{url}}  },  "homepage": *[_type == "homepage"][0]{    logo{asset->{url}}  },  "projectGroups": *[_type == "projectType" && visibleInNav == true] | order(orderRank asc) {    _id,    title,    "slug": slug.current,    titleImage{asset->{url}},    "projects": *[_type == "project" && references(^._id) && defined(visible) && visible == true] | order(orderRank asc) {      title,      "slug": slug.current,      titleImage{asset->{url}},       coverImage{asset->{url}, alt}    }  }}
+export type NavigationImagesQueryResult = {
+  works: null;
+  about: null;
+  commissions: null;
+  homepage: {
+    logo: {
+      asset: {
+        url: string | null;
+      } | null;
+    } | null;
+  } | null;
+  projectGroups: Array<{
+    _id: string;
+    title: string | null;
+    slug: string | null;
+    titleImage: null;
+    projects: Array<{
+      title: string | null;
+      slug: string | null;
+      titleImage: null;
+      coverImage: {
+        asset: {
+          url: string | null;
+        } | null;
+        alt: string | null;
+      } | null;
+    }>;
+  }>;
+};
+// Variable: projectGroupQuery
+// Query: *[_type == "projectType" && slug.current == $slug][0]{  _id,  title,  description,  titleImage{asset->{url}},  "projects": *[_type == "project" && references(^._id) && visible == true] | order(orderRank asc) {    _id,    title,    excerpt,    "slug": slug.current,    mainImage{asset->{url}},    titleImage{asset->{url}},    coverImage{asset->{url}, alt},    "projectType": ^.title,    "categories": categories[]->{       _id,       title,       slug,       titleImage{asset->{url}}     }  }}
+export type ProjectGroupQueryResult = {
+  _id: string;
+  title: string | null;
+  description: string | null;
+  titleImage: null;
+  projects: Array<{
+    _id: string;
+    title: string | null;
+    excerpt: null;
+    slug: string | null;
+    mainImage: null;
+    titleImage: null;
+    coverImage: {
+      asset: {
+        url: string | null;
+      } | null;
+      alt: string | null;
+    } | null;
+    projectType: string | null;
+    categories: Array<{
+      _id: string;
+      title: string | null;
+      slug: Slug | null;
+      titleImage: null;
+    }> | null;
+  }>;
+} | null;
+// Variable: projectQuery
+// Query: *[_type == "project" && slug.current == $projectSlug][0] {    _id,    title,    slug,    year,    description,    "projectType": projectType->title,    "projectTypeSlug": projectType->slug.current,    titleImage {      asset-> {        url      }    },    coverImage {      asset-> {        url      },      alt    },    content[] {      _type,      _key,      // Text Block      _type == "textBlock" => {        content,        columns,        alignment      },      // Image Block      _type == "imageBlock" => {        images[] {          asset-> {            url          },          alt,          caption,          material,          dimensions,          year        },        layout,        position,        spacing      },      // Image Gallery      _type == "imageGallery" => {        images[] {          asset-> {            url          },          alt,          caption,          material,          dimensions,          year,          category-> {            title          }        },        displayStyle,        aspectRatio      },      // Text with Image      _type == "textWithImage" => {        image {          asset-> {            url          },          alt,          caption        },        text,        imagePosition,        imageSize      },      // Video Block      _type == "videoBlock" => {        url,        caption,        aspectRatio      }    },    categorySections[] {      _key,      category-> {        _id,        title,        slug,        titleImage {          asset-> {            url          }        }      },      content[] {        _type,        _key,        // Text Block        _type == "textBlock" => {          content,          columns,          alignment        },        // Image Block        _type == "imageBlock" => {          images[] {            asset-> {              url            },            alt,            caption,            material,            dimensions,            year          },          layout,          position,          spacing        },        // Image Gallery        _type == "imageGallery" => {          images[] {            asset-> {              url            },            alt,            caption,            material,            dimensions,            year,            category-> {              title            }          },          displayStyle,          aspectRatio        },        // Text with Image        _type == "textWithImage" => {          image {            asset-> {              url            },            alt,            caption          },          text,          imagePosition,          imageSize        },        // Video Block        _type == "videoBlock" => {          url,          caption,          aspectRatio        }      }    },    categories[]-> {      title,      slug    },    credits,    press,    tournee,    publishedAt,    featured,    visible  }
+export type ProjectQueryResult = {
+  _id: string;
+  title: string | null;
+  slug: Slug | null;
+  year: string | null;
+  description: string | null;
+  projectType: string | null;
+  projectTypeSlug: string | null;
+  titleImage: null;
+  coverImage: {
+    asset: {
+      url: string | null;
+    } | null;
+    alt: string | null;
+  } | null;
+  content: null;
+  categorySections: null;
+  categories: Array<{
+    title: string | null;
+    slug: Slug | null;
+  }> | null;
+  credits: null;
+  press: null;
+  tournee: null;
+  publishedAt: string | null;
+  featured: boolean | null;
+  visible: boolean | null;
+} | null;
+// Variable: projectsListQuery
+// Query: *[_type == "project" && visible == true && projectType->slug.current == $typeSlug] | order(orderRank) {    _id,    title,    slug,    year,    description,    coverImage {      asset-> {        url      },      alt    },    "projectType": projectType->title,    categories[]-> {      title    }  }
+export type ProjectsListQueryResult = Array<{
+  _id: string;
+  title: string | null;
+  slug: Slug | null;
+  year: string | null;
+  description: string | null;
+  coverImage: {
+    asset: {
+      url: string | null;
+    } | null;
+    alt: string | null;
+  } | null;
+  projectType: string | null;
+  categories: Array<{
+    title: string | null;
+  }> | null;
+}>;
+// Variable: featuredProjectsQuery
+// Query: *[_type == "project" && featured == true && visible != false] {    _id,    title,    slug,    year,    excerpt,    coverImage {      asset->{        url      },      alt    },    titleImage {      asset->{        url      }    },    projectType->{      title,      slug    },    categories[]->{      _id,      title,      titleImage {        asset->{          url        }      }    }  }
+export type FeaturedProjectsQueryResult = Array<{
+  _id: string;
+  title: string | null;
+  slug: Slug | null;
+  year: string | null;
+  excerpt: null;
+  coverImage: {
+    asset: {
+      url: string | null;
+    } | null;
+    alt: string | null;
+  } | null;
+  titleImage: null;
+  projectType: {
+    title: string | null;
+    slug: Slug | null;
+  } | null;
+  categories: Array<{
+    _id: string;
+    title: string | null;
+    titleImage: null;
+  }> | null;
+}>;
+// Variable: allProjectsByCategoryQuery
+// Query: {  "categories": *[_type == "category"] {    _id,    title,    "slug": slug.current,    titleImage {      asset-> {        url      }    }  },  "projects": *[_type == "project" && visible != false] {    _id,    title,    "slug": slug.current,    projectKind,    year,    coverImage {      asset-> {        url      },      alt    },    titleImage {      asset-> {        url      }    },    projectType-> {      title,      "slug": slug.current    },    // For personal projects    categories[]-> {      _id,      title,      "slug": slug.current    },    // For professional projects    categorySections[] {      category-> {        _id,        title,        "slug": slug.current      }    }  }}
+export type AllProjectsByCategoryQueryResult = {
+  categories: Array<{
+    _id: string;
+    title: string | null;
+    slug: string | null;
+    titleImage: null;
+  }>;
+  projects: Array<{
+    _id: string;
+    title: string | null;
+    slug: string | null;
+    projectKind: null;
+    year: string | null;
+    coverImage: {
+      asset: {
+        url: string | null;
+      } | null;
+      alt: string | null;
+    } | null;
+    titleImage: null;
+    projectType: {
+      title: string | null;
+      slug: string | null;
+    } | null;
+    categories: Array<{
+      _id: string;
+      title: string | null;
+      slug: string | null;
+    }> | null;
+    categorySections: null;
+  }>;
+};
 
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '*[_type == "settings"][0]': SettingsQueryResult;
-    '\n  *[_type == \'page\' && slug.current == $slug][0]{\n    _id,\n    _type,\n    name,\n    slug,\n    heading,\n    subheading,\n    "pageBuilder": pageBuilder[]{\n      ...,\n      _type == "callToAction" => {\n        \n  link {\n      ...,\n      \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n      }\n,\n      },\n      _type == "infoSection" => {\n        content[]{\n          ...,\n          markDefs[]{\n            ...,\n            \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n          }\n        }\n      },\n    },\n  }\n': GetPageQueryResult;
-    '\n  *[_type == "page" || _type == "post" && defined(slug.current)] | order(_type asc) {\n    "slug": slug.current,\n    _type,\n    _updatedAt,\n  }\n': SitemapDataResult;
-    '\n  *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) {\n    \n  _id,\n  "status": select(_originalId in path("drafts.**") => "draft", "published"),\n  "title": coalesce(title, "Untitled"),\n  "slug": slug.current,\n  excerpt,\n  coverImage,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n\n  }\n': AllPostsQueryResult;
-    '\n  *[_type == "post" && _id != $skip && defined(slug.current)] | order(date desc, _updatedAt desc) [0...$limit] {\n    \n  _id,\n  "status": select(_originalId in path("drafts.**") => "draft", "published"),\n  "title": coalesce(title, "Untitled"),\n  "slug": slug.current,\n  excerpt,\n  coverImage,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n\n  }\n': MorePostsQueryResult;
-    '\n  *[_type == "post" && slug.current == $slug] [0] {\n    content[]{\n    ...,\n    markDefs[]{\n      ...,\n      \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n    }\n  },\n    \n  _id,\n  "status": select(_originalId in path("drafts.**") => "draft", "published"),\n  "title": coalesce(title, "Untitled"),\n  "slug": slug.current,\n  excerpt,\n  coverImage,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n\n  }\n': PostQueryResult;
-    '\n  *[_type == "post" && defined(slug.current)]\n  {"slug": slug.current}\n': PostPagesSlugsResult;
-    '\n  *[_type == "page" && defined(slug.current)]\n  {"slug": slug.current}\n': PagesSlugsResult;
+    "*[_type == \"settings\"][0]": SettingsQueryResult;
+    "\n  *[_type == 'page' && slug.current == $slug][0]{\n    _id,\n    _type,\n    name,\n    slug,\n    heading,\n    subheading,\n    \"pageBuilder\": pageBuilder[]{\n      ...,\n      _type == \"callToAction\" => {\n        \n  link {\n      ...,\n      \n  _type == \"link\" => {\n    \"page\": page->slug.current,\n    \"post\": post->slug.current\n  }\n\n      }\n,\n      },\n      _type == \"infoSection\" => {\n        content[]{\n          ...,\n          markDefs[]{\n            ...,\n            \n  _type == \"link\" => {\n    \"page\": page->slug.current,\n    \"post\": post->slug.current\n  }\n\n          }\n        }\n      },\n    },\n  }\n": GetPageQueryResult;
+    "\n  *[_type == \"page\" || _type == \"post\" && defined(slug.current)] | order(_type asc) {\n    \"slug\": slug.current,\n    _type,\n    _updatedAt,\n  }\n": SitemapDataResult;
+    "\n  *[_type == \"post\" && defined(slug.current)] | order(date desc, _updatedAt desc) {\n    \n  _id,\n  \"status\": select(_originalId in path(\"drafts.**\") => \"draft\", \"published\"),\n  \"title\": coalesce(title, \"Untitled\"),\n  \"slug\": slug.current,\n  excerpt,\n  coverImage,\n  \"date\": coalesce(date, _updatedAt),\n  \"author\": author->{firstName, lastName, picture},\n\n  }\n": AllPostsQueryResult;
+    "\n  *[_type == \"post\" && _id != $skip && defined(slug.current)] | order(date desc, _updatedAt desc) [0...$limit] {\n    \n  _id,\n  \"status\": select(_originalId in path(\"drafts.**\") => \"draft\", \"published\"),\n  \"title\": coalesce(title, \"Untitled\"),\n  \"slug\": slug.current,\n  excerpt,\n  coverImage,\n  \"date\": coalesce(date, _updatedAt),\n  \"author\": author->{firstName, lastName, picture},\n\n  }\n": MorePostsQueryResult;
+    "\n  *[_type == \"post\" && slug.current == $slug] [0] {\n    content[]{\n    ...,\n    markDefs[]{\n      ...,\n      \n  _type == \"link\" => {\n    \"page\": page->slug.current,\n    \"post\": post->slug.current\n  }\n\n    }\n  },\n    \n  _id,\n  \"status\": select(_originalId in path(\"drafts.**\") => \"draft\", \"published\"),\n  \"title\": coalesce(title, \"Untitled\"),\n  \"slug\": slug.current,\n  excerpt,\n  coverImage,\n  \"date\": coalesce(date, _updatedAt),\n  \"author\": author->{firstName, lastName, picture},\n\n  }\n": PostQueryResult;
+    "\n  *[_type == \"post\" && defined(slug.current)]\n  {\"slug\": slug.current}\n": PostPagesSlugsResult;
+    "\n  *[_type == \"page\" && defined(slug.current)]\n  {\"slug\": slug.current}\n": PagesSlugsResult;
+    "\n  *[_type == \"works\"][0]{\n    titleImage{\n      asset->{\n        url,\n        metadata {\n          dimensions\n        }\n      }\n    },\n    description,\n    featuredProjects[]->{\n      _id,\n      title,\n      slug,\n      mainImage{\n        asset->{\n          url\n        }\n      },\n      excerpt,\n      \"projectType\": projectType->title\n    }\n  }\n": WorksPageQueryResult;
+    "\n  *[_type == \"projectType\" && visibleInNav == true] | order(title asc) {\n    _id,\n    title,\n    \"slug\": slug.current,\n    description\n  }\n": ProjectTypesQueryResult;
+    "\n  *[_type == \"project\" && projectType->slug.current == $typeSlug] | order(orderRank asc) {\n    _id,\n    title,\n    slug,\n    mainImage{\n      asset->{\n        url\n      }\n    },\n    excerpt,\n    \"projectType\": projectType->title\n  }\n": ProjectsByTypeQueryResult;
+    "\n  *[_type == \"project\"] | order(orderRank asc) {\n    _id,\n    title,\n    slug,\n    mainImage{\n      asset->{\n        url\n      }\n    },\n    excerpt,\n    \"projectType\": projectType->title\n  }\n": AllProjectsQueryResult;
+    "\n  *[_type == \"navigation\"][0]{\n    logoE{\n      asset->{\n        url,\n        metadata {\n          dimensions\n        }\n      }\n    },\n    mainItems[]{\n      title,\n      slug,\n      logo{\n        asset->{\n          url,\n          metadata {\n            dimensions\n          }\n        }\n      },\n      subItems[]{\n        title,\n        slug,\n        logo{\n          asset->{\n            url,\n            metadata {\n              dimensions\n            }\n          }\n        }\n      }\n    }\n  }\n": NavigationQueryResult;
+    "{\n  \"works\": *[_type == \"works\"][0]{\n    titleImage{asset->{url}}\n  },\n  \"about\": *[_type == \"about\"][0]{\n    titleImage{asset->{url}}\n  },\n  \"commissions\": *[_type == \"commissions\"][0]{\n    titleImage{asset->{url}}\n  },\n  \"homepage\": *[_type == \"homepage\"][0]{\n    logo{asset->{url}}\n  },\n  \"projectGroups\": *[_type == \"projectType\" && visibleInNav == true] | order(orderRank asc) {\n    _id,\n    title,\n    \"slug\": slug.current,\n    titleImage{asset->{url}},\n    \"projects\": *[_type == \"project\" && references(^._id) && defined(visible) && visible == true] | order(orderRank asc) {\n      title,\n      \"slug\": slug.current,\n      titleImage{asset->{url}}, \n      coverImage{asset->{url}, alt}\n    }\n  }\n}": NavigationImagesQueryResult;
+    "*[_type == \"projectType\" && slug.current == $slug][0]{\n  _id,\n  title,\n  description,\n  titleImage{asset->{url}},\n  \"projects\": *[_type == \"project\" && references(^._id) && visible == true] | order(orderRank asc) {\n    _id,\n    title,\n    excerpt,\n    \"slug\": slug.current,\n    mainImage{asset->{url}},\n    titleImage{asset->{url}},\n    coverImage{asset->{url}, alt},\n    \"projectType\": ^.title,\n    \"categories\": categories[]->{ \n      _id, \n      title, \n      slug, \n      titleImage{asset->{url}} \n    }\n  }\n}": ProjectGroupQueryResult;
+    "\n  *[_type == \"project\" && slug.current == $projectSlug][0] {\n    _id,\n    title,\n    slug,\n    year,\n    description,\n    \"projectType\": projectType->title,\n    \"projectTypeSlug\": projectType->slug.current,\n    titleImage {\n      asset-> {\n        url\n      }\n    },\n    coverImage {\n      asset-> {\n        url\n      },\n      alt\n    },\n    content[] {\n      _type,\n      _key,\n      // Text Block\n      _type == \"textBlock\" => {\n        content,\n        columns,\n        alignment\n      },\n      // Image Block\n      _type == \"imageBlock\" => {\n        images[] {\n          asset-> {\n            url\n          },\n          alt,\n          caption,\n          material,\n          dimensions,\n          year\n        },\n        layout,\n        position,\n        spacing\n      },\n      // Image Gallery\n      _type == \"imageGallery\" => {\n        images[] {\n          asset-> {\n            url\n          },\n          alt,\n          caption,\n          material,\n          dimensions,\n          year,\n          category-> {\n            title\n          }\n        },\n        displayStyle,\n        aspectRatio\n      },\n      // Text with Image\n      _type == \"textWithImage\" => {\n        image {\n          asset-> {\n            url\n          },\n          alt,\n          caption\n        },\n        text,\n        imagePosition,\n        imageSize\n      },\n      // Video Block\n      _type == \"videoBlock\" => {\n        url,\n        caption,\n        aspectRatio\n      }\n    },\n    categorySections[] {\n      _key,\n      category-> {\n        _id,\n        title,\n        slug,\n        titleImage {\n          asset-> {\n            url\n          }\n        }\n      },\n      content[] {\n        _type,\n        _key,\n        // Text Block\n        _type == \"textBlock\" => {\n          content,\n          columns,\n          alignment\n        },\n        // Image Block\n        _type == \"imageBlock\" => {\n          images[] {\n            asset-> {\n              url\n            },\n            alt,\n            caption,\n            material,\n            dimensions,\n            year\n          },\n          layout,\n          position,\n          spacing\n        },\n        // Image Gallery\n        _type == \"imageGallery\" => {\n          images[] {\n            asset-> {\n              url\n            },\n            alt,\n            caption,\n            material,\n            dimensions,\n            year,\n            category-> {\n              title\n            }\n          },\n          displayStyle,\n          aspectRatio\n        },\n        // Text with Image\n        _type == \"textWithImage\" => {\n          image {\n            asset-> {\n              url\n            },\n            alt,\n            caption\n          },\n          text,\n          imagePosition,\n          imageSize\n        },\n        // Video Block\n        _type == \"videoBlock\" => {\n          url,\n          caption,\n          aspectRatio\n        }\n      }\n    },\n    categories[]-> {\n      title,\n      slug\n    },\n    credits,\n    press,\n    tournee,\n    publishedAt,\n    featured,\n    visible\n  }\n": ProjectQueryResult;
+    "\n  *[_type == \"project\" && visible == true && projectType->slug.current == $typeSlug] | order(orderRank) {\n    _id,\n    title,\n    slug,\n    year,\n    description,\n    coverImage {\n      asset-> {\n        url\n      },\n      alt\n    },\n    \"projectType\": projectType->title,\n    categories[]-> {\n      title\n    }\n  }\n": ProjectsListQueryResult;
+    "\n  *[_type == \"project\" && featured == true && visible != false] {\n    _id,\n    title,\n    slug,\n    year,\n    excerpt,\n    coverImage {\n      asset->{\n        url\n      },\n      alt\n    },\n    titleImage {\n      asset->{\n        url\n      }\n    },\n    projectType->{\n      title,\n      slug\n    },\n    categories[]->{\n      _id,\n      title,\n      titleImage {\n        asset->{\n          url\n        }\n      }\n    }\n  }\n": FeaturedProjectsQueryResult;
+    "{\n  \"categories\": *[_type == \"category\"] {\n    _id,\n    title,\n    \"slug\": slug.current,\n    titleImage {\n      asset-> {\n        url\n      }\n    }\n  },\n  \"projects\": *[_type == \"project\" && visible != false] {\n    _id,\n    title,\n    \"slug\": slug.current,\n    projectKind,\n    year,\n    coverImage {\n      asset-> {\n        url\n      },\n      alt\n    },\n    titleImage {\n      asset-> {\n        url\n      }\n    },\n    projectType-> {\n      title,\n      \"slug\": slug.current\n    },\n    // For personal projects\n    categories[]-> {\n      _id,\n      title,\n      \"slug\": slug.current\n    },\n    // For professional projects\n    categorySections[] {\n      category-> {\n        _id,\n        title,\n        \"slug\": slug.current\n      }\n    }\n  }\n}": AllProjectsByCategoryQueryResult;
   }
 }

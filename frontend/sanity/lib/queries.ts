@@ -1,6 +1,6 @@
-import { defineQuery } from "next-sanity";
+import { defineQuery } from 'next-sanity'
 
-export const settingsQuery = defineQuery(`*[_type == "settings"][0]`);
+export const settingsQuery = defineQuery(`*[_type == "settings"][0]`)
 
 const postFields = /* groq */ `
   _id,
@@ -11,21 +11,21 @@ const postFields = /* groq */ `
   coverImage,
   "date": coalesce(date, _updatedAt),
   "author": author->{firstName, lastName, picture},
-`;
+`
 
 const linkReference = /* groq */ `
   _type == "link" => {
     "page": page->slug.current,
     "post": post->slug.current
   }
-`;
+`
 
 const linkFields = /* groq */ `
   link {
       ...,
       ${linkReference}
       }
-`;
+`
 
 export const getPageQuery = defineQuery(`
   *[_type == 'page' && slug.current == $slug][0]{
@@ -51,7 +51,7 @@ export const getPageQuery = defineQuery(`
       },
     },
   }
-`);
+`)
 
 export const sitemapData = defineQuery(`
   *[_type == "page" || _type == "post" && defined(slug.current)] | order(_type asc) {
@@ -59,19 +59,19 @@ export const sitemapData = defineQuery(`
     _type,
     _updatedAt,
   }
-`);
+`)
 
 export const allPostsQuery = defineQuery(`
   *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) {
     ${postFields}
   }
-`);
+`)
 
 export const morePostsQuery = defineQuery(`
   *[_type == "post" && _id != $skip && defined(slug.current)] | order(date desc, _updatedAt desc) [0...$limit] {
     ${postFields}
   }
-`);
+`)
 
 export const postQuery = defineQuery(`
   *[_type == "post" && slug.current == $slug] [0] {
@@ -84,14 +84,461 @@ export const postQuery = defineQuery(`
   },
     ${postFields}
   }
-`);
+`)
 
 export const postPagesSlugs = defineQuery(`
   *[_type == "post" && defined(slug.current)]
   {"slug": slug.current}
-`);
+`)
 
 export const pagesSlugs = defineQuery(`
   *[_type == "page" && defined(slug.current)]
   {"slug": slug.current}
-`);
+`)
+
+export const homepageQuery = `
+*[_type == "homepage"][0]{
+  heroType,
+  heroImage{
+    asset->{url}
+  },
+  heroVideo{
+    asset->{url}
+  },
+  vimeoUrl,
+  youtubeUrl,
+  logo{
+    asset->{url}
+  },
+  showLogo
+}
+`
+
+export const worksPageQuery = defineQuery(`
+  *[_type == "works"][0]{
+    titleImage{
+      asset->{
+        url,
+        metadata {
+          dimensions
+        }
+      }
+    },
+    description,
+    featuredProjects[]->{
+      _id,
+      title,
+      slug,
+      mainImage{
+        asset->{
+          url
+        }
+      },
+      excerpt,
+      "projectType": projectType->title
+    }
+  }
+`)
+
+export const projectTypesQuery = defineQuery(`
+  *[_type == "projectType" && visibleInNav == true] | order(title asc) {
+    _id,
+    title,
+    "slug": slug.current,
+    description
+  }
+`)
+
+export const projectsByTypeQuery = defineQuery(`
+  *[_type == "project" && projectType->slug.current == $typeSlug] | order(orderRank asc) {
+    _id,
+    title,
+    slug,
+    mainImage{
+      asset->{
+        url
+      }
+    },
+    excerpt,
+    "projectType": projectType->title
+  }
+`)
+
+export const allProjectsQuery = defineQuery(`
+  *[_type == "project"] | order(orderRank asc) {
+    _id,
+    title,
+    slug,
+    mainImage{
+      asset->{
+        url
+      }
+    },
+    excerpt,
+    "projectType": projectType->title
+  }
+`)
+
+export const navigationQuery = defineQuery(`
+  *[_type == "navigation"][0]{
+    logoE{
+      asset->{
+        url,
+        metadata {
+          dimensions
+        }
+      }
+    },
+    mainItems[]{
+      title,
+      slug,
+      logo{
+        asset->{
+          url,
+          metadata {
+            dimensions
+          }
+        }
+      },
+      subItems[]{
+        title,
+        slug,
+        logo{
+          asset->{
+            url,
+            metadata {
+              dimensions
+            }
+          }
+        }
+      }
+    }
+  }
+`)
+
+export const navigationImagesQuery = defineQuery(`{
+  "works": *[_type == "works"][0]{
+    titleImage{asset->{url}}
+  },
+  "about": *[_type == "about"][0]{
+    titleImage{asset->{url}}
+  },
+  "commissions": *[_type == "commissions"][0]{
+    titleImage{asset->{url}}
+  },
+  "homepage": *[_type == "homepage"][0]{
+    logo{asset->{url}}
+  },
+  "projectGroups": *[_type == "projectType" && visibleInNav == true] | order(orderRank asc) {
+    _id,
+    title,
+    "slug": slug.current,
+    titleImage{asset->{url}},
+    "projects": *[_type == "project" && references(^._id) && defined(visible) && visible == true] | order(orderRank asc) {
+      title,
+      "slug": slug.current,
+      titleImage{asset->{url}}, 
+      coverImage{asset->{url}, alt}
+    }
+  }
+}`)
+
+// Query to get a specific project group and its projects
+export const projectGroupQuery =
+  defineQuery(`*[_type == "projectType" && slug.current == $slug][0]{
+  _id,
+  title,
+  description,
+  titleImage{asset->{url}},
+  "projects": *[_type == "project" && references(^._id) && visible == true] | order(orderRank asc) {
+    _id,
+    title,
+    excerpt,
+    "slug": slug.current,
+    mainImage{asset->{url}},
+    titleImage{asset->{url}},
+    coverImage{asset->{url}, alt},
+    "projectType": ^.title,
+    "categories": categories[]->{ 
+      _id, 
+      title, 
+      slug, 
+      titleImage{asset->{url}} 
+    }
+  }
+}`)
+
+export const projectQuery = defineQuery(`
+  *[_type == "project" && slug.current == $projectSlug][0] {
+    _id,
+    title,
+    slug,
+    year,
+    description,
+    "projectType": projectType->title,
+    "projectTypeSlug": projectType->slug.current,
+    titleImage {
+      asset-> {
+        url
+      }
+    },
+    coverImage {
+      asset-> {
+        url
+      },
+      alt
+    },
+    content[] {
+      _type,
+      _key,
+      // Text Block
+      _type == "textBlock" => {
+        content,
+        columns,
+        alignment
+      },
+      // Image Block
+      _type == "imageBlock" => {
+        images[] {
+          asset-> {
+            url
+          },
+          alt,
+          caption,
+          material,
+          dimensions,
+          year
+        },
+        layout,
+        position,
+        spacing
+      },
+      // Image Gallery
+      _type == "imageGallery" => {
+        images[] {
+          asset-> {
+            url
+          },
+          alt,
+          caption,
+          material,
+          dimensions,
+          year,
+          category-> {
+            title
+          }
+        },
+        displayStyle,
+        aspectRatio
+      },
+      // Text with Image
+      _type == "textWithImage" => {
+        image {
+          asset-> {
+            url
+          },
+          alt,
+          caption
+        },
+        text,
+        imagePosition,
+        imageSize
+      },
+      // Video Block
+      _type == "videoBlock" => {
+        url,
+        caption,
+        aspectRatio
+      }
+    },
+    categorySections[] {
+      _key,
+      category-> {
+        _id,
+        title,
+        slug,
+        titleImage {
+          asset-> {
+            url
+          }
+        }
+      },
+      content[] {
+        _type,
+        _key,
+        // Text Block
+        _type == "textBlock" => {
+          content,
+          columns,
+          alignment
+        },
+        // Image Block
+        _type == "imageBlock" => {
+          images[] {
+            asset-> {
+              url
+            },
+            alt,
+            caption,
+            material,
+            dimensions,
+            year
+          },
+          layout,
+          position,
+          spacing
+        },
+        // Image Gallery
+        _type == "imageGallery" => {
+          images[] {
+            asset-> {
+              url
+            },
+            alt,
+            caption,
+            material,
+            dimensions,
+            year,
+            category-> {
+              title
+            }
+          },
+          displayStyle,
+          aspectRatio
+        },
+        // Text with Image
+        _type == "textWithImage" => {
+          image {
+            asset-> {
+              url
+            },
+            alt,
+            caption
+          },
+          text,
+          imagePosition,
+          imageSize
+        },
+        // Video Block
+        _type == "videoBlock" => {
+          url,
+          caption,
+          aspectRatio
+        }
+      }
+    },
+    categories[]-> {
+      title,
+      slug
+    },
+    credits,
+    press,
+    tournee,
+    publishedAt,
+    featured,
+    visible
+  }
+`)
+
+export const projectsListQuery = defineQuery(`
+  *[_type == "project" && visible == true && projectType->slug.current == $typeSlug] | order(orderRank) {
+    _id,
+    title,
+    slug,
+    year,
+    description,
+    coverImage {
+      asset-> {
+        url
+      },
+      alt
+    },
+    "projectType": projectType->title,
+    categories[]-> {
+      title
+    }
+  }
+`)
+
+export const featuredProjectsQuery = defineQuery(`
+  *[_type == "project" && featured == true && visible != false] {
+    _id,
+    title,
+    slug,
+    year,
+    excerpt,
+    coverImage {
+      asset->{
+        url
+      },
+      alt
+    },
+    titleImage {
+      asset->{
+        url
+      }
+    },
+    projectType->{
+      title,
+      slug
+    },
+    categories[]->{
+      _id,
+      title,
+      titleImage {
+        asset->{
+          url
+        }
+      }
+    }
+  }
+`)
+
+export const allProjectsByCategoryQuery = defineQuery(`{
+  "categories": *[_type == "category"] {
+    _id,
+    title,
+    "slug": slug.current,
+    titleImage {
+      asset-> {
+        url
+      }
+    }
+  },
+  "projects": *[_type == "project" && visible != false] {
+    _id,
+    title,
+    "slug": slug.current,
+    projectKind,
+    year,
+    coverImage {
+      asset-> {
+        url
+      },
+      alt
+    },
+    titleImage {
+      asset-> {
+        url
+      }
+    },
+    projectType-> {
+      title,
+      "slug": slug.current
+    },
+    // For personal projects
+    categories[]-> {
+      _id,
+      title,
+      "slug": slug.current
+    },
+    // For professional projects
+    categorySections[] {
+      category-> {
+        _id,
+        title,
+        "slug": slug.current
+      }
+    }
+  }
+}`)

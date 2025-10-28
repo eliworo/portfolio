@@ -16,7 +16,7 @@ export const settings = defineType({
   fields: [
     defineField({
       name: 'title',
-      description: 'This field is the title of your blog.',
+      // description: 'This field is the title of your blog.',
       title: 'Title',
       type: 'string',
       initialValue: demo.title,
