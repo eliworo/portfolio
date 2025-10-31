@@ -12,52 +12,45 @@ export default async function ProjectGroupPage({
 }) {
   const { slug } = await params
 
-  // Fetch data for this project group
   const { data } = await sanityFetch({
     query: projectGroupQuery,
-    params: { slug: (await params).slug },
+    params: { slug },
   })
-
   const projectGroup = data as ProjectGroupQueryResult
 
-  // If no project group is found, return 404
   if (!projectGroup) {
     notFound()
   }
 
-  console.log(slug, 'slug')
+  console.log('Project Group Data:', projectGroup)
   return (
-    <>
+    <main className='py-12 px-8 max-w-7xl mx-auto'>
       {/* Title Image */}
       {(projectGroup.titleImage as any)?.asset?.url && (
-        <div className='absolute left-22 top-16'>
+        <div className='mb-8 fixed left-22 top-16 z-20 w-[40vw]'>
           <Image
             src={(projectGroup.titleImage as any).asset.url}
             alt={projectGroup.title || 'Project Group Title'}
-            width={1000}
-            height={1000}
-            className='-rotate-0 object-contain h-50 w-auto'
+            width={600}
+            height={200}
+            className='object-contain h-auto border-0 border-black'
           />
         </div>
       )}
 
-      <main className='pl-64'>
-        <div className='max-w-4xl mt-[22rem]'>
-          {/* Description */}
-          {projectGroup?.description && (
-            <div className='mx-auto mb-12 font-agrandir-tight text-2xl'>
-              <p>{projectGroup.description}</p>
-            </div>
-          )}
+      {/* Description */}
+      {projectGroup?.description && (
+        <div className='mb-12 font-agrandir-tight text-2xl max-w-3xl'>
+          <p>{projectGroup.description}</p>
         </div>
+      )}
 
-        {/* Updated FilterableProjectsList Component */}
-        <FilterableProjectsList
-          projects={projectGroup.projects}
-          groupSlug={slug}
-          isFeaturedProjectsPage={false}
-        />
-      </main>
-    </>
+      {/* Projects List */}
+      <FilterableProjectsList
+        projects={projectGroup.projects}
+        groupSlug={slug}
+        isFeaturedProjectsPage={false}
+      />
+    </main>
   )
 }

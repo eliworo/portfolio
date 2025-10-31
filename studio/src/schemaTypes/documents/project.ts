@@ -264,12 +264,12 @@ export const project = defineType({
       type: 'datetime',
       initialValue: () => new Date().toISOString(),
     }),
-    defineField({
-      name: 'featured',
-      title: 'Featured Project',
-      type: 'boolean',
-      initialValue: false,
-    }),
+    // defineField({
+    //   name: 'featured',
+    //   title: 'Featured Project',
+    //   type: 'boolean',
+    //   initialValue: false,
+    // }),
     defineField({
       name: 'visible',
       title: 'Visible on Website',

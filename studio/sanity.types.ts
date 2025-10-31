@@ -13,6 +13,174 @@
  */
 
 // Source: schema.json
+export type VideoBlock = {
+  _type: 'videoBlock'
+  url?: string
+  caption?: string
+  aspectRatio?: '16:9' | '4:3' | '1:1' | '9:16'
+}
+
+export type TextWithImage = {
+  _type: 'textWithImage'
+  image?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    caption?: string
+    _type: 'image'
+  }
+  text?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal' | 'h2' | 'h3' | 'blockquote'
+    listItem?: 'bullet' | 'number'
+    markDefs?: Array<{
+      href?: string
+      _type: 'link'
+      _key: string
+    }>
+    level?: number
+    _type: 'block'
+    _key: string
+  }>
+  imagePosition?: 'left' | 'right'
+  imageSize?: 'small' | 'medium' | 'large'
+}
+
+export type ImageGallery = {
+  _type: 'imageGallery'
+  images?: Array<{
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    caption?: string
+    material?: string
+    dimensions?: string
+    year?: string
+    category?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'category'
+    }
+    _type: 'image'
+    _key: string
+  }>
+  displayStyle?: 'carousel' | 'grid'
+  aspectRatio?: 'original' | 'square' | 'landscape' | 'portrait'
+}
+
+export type ImageBlock = {
+  _type: 'imageBlock'
+  images?: Array<{
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    caption?: string
+    material?: string
+    dimensions?: string
+    year?: string
+    _type: 'image'
+    _key: string
+  }>
+  layout?: 'single-full' | 'single-large' | 'single-medium' | 'two-row' | 'three-row'
+  position?: 'left' | 'center' | 'right'
+  spacing?: 'compact' | 'normal' | 'spacious'
+}
+
+export type TextBlock = {
+  _type: 'textBlock'
+  content?: Array<
+    | {
+        children?: Array<{
+          marks?: Array<string>
+          text?: string
+          _type: 'span'
+          _key: string
+        }>
+        style?: 'normal' | 'h2' | 'h3' | 'h4' | 'blockquote'
+        listItem?: 'bullet' | 'number'
+        markDefs?: Array<{
+          href?: string
+          _type: 'link'
+          _key: string
+        }>
+        level?: number
+        _type: 'block'
+        _key: string
+      }
+    | {
+        asset?: {
+          _ref: string
+          _type: 'reference'
+          _weak?: boolean
+          [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+        }
+        media?: unknown
+        hotspot?: SanityImageHotspot
+        crop?: SanityImageCrop
+        alt?: string
+        caption?: string
+        _type: 'image'
+        _key: string
+      }
+  >
+  columns?: 'full' | 'two' | 'three'
+  alignment?: 'left' | 'center' | 'right'
+}
+
+export type CategorySection = {
+  _type: 'categorySection'
+  category?: {
+    _ref: string
+    _type: 'reference'
+    _weak?: boolean
+    [internalGroqTypeReferenceTo]?: 'category'
+  }
+  content?: Array<
+    | ({
+        _key: string
+      } & TextBlock)
+    | ({
+        _key: string
+      } & ImageBlock)
+    | ({
+        _key: string
+      } & ImageGallery)
+    | ({
+        _key: string
+      } & TextWithImage)
+    | ({
+        _key: string
+      } & VideoBlock)
+  >
+}
+
 export type CallToAction = {
   _type: 'callToAction'
   heading?: string
@@ -117,7 +285,21 @@ export type Project = {
   _createdAt: string
   _updatedAt: string
   _rev: string
+  orderRank?: string
+  projectKind?: 'professional' | 'personal'
   title?: string
+  titleImage?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
   slug?: Slug
   year?: string
   projectType?: {
@@ -147,7 +329,183 @@ export type Project = {
     alt?: string
     _type: 'image'
   }
-  media?: Array<
+  content?: Array<
+    | ({
+        _key: string
+      } & TextBlock)
+    | ({
+        _key: string
+      } & ImageBlock)
+    | ({
+        _key: string
+      } & ImageGallery)
+    | ({
+        _key: string
+      } & TextWithImage)
+    | ({
+        _key: string
+      } & VideoBlock)
+  >
+  categorySections?: Array<
+    {
+      _key: string
+    } & CategorySection
+  >
+  credits?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal' | 'h4'
+    listItem?: 'bullet' | 'number'
+    markDefs?: Array<{
+      href?: string
+      _type: 'link'
+      _key: string
+    }>
+    level?: number
+    _type: 'block'
+    _key: string
+  }>
+  press?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal' | 'h4'
+    listItem?: 'bullet' | 'number'
+    markDefs?: Array<{
+      href?: string
+      _type: 'link'
+      _key: string
+    }>
+    level?: number
+    _type: 'block'
+    _key: string
+  }>
+  tournee?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal' | 'h4'
+    listItem?: 'bullet' | 'number'
+    markDefs?: Array<{
+      href?: string
+      _type: 'link'
+      _key: string
+    }>
+    level?: number
+    _type: 'block'
+    _key: string
+  }>
+  publishedAt?: string
+  visible?: boolean
+}
+
+export type Category = {
+  _id: string
+  _type: 'category'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  title?: string
+  titleImage?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
+  slug?: Slug
+  description?: string
+}
+
+export type ProjectType = {
+  _id: string
+  _type: 'projectType'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  orderRank?: string
+  title?: string
+  titleImage?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
+  slug?: Slug
+  description?: string
+  visibleInNav?: boolean
+}
+
+export type About = {
+  _id: string
+  _type: 'about'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  titleImage?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
+  logo?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
+  content?: Array<
+    | {
+        children?: Array<{
+          marks?: Array<string>
+          text?: string
+          _type: 'span'
+          _key: string
+        }>
+        style?: 'normal' | 'h1' | 'h2' | 'h3' | 'blockquote'
+        listItem?: 'bullet' | 'number'
+        markDefs?: Array<{
+          href?: string
+          _type: 'link'
+          _key: string
+        }>
+        level?: number
+        _type: 'block'
+        _key: string
+      }
     | {
         asset?: {
           _ref: string
@@ -159,58 +517,199 @@ export type Project = {
         hotspot?: SanityImageHotspot
         crop?: SanityImageCrop
         caption?: string
-        material?: string
-        dimensions?: string
-        year?: string
-        category?: {
-          _ref: string
-          _type: 'reference'
-          _weak?: boolean
-          [internalGroqTypeReferenceTo]?: 'category'
-        }
+        alt?: string
         _type: 'image'
         _key: string
       }
-    | {
+  >
+  bio?: string
+  cv?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.fileAsset'
+    }
+    media?: unknown
+    _type: 'file'
+  }
+  profileImage?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  }
+  contact?: {
+    email?: string
+    instagram?: string
+    linkedin?: string
+  }
+}
+
+export type Commissions = {
+  _id: string
+  _type: 'commissions'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  titleImage?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
+  introduction?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal' | 'h2' | 'h3' | 'blockquote'
+    listItem?: 'bullet' | 'number'
+    markDefs?: Array<{
+      href?: string
+      _type: 'link'
+      _key: string
+    }>
+    level?: number
+    _type: 'block'
+    _key: string
+  }>
+  services?: Array<{
+    title?: string
+    description?: string
+    priceRange?: string
+    _key: string
+  }>
+  process?: Array<{
+    step?: number
+    title?: string
+    description?: string
+    _key: string
+  }>
+  contactInfo?: string
+  showContactForm?: boolean
+  featuredCommissions?: Array<{
+    _ref: string
+    _type: 'reference'
+    _weak?: boolean
+    _key: string
+    [internalGroqTypeReferenceTo]?: 'project'
+  }>
+}
+
+export type Navigation = {
+  _id: string
+  _type: 'navigation'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  logoE?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
+  mainItems?: Array<{
+    title?: string
+    slug?: string
+    logo?: {
+      asset?: {
+        _ref: string
+        _type: 'reference'
+        _weak?: boolean
+        [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+      }
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      _type: 'image'
+    }
+    subItems?: Array<{
+      title?: string
+      slug?: string
+      logo?: {
         asset?: {
           _ref: string
           _type: 'reference'
           _weak?: boolean
-          [internalGroqTypeReferenceTo]?: 'sanity.fileAsset'
+          [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
         }
         media?: unknown
-        caption?: string
-        _type: 'file'
-        _key: string
+        hotspot?: SanityImageHotspot
+        crop?: SanityImageCrop
+        _type: 'image'
       }
-  >
-  body?: BlockContent
-  publishedAt?: string
-  featured?: boolean
-  visible?: boolean
+      _key: string
+    }>
+    _key: string
+  }>
 }
 
-export type Category = {
+export type Works = {
   _id: string
-  _type: 'category'
+  _type: 'works'
   _createdAt: string
   _updatedAt: string
   _rev: string
-  title?: string
-  slug?: Slug
-  description?: string
-}
-
-export type ProjectType = {
-  _id: string
-  _type: 'projectType'
-  _createdAt: string
-  _updatedAt: string
-  _rev: string
-  title?: string
-  slug?: Slug
-  description?: string
-  visibleInNav?: boolean
+  titleImage?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  }
+  description?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal' | 'h2' | 'h3' | 'blockquote'
+    listItem?: 'bullet' | 'number'
+    markDefs?: Array<{
+      href?: string
+      _type: 'link'
+      _key: string
+    }>
+    level?: number
+    _type: 'block'
+    _key: string
+  }>
+  featuredProjects?: Array<{
+    _ref: string
+    _type: 'reference'
+    _weak?: boolean
+    _key: string
+    [internalGroqTypeReferenceTo]?: 'project'
+  }>
 }
 
 export type Homepage = {
@@ -231,7 +730,7 @@ export type Homepage = {
     crop?: SanityImageCrop
     _type: 'image'
   }
-  showLogo?: boolean
+  heroType?: 'image' | 'video' | 'vimeo' | 'youtube'
   heroImage?: {
     asset?: {
       _ref: string
@@ -243,6 +742,24 @@ export type Homepage = {
     hotspot?: SanityImageHotspot
     crop?: SanityImageCrop
     _type: 'image'
+  }
+  heroVideo?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.fileAsset'
+    }
+    media?: unknown
+    _type: 'file'
+  }
+  vimeoUrl?: string
+  youtubeUrl?: string
+  videoSettings?: {
+    autoplay?: boolean
+    muted?: boolean
+    loop?: boolean
+    controls?: boolean
   }
 }
 
@@ -630,6 +1147,12 @@ export type SanityAssetSourceData = {
 }
 
 export type AllSanitySchemaTypes =
+  | VideoBlock
+  | TextWithImage
+  | ImageGallery
+  | ImageBlock
+  | TextBlock
+  | CategorySection
   | CallToAction
   | Link
   | InfoSection
@@ -637,6 +1160,10 @@ export type AllSanitySchemaTypes =
   | Project
   | Category
   | ProjectType
+  | About
+  | Commissions
+  | Navigation
+  | Works
   | Homepage
   | Settings
   | Page

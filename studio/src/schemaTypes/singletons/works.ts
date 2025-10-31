@@ -11,10 +11,17 @@ export const works = defineType({
       name: 'titleImage',
       title: 'Works Title Image',
       type: 'image',
-      // description: 'Handwritten/painted "WORKS" title',
+      validation: (rule) => rule.required(),
       options: {
         hotspot: true,
       },
+      fields: [
+        {
+          name: 'alt',
+          type: 'string',
+          title: 'Alternative text',
+        },
+      ],
     }),
     defineField({
       name: 'description',
@@ -49,6 +56,7 @@ export const works = defineType({
           to: [{type: 'project'}],
         },
       ],
+      validation: (rule) => rule.unique(),
       description: 'Optional: Highlight specific projects at the top of the works page',
     }),
   ],

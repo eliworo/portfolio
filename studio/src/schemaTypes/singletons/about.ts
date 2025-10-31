@@ -17,6 +17,16 @@ export const about = defineType({
       },
     }),
     defineField({
+      name: 'logo',
+      title: 'About Logo',
+      type: 'image',
+      description: 'Logo to display on the about page header',
+      options: {
+        hotspot: true,
+      },
+    }),
+
+    defineField({
       name: 'content',
       title: 'Content',
       type: 'array',

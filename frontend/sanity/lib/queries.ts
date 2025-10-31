@@ -114,28 +114,59 @@ export const homepageQuery = `
 }
 `
 
-export const worksPageQuery = defineQuery(`
-  *[_type == "works"][0]{
-    titleImage{
-      asset->{
-        url,
-        metadata {
-          dimensions
-        }
+const worksFields = /* groq */ `
+  _id,
+  titleImage{
+    asset->{
+      url,
+      metadata {
+        dimensions
       }
+    }
+  },
+  description
+`
+
+const featuredProjectFields = /* groq */ `
+  _id,
+  title,
+  slug {
+    current
+  },
+  titleImage {
+    asset->{
+      url
+    }
+  },
+  coverImage {
+    asset->{
+      url
     },
-    description,
+    alt
+  },
+  projectType->{
+    title,
+    slug {
+      current
+    }
+  },
+  categories[]->{
+    _id,
+    title,
+    slug{current},
+    titleImage {
+      asset->{
+        url
+      }
+    }
+  }
+`
+
+export const worksPageQuery = defineQuery(`
+  *[_type == "works" && _id == "worksPage"][0]{
+    ${worksFields},
     featuredProjects[]->{
-      _id,
-      title,
-      slug,
-      mainImage{
-        asset->{
-          url
-        }
-      },
-      excerpt,
-      "projectType": projectType->title
+      ${featuredProjectFields}
     }
   }
 `)
@@ -262,7 +293,7 @@ export const projectGroupQuery =
     "categories": categories[]->{ 
       _id, 
       title, 
-      slug, 
+      slug{current}, 
       titleImage{asset->{url}} 
     }
   }
@@ -460,40 +491,6 @@ export const projectsListQuery = defineQuery(`
   }
 `)
 
-export const featuredProjectsQuery = defineQuery(`
-  *[_type == "project" && featured == true && visible != false] {
-    _id,
-    title,
-    slug,
-    year,
-    excerpt,
-    coverImage {
-      asset->{
-        url
-      },
-      alt
-    },
-    titleImage {
-      asset->{
-        url
-      }
-    },
-    projectType->{
-      title,
-      slug
-    },
-    categories[]->{
-      _id,
-      title,
-      titleImage {
-        asset->{
-          url
-        }
-      }
-    }
-  }
-`)
-
 export const allProjectsByCategoryQuery = defineQuery(`{
   "categories": *[_type == "category"] {
     _id,
@@ -542,3 +539,100 @@ export const allProjectsByCategoryQuery = defineQuery(`{
     }
   }
 }`)
+
+export const debugWorksQuery = defineQuery(`
+  *[_type == "works"]{
+    _id,
+    _type,
+    titleImage
+  }
+`)
+
+export const categoryProjectsQuery = defineQuery(`
+  *[_type == "category" && slug.current == $categorySlug][0]{
+    _id,
+    title,
+    slug{current},
+    titleImage{
+      asset->{url}
+    }
+  } | {
+    ...,
+    "projects": *[_type == "project" && references(^._id) && projectType->slug.current == $groupSlug && visible == true]{
+      _id,
+      title,
+      slug{current},
+      coverImage{
+        asset->{url},
+        alt
+      },
+      titleImage{
+        asset->{url}
+      },
+      projectType->{
+        title,
+        slug{current}
+      },
+      categories[]->{
+        _id,
+        title,
+        slug{current},
+        titleImage{
+          asset->{url}
+        }
+      }
+    },
+    "allCategories": *[_type == "category" && count(*[_type == "project" && references(^._id) && projectType->slug.current == $groupSlug]) > 0]{
+      _id,
+      title,
+      slug{current},
+      titleImage{
+        asset->{url}
+      }
+    }
+  }
+`)
+
+const aboutFields = /* groq */ `
+  _id,
+  logo{
+    asset->{
+      url,
+      metadata {
+        dimensions
+      }
+    }
+  },
+  titleImage{
+    asset->{
+      url,
+      metadata {
+        dimensions
+      }
+    }
+  },
+  content,
+  bio,
+  cv{
+    asset->{
+      url
+    }
+  },
+  profileImage{
+    asset->{
+      url
+    },
+    alt
+  },
+  contact{
+    email,
+    instagram,
+    linkedin
+  }
+`
+
+export const aboutPageQuery = defineQuery(`
+  *[_type == "about"][0]{
+    ${aboutFields}
+  }
+`)

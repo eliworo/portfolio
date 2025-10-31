@@ -49,19 +49,23 @@ export default async function ProjectPage({
     notFound()
   }
 
-  const categoryNavItems = (project.categorySections as unknown as any[])
-    .filter((section) => section.category && section.category._id) // Only keep valid categories
+  const categoryNavItems = (project.categorySections ?? [])
+    .filter((section) => section.category && section.category._id)
     .map((section) => ({
       id: section.category._id,
       title: section.category.title,
-      titleImageUrl: section.category.titleImage?.asset?.url,
+      titleImageUrl: section.category.titleImage?.asset?.url ?? undefined,
     }))
 
   return (
     <main className='min-h-screen px-8 pl-64'>
       {/* Category Navigation */}
       {categoryNavItems.length > 0 && (
-        <CategoryNav categories={categoryNavItems} />
+        <CategoryNav
+          categories={categoryNavItems}
+          title='woronoff by category'
+          isProjectPage={true}
+        />
       )}
 
       {/* Title Section */}

@@ -1,7 +1,8 @@
 import { PortableText } from '@portabletext/react'
-import Image from 'next/image'
+
 import { urlFor } from '@/sanity/lib/image'
 import { cleanBlock } from '@/utils/CleanInvisible'
+import { Image } from 'next-sanity/image'
 
 type ContentBlock =
   | TextBlock
@@ -188,21 +189,17 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
           <Image
             src={urlFor(image).url()}
             alt={image.alt}
-            width={1200}
-            height={800}
-            className='w-full h-auto'
+            width={3000}
+            height={3000}
+            className='w-full h-full object-cover border-4 border-red-500'
           />
           {(image.caption ||
             image.material ||
             image.dimensions ||
             image.year) && (
-            <figcaption className='text-sm text-gray-600 mt-3 space-y-1'>
-              {image.caption && <p>{image.caption}</p>}
-              <div className='flex gap-4 text-xs'>
-                {image.material && <span>{image.material}</span>}
-                {image.dimensions && <span>{image.dimensions}</span>}
-                {image.year && <span>{image.year}</span>}
-              </div>
+            <figcaption className='text-sm text-gray-600 flex items-center justify-start gap-1 mt-2'>
+              {image.caption && <p>{image.caption}</p>}{' '}
+              {image.year && <span>({image.year})</span>}
             </figcaption>
           )}
         </figure>
