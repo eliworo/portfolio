@@ -11,13 +11,14 @@ import Footer from '@/app/components/Footer'
 import Header from '@/app/components/Header'
 import * as demo from '@/sanity/lib/demo'
 import { sanityFetch, SanityLive } from '@/sanity/lib/live'
-import { settingsQuery } from '@/sanity/lib/queries'
+import { navigationImagesQuery, settingsQuery } from '@/sanity/lib/queries'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
 import { handleError } from './client-utils'
 import Navigation from './components/Navigation'
 import NavigationWrapper from './components/NavigationWrapper'
 
 import { agrandirRegular, getFontVariables } from './fonts'
+import MobileNavigation from './components/MobileNavigation'
 
 /**
  * Generate metadata for the page.
@@ -59,6 +60,9 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const { data: navImages } = await sanityFetch({
+    query: navigationImagesQuery,
+  })
   const { isEnabled: isDraftMode } = await draftMode()
 
   const fontVariables = getFontVariables()
@@ -78,7 +82,14 @@ export default async function RootLayout({
           )}
           {/* The <SanityLive> component is responsible for making all sanityFetch calls in your application live, so should always be rendered. */}
           <SanityLive onError={handleError} />
-          <NavigationWrapper />
+          <div className='hidden lg:block'>
+            <Navigation navImages={navImages} />
+          </div>
+
+          <div className='block lg:hidden'>
+            <MobileNavigation navImages={navImages} />
+          </div>
+
           {/* <Header /> */}
           {children}
           {/* <Footer /> */}

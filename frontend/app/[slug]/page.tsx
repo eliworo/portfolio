@@ -22,12 +22,11 @@ export default async function ProjectGroupPage({
     notFound()
   }
 
-  console.log('Project Group Data:', projectGroup)
   return (
-    <main className='py-12 px-8 max-w-7xl mx-auto'>
+    <main className='py-12 px-2 lg:px-8 max-w-7xl mx-auto'>
       {/* Title Image */}
       {(projectGroup.titleImage as any)?.asset?.url && (
-        <div className='mb-8 fixed left-22 top-16 z-20 w-[40vw]'>
+        <div className='px-4 lg:px-0 lg:mb-8 fixed -rotate-3 lg:rotate-0 left-0 lg:left-22 top-23 lg:top-16 z-20 w-full lg:w-[40vw]'>
           <Image
             src={(projectGroup.titleImage as any).asset.url}
             alt={projectGroup.title || 'Project Group Title'}

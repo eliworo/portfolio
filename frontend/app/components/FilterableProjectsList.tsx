@@ -71,7 +71,7 @@ export default function FilterableProjectsList({
         />
       )}
 
-      <div className='columns-[400px] gap-2 py-64'>
+      <div className='columns-[180px] lg:columns-[400px] gap-2 py-40 lg:py-64'>
         <AnimatePresence mode='popLayout'>
           {filteredProjects.map((project, idx) => {
             return (
