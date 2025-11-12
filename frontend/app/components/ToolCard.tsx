@@ -26,13 +26,6 @@ type Tool = {
 export default function ToolCard({ tool }: { tool: Tool }) {
   const [isHovered, setIsHovered] = useState(false)
 
-  // const transformStyle = {
-  //   transform: `translate(${tool.offsetX || 0}px, ${tool.offsetY || 0}px)
-  //               rotate(${tool.rotation || 0}deg)
-  //               scale(${tool.scale || 1})`,
-  //   transition: 'transform 0.3s ease',
-  // }
-
   return (
     <div className='space-y-4'>
       {/* Tool Title Image */}
@@ -59,7 +52,7 @@ export default function ToolCard({ tool }: { tool: Tool }) {
           onMouseLeave={() => setIsHovered(false)}
           style={{
             transform:
-              window.innerWidth >= 1024
+              typeof window !== 'undefined' && window.innerWidth >= 1024
                 ? `translate(${tool.offsetX || 0}px, ${tool.offsetY || 0}px) rotate(${tool.rotation || 0}deg) scale(${tool.scale || 1})`
                 : 'none',
             transition: 'transform 0.3s ease',

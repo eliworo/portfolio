@@ -61,7 +61,7 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
 
       <button
         onClick={toggleMenu}
-        className='fixed top-8 right-4 z-50 flex flex-col justify-center items-center w-16 h-12'
+        className='fixed top-8 right-4 z-50 flex flex-col justify-center items-center w-14 h-12'
         aria-label='Toggle menu'
       >
         <motion.div
@@ -74,7 +74,7 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
         >
           <HamburgerHorizontalLine
             theme={{ fill: 'black' }}
-            className='w-16 h-auto'
+            className='w-14 h-auto'
           />
         </motion.div>
         <motion.div
@@ -87,7 +87,7 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
         >
           <HamburgerHorizontalLine
             theme={{ fill: 'black' }}
-            className='w-16 h-auto'
+            className='w-14 h-auto'
           />
         </motion.div>
         <motion.div
@@ -100,7 +100,7 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
         >
           <HamburgerHorizontalLine
             theme={{ fill: 'black' }}
-            className='w-16 h-auto'
+            className='w-14 h-auto'
           />
         </motion.div>
       </button>
