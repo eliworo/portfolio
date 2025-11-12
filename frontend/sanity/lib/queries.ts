@@ -107,6 +107,12 @@ export const homepageQuery = `
   },
   vimeoUrl,
   youtubeUrl,
+  videoSettings{
+    autoplay,
+    muted,
+    loop,
+    controls
+  },
   logo{
     asset->{url}
   },
@@ -128,44 +134,51 @@ const worksFields = /* groq */ `
 `
 
 const featuredProjectFields = /* groq */ `
-  _id,
-  title,
-  slug {
-    current
-  },
-  titleImage {
-    asset->{
-      url
-    }
-  },
-  coverImage {
-    asset->{
-      url
-    },
-    alt
-  },
-  projectType->{
+  project->{
+    _id,
     title,
     slug {
       current
-    }
-  },
-  categories[]->{
-    _id,
-    title,
-    slug{current},
+    },
     titleImage {
       asset->{
         url
       }
+    },
+    coverImage {
+      asset->{
+        url
+      },
+      alt
+    },
+    projectType->{
+      title,
+      slug {
+        current
+      }
+    },
+    categories[]->{
+      _id,
+      title,
+      slug{current},
+      titleImage {
+        asset->{
+          url
+        }
+      }
     }
-  }
+  },
+  offsetY,
+  offsetX,
+  rotation,
+  scale,
+  zIndex
 `
 
 export const worksPageQuery = defineQuery(`
   *[_type == "works" && _id == "worksPage"][0]{
     ${worksFields},
-    featuredProjects[]->{
+    featuredProjects[]{
       ${featuredProjectFields}
     }
   }
@@ -274,30 +287,88 @@ export const navigationImagesQuery = defineQuery(`{
   }
 }`)
 
-// Query to get a specific project group and its projects
 export const projectGroupQuery =
   defineQuery(`*[_type == "projectType" && slug.current == $slug][0]{
-  _id,
-  title,
-  description,
-  titleImage{asset->{url}},
-  "projects": *[_type == "project" && references(^._id) && visible == true] | order(orderRank asc) {
     _id,
     title,
-    excerpt,
-    "slug": slug.current,
-    mainImage{asset->{url}},
+    description,
     titleImage{asset->{url}},
-    coverImage{asset->{url}, alt},
-    "projectType": ^.title,
-    "categories": categories[]->{ 
-      _id, 
-      title, 
-      slug{current}, 
-      titleImage{asset->{url}} 
+    "featuredProjects": featuredProjects[]{
+      _key,
+      offsetY,
+      offsetX,
+      rotation,
+      scale,
+      zIndex,
+      categorySectionKey,
+      project->{
+        _id,
+        title,
+        "slug": slug.current,
+        projectKind,
+        "projectTypeSlug": projectType->slug.current,
+        titleImage{asset->{url}},
+        coverImage{asset->{url}, alt},
+        description,
+        "categories": categories[]->{
+          _id,
+          title,
+          slug{current},
+          titleImage{asset->{url}}
+        },
+        content[]{
+          _type,
+          _key,
+          _type == "imageBlock" => {
+            _type,
+            _key,
+            images[]{asset->{url}, alt}
+          },
+          _type == "imageGallery" => {
+            _type,
+            _key,
+            images[]{asset->{url}, alt}
+          },
+          _type == "videoBlock" => { _type, _key, url, caption, aspectRatio },
+          _type == "textBlock" => { _type, _key, content, columns, alignment },
+          _type == "textWithImage" => {
+            _type, _key,
+            image{asset->{url}, alt, caption},
+            text, imagePosition, imageSize
+          }
+        },
+        "categorySections": categorySections[]{
+          _key,
+          category->{ _id, title, "slug": slug.current, titleImage{asset->{url}} },
+          preview{
+            _type,
+            image{asset->{url}, alt},
+            text
+          },
+          content[]{
+            _type,
+            _key,
+            _type == "imageBlock" => { _type, _key, images[]{asset->{url}, alt} },
+            _type == "imageGallery" => { _type, _key, images[]{asset->{url}, alt} }
+          }
+        }
+      }
+    },
+    "projects": *[_type == "project" && references(^._id) && visible == true] | order(orderRank asc) {
+      _id,
+      title,
+      "slug": slug.current,
+      titleImage{asset->{url}},
+      coverImage{asset->{url}, alt},
+      "projectType": ^.title,
+      "categories": categories[]->{ 
+        _id, 
+        title, 
+        slug{current}, 
+        titleImage{asset->{url}} 
+      }
     }
-  }
-}`)
+  }`)
 
 export const projectQuery = defineQuery(`
   *[_type == "project" && slug.current == $projectSlug][0] {
@@ -611,7 +682,15 @@ const aboutFields = /* groq */ `
       }
     }
   },
-  content,
+  contactImage{
+    asset->{
+      url,
+      metadata {
+        dimensions
+      }
+    }
+  },
+  quote,
   bio,
   cv{
     asset->{
@@ -627,12 +706,65 @@ const aboutFields = /* groq */ `
   contact{
     email,
     instagram,
-    linkedin
+    linkedin,
+    facebook
+  },
+  arteosDescription,
+  arteosLogo{
+    asset->{
+      url,
+      metadata {
+        dimensions
+      }
+    }
   }
 `
 
 export const aboutPageQuery = defineQuery(`
   *[_type == "about"][0]{
     ${aboutFields}
+  }
+`)
+
+// Add this near the bottom with other page queries
+
+const commissionsFields = /* groq */ `
+    _id,
+  titleImage{
+    asset->{
+      url,
+      metadata {
+        dimensions
+      }
+    }
+  },
+  quote,
+  tools[]{
+    titleImage{
+      asset->{
+        url,
+        metadata {
+          dimensions
+        }
+      }
+    },
+    subtitle,
+    description,
+    image{
+      asset->{
+        url
+      },
+      alt
+    },
+    offsetY,
+    offsetX,
+    rotation,
+    scale
+  }
+`
+
+export const commissionsPageQuery = defineQuery(`
+  *[_type == "commissions"][0]{
+    ${commissionsFields}
   }
 `)

@@ -105,31 +105,10 @@ export const structure: StructureResolver = (S: StructureBuilder, context) =>
                 .child(S.document().schemaType('works').documentId('worksPage')),
             ]),
         ),
-
       S.listItem()
         .title('Commissions')
         .icon(DocumentIcon)
-        .child(
-          S.list()
-            .title('Commissions')
-            .items([
-              // Commissions projects
-              S.listItem()
-                .title('Commission Projects')
-                .icon(FolderIcon)
-                .child(
-                  S.documentList()
-                    .title('Commission Projects')
-                    .filter('_type == "project" && projectType->slug.current == "commissions"'),
-                ),
-              S.divider(),
-              // Page settings
-              S.listItem()
-                .title('Settings')
-                .icon(CogIcon)
-                .child(S.document().schemaType('commissions').documentId('commissionsPage')),
-            ]),
-        ),
+        .child(S.document().schemaType('commissions').documentId('commissionsPage')),
 
       S.listItem()
         .title('About')

@@ -14,23 +14,23 @@ type NavigationProps = {
 
 function buildNavStructure(navImages: NavigationProps['navImages']) {
   const mainCategories = [
-    {
-      title: 'WORKS',
-      slug: '/works',
-      subCategories:
-        navImages?.projectGroups?.map((group) => ({
-          title: group.title?.toUpperCase(),
-          slug: `/${group.slug}`,
-          titleImage: group.titleImage,
-          projects:
-            group.projects?.map((project) => ({
-              title: project.title,
-              slug: `/${group.slug}/p/${project.slug}`,
-              titleImage: project.titleImage,
-              coverImage: project.coverImage,
-            })) ?? [],
-        })) ?? [],
-    },
+    // {
+    //   title: 'WORKS',
+    //   slug: '/works',
+    //   subCategories:
+    //     navImages?.projectGroups?.map((group) => ({
+    //       title: group.title?.toUpperCase(),
+    //       slug: `/${group.slug}`,
+    //       titleImage: group.titleImage,
+    //       projects:
+    //         group.projects?.map((project) => ({
+    //           title: project.title,
+    //           slug: `/${group.slug}/p/${project.slug}`,
+    //           titleImage: project.titleImage,
+    //           coverImage: project.coverImage,
+    //         })) ?? [],
+    //     })) ?? [],
+    // },
     { title: 'ABOUT', slug: '/about' },
     { title: 'COMMISSIONS', slug: '/commissions' },
   ]
@@ -115,8 +115,8 @@ export default function Navigation({ navImages }: NavigationProps) {
               <Image
                 src={navImages.homepage.logo.asset.url}
                 alt='E'
-                width={150}
-                height={150}
+                width={120}
+                height={120}
                 className='object-contain'
               />
             ) : (
@@ -128,7 +128,7 @@ export default function Navigation({ navImages }: NavigationProps) {
             {showMenu && (
               <div className='flex items-center ml-2'>
                 <div className='px-3 py-2 -mx-3 flex items-center'>
-                  <HorizontalLine className='w-32' theme={{ fill: 'black' }} />
+                  <HorizontalLine className='w-24' theme={{ fill: 'black' }} />
                 </div>
 
                 <motion.div
@@ -138,7 +138,7 @@ export default function Navigation({ navImages }: NavigationProps) {
                   animate='visible'
                   exit='hidden'
                 >
-                  <ul className='flex flex-col space-y-3 pl-6 relative'>
+                  <ul className='flex flex-col space-y-3 pl-4 relative'>
                     <div className='absolute left-0 top-0 h-full'>
                       <VerticalLine
                         className='h-full'
@@ -182,7 +182,7 @@ export default function Navigation({ navImages }: NavigationProps) {
                                   height={50}
                                   style={{
                                     width: 'auto',
-                                    maxHeight: '45px',
+                                    maxHeight: '35px',
                                   }}
                                   className='object-contain'
                                 />
@@ -201,13 +201,13 @@ export default function Navigation({ navImages }: NavigationProps) {
                           </div>
 
                           {/* Subcategories */}
-                          <AnimatePresence>
+                          {/* <AnimatePresence>
                             {activeCategory === category.title &&
                               category.subCategories &&
                               category.subCategories.length > 0 && (
                                 <div className='flex items-center absolute left-full top-1/2 -translate-y-1/2 ml-4 w-[40vw]'>
                                   <HorizontalLine
-                                    className='w-32'
+                                    className='w-24'
                                     theme={{ fill: 'black' }}
                                   />
 
@@ -218,7 +218,7 @@ export default function Navigation({ navImages }: NavigationProps) {
                                     animate='visible'
                                     exit='hidden'
                                   >
-                                    <ul className='flex flex-col space-y-3 pl-6 relative'>
+                                    <ul className='flex flex-col space-y-3 pl-3 relative'>
                                       <div className='absolute left-0 top-0 h-full'>
                                         <VerticalLine
                                           className='h-full'
@@ -257,7 +257,7 @@ export default function Navigation({ navImages }: NavigationProps) {
                                                       height={50}
                                                       style={{
                                                         width: 'auto',
-                                                        maxHeight: '45px',
+                                                        maxHeight: '35px',
                                                       }}
                                                       className='object-contain'
                                                     />
@@ -275,106 +275,6 @@ export default function Navigation({ navImages }: NavigationProps) {
                                                   )}
                                                 </Link>
                                               </div>
-
-                                              {/* Third level (projects) */}
-                                              {/* <AnimatePresence>
-                                                {activeSubCategory ===
-                                                  subCategory.title &&
-                                                  subCategory.projects &&
-                                                  subCategory.projects.length >
-                                                    0 && (
-                                                    <div className='flex items-center absolute left-full top-1/2 -translate-y-1/2'>
-                                                      <div className='px-3 py-2 -mx-3'>
-                                                        <HorizontalLine
-                                                          className='w-12'
-                                                          theme={{
-                                                            fill: 'black',
-                                                          }}
-                                                        />
-                                                      </div>
-
-                                                      <motion.div
-                                                        className='relative'
-                                                        variants={menuVariants}
-                                                        initial='hidden'
-                                                        animate='visible'
-                                                        exit='hidden'
-                                                      >
-                                                        <ul className='flex flex-col space-y-3 pl-4 h-full'>
-                                                          <div className='absolute left-0 top-0 h-full'>
-                                                            <VerticalLine
-                                                              className='h-full'
-                                                              theme={{
-                                                                fill: 'black',
-                                                              }}
-                                                            />
-                                                          </div>
-                                                          {subCategory.projects.map(
-                                                            (project) => {
-                                                              const hasProjectImage =
-                                                                project
-                                                                  .titleImage
-                                                                  ?.asset?.url
-
-                                                              console.log(
-                                                                project,
-                                                                'project'
-                                                              )
-                                                              console.log(
-                                                                hasProjectImage,
-                                                                'hasPRojectImage???'
-                                                              )
-
-                                                              return (
-                                                                <li
-                                                                  key={
-                                                                    project.title
-                                                                  }
-                                                                  className='group'
-                                                                >
-                                                                  <Link
-                                                                    href={
-                                                                      project.slug
-                                                                    }
-                                                                    className='block text-black hover:text-gray-600 transition-colors'
-                                                                  >
-                                                                    {hasProjectImage ? (
-                                                                      <div className='relative w-[180px] h-[30px]'>
-                                                                        <Image
-                                                                          src={
-                                                                            project
-                                                                              .titleImage
-                                                                              .asset
-                                                                              .url
-                                                                          }
-                                                                          alt={
-                                                                            project.title
-                                                                          }
-                                                                          fill
-                                                                          style={{
-                                                                            objectPosition:
-                                                                              'left center',
-                                                                          }}
-                                                                          className='object-contain'
-                                                                        />
-                                                                      </div>
-                                                                    ) : (
-                                                                      <span className='group-hover:underline'>
-                                                                        {
-                                                                          project.title
-                                                                        }
-                                                                      </span>
-                                                                    )}
-                                                                  </Link>
-                                                                </li>
-                                                              )
-                                                            }
-                                                          )}
-                                                        </ul>
-                                                      </motion.div>
-                                                    </div>
-                                                  )}
-                                              </AnimatePresence> */}
                                             </li>
                                           )
                                         }
@@ -383,7 +283,7 @@ export default function Navigation({ navImages }: NavigationProps) {
                                   </motion.div>
                                 </div>
                               )}
-                          </AnimatePresence>
+                          </AnimatePresence> */}
                         </li>
                       )
                     })}

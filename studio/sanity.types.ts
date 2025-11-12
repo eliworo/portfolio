@@ -463,18 +463,6 @@ export type About = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  titleImage?: {
-    asset?: {
-      _ref: string
-      _type: 'reference'
-      _weak?: boolean
-      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
-    }
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: 'image'
-  }
   logo?: {
     asset?: {
       _ref: string
@@ -487,7 +475,32 @@ export type About = {
     crop?: SanityImageCrop
     _type: 'image'
   }
-  content?: Array<
+  titleImage?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
+  contactImage?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
+  quote?: string
+  bio?: Array<
     | {
         children?: Array<{
           marks?: Array<string>
@@ -522,7 +535,6 @@ export type About = {
         _key: string
       }
   >
-  bio?: string
   cv?: {
     asset?: {
       _ref: string
@@ -550,7 +562,21 @@ export type About = {
     email?: string
     instagram?: string
     linkedin?: string
+    facebook?: string
   }
+  arteosLogo?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
+  arteosDescription?: string
 }
 
 export type Commissions = {
@@ -571,44 +597,36 @@ export type Commissions = {
     crop?: SanityImageCrop
     _type: 'image'
   }
-  introduction?: Array<{
-    children?: Array<{
-      marks?: Array<string>
-      text?: string
-      _type: 'span'
-      _key: string
-    }>
-    style?: 'normal' | 'h2' | 'h3' | 'blockquote'
-    listItem?: 'bullet' | 'number'
-    markDefs?: Array<{
-      href?: string
-      _type: 'link'
-      _key: string
-    }>
-    level?: number
-    _type: 'block'
-    _key: string
-  }>
-  services?: Array<{
-    title?: string
+  quote?: string
+  tools?: Array<{
+    titleImage?: {
+      asset?: {
+        _ref: string
+        _type: 'reference'
+        _weak?: boolean
+        [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+      }
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      _type: 'image'
+    }
+    subtitle?: string
     description?: string
-    priceRange?: string
+    image?: {
+      asset?: {
+        _ref: string
+        _type: 'reference'
+        _weak?: boolean
+        [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+      }
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    }
     _key: string
-  }>
-  process?: Array<{
-    step?: number
-    title?: string
-    description?: string
-    _key: string
-  }>
-  contactInfo?: string
-  showContactForm?: boolean
-  featuredCommissions?: Array<{
-    _ref: string
-    _type: 'reference'
-    _weak?: boolean
-    _key: string
-    [internalGroqTypeReferenceTo]?: 'project'
   }>
 }
 

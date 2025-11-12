@@ -31,10 +31,10 @@ export const homepage = defineType({
     }),
     defineField({
       name: 'heroImage',
-      title: 'Hero Image',
+      title: 'Hero Image / Video Fallback',
       type: 'image',
+      description: 'Used as main image OR as poster/fallback for videos while loading',
       options: {hotspot: true},
-      hidden: ({parent}) => parent?.heroType !== 'image',
     }),
     defineField({
       name: 'heroVideo',

@@ -139,6 +139,20 @@ export const project = defineType({
       description: 'Content organized by categories',
       of: [{type: 'categorySection'}],
       hidden: ({parent}) => parent?.projectKind !== 'professional',
+      validation: (rule) =>
+        rule.custom((value, context) => {
+          const parent = context.document as {projectKind?: string}
+
+          // Only require for professional projects
+          if (parent?.projectKind === 'professional') {
+            if (!value || value.length === 0) {
+              return 'Category Sections are required for professional projects'
+            }
+          }
+
+          // For personal projects, always valid (even if undefined)
+          return true
+        }),
     }),
 
     defineField({

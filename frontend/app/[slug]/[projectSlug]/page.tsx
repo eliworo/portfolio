@@ -10,6 +10,7 @@ import { ProjectCredits } from '@/app/components/ProjectCredits'
 type Category = {
   _id: string
   title: string
+  slug: { current: string }
   titleImage?: { asset?: { url?: string | null } } | null
 }
 
@@ -52,14 +53,13 @@ export default async function ProjectPage({
   const categoryNavItems = (project.categorySections ?? [])
     .filter((section) => section.category && section.category._id)
     .map((section) => ({
-      id: section.category._id,
+      id: section.category.slug.current,
       title: section.category.title,
       titleImageUrl: section.category.titleImage?.asset?.url ?? undefined,
     }))
 
   return (
     <main className='min-h-screen px-8 pl-64'>
-      {/* Category Navigation */}
       {categoryNavItems.length > 0 && (
         <CategoryNav
           categories={categoryNavItems}
@@ -68,59 +68,49 @@ export default async function ProjectPage({
         />
       )}
 
-      {/* Title Section */}
       <div className='container mx-auto mb-16'>
         {project?.titleImage?.asset?.url ? (
-          <div className='flex justify-start items-center mb-8 pt-16'>
+          <div className='fixed left-20 top-8 z-50'>
             <Image
               src={project.titleImage.asset.url}
               alt={project.title}
-              width={600}
-              height={200}
-              className='w-1/2 h-auto'
+              width={1000}
+              height={500}
+              className='w-[40vw] h-auto -rotate-4'
             />
           </div>
         ) : (
           <h1 className='text-5xl font-bold mb-8'>{project.title}</h1>
         )}
 
-        {/* Project metadata */}
-        {/* <div className='flex gap-6 text-sm text-gray-600 mb-4'>
-          {project.year && <span>{project.year}</span>}
-          {project.projectType && <span>{project.projectType}</span>}
-        </div> */}
-
         {project.description && (
-          <p className='text-4xl max-w-7xl'>{project.description}</p>
+          <p className='text-4xl max-w-7xl mt-88'>{project.description}</p>
         )}
       </div>
 
-      {/* Flexible Content Blocks */}
       {project.content && (
         <div className='container mx-auto'>
           <ContentRenderer content={project.content} />
         </div>
       )}
 
-      {/* Category Sections */}
       {project.categorySections && project.categorySections.length > 0 && (
         <div className='space-y-24'>
           {project.categorySections.map((section) => (
             <section
               key={section.category._id}
-              id={`category-${section.category._id}`}
+              id={section.category.slug.current}
               className='scroll-mt-24'
             >
               <div className='container mx-auto'>
-                {/* Category Title Image or Title */}
                 {section.category.titleImage?.asset?.url ? (
                   <div className='flex justify-start items-center mb-8'>
                     <Image
                       src={section.category.titleImage.asset.url}
                       alt={section.category.title}
-                      width={300}
-                      height={80}
-                      className='h-20 w-auto object-contain'
+                      width={1000}
+                      height={700}
+                      className='h-35 w-auto object-contain'
                     />
                   </div>
                 ) : (
@@ -143,10 +133,9 @@ export default async function ProjectPage({
         />
       </div>
 
-      {/* Navigation */}
       <div className='container mx-auto my-16'>
         <Link
-          href={`/works/${slug}`}
+          href={`/${slug}`}
           className='inline-flex items-center text-gray-600 hover:text-black transition-colors'
         >
           <span className='mr-2'>←</span>

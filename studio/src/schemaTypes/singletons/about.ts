@@ -8,6 +8,15 @@ export const about = defineType({
   icon: UserIcon,
   fields: [
     defineField({
+      name: 'logo',
+      title: 'Logo',
+      type: 'image',
+      description: 'Logo to display on the about page header',
+      options: {
+        hotspot: true,
+      },
+    }),
+    defineField({
       name: 'titleImage',
       title: 'About Title Image',
       type: 'image',
@@ -17,18 +26,24 @@ export const about = defineType({
       },
     }),
     defineField({
-      name: 'logo',
-      title: 'About Logo',
+      name: 'contactImage',
+      title: 'Contact Image',
       type: 'image',
-      description: 'Logo to display on the about page header',
+      description: 'Contact image to display on the about page',
       options: {
         hotspot: true,
       },
     }),
-
     defineField({
-      name: 'content',
-      title: 'Content',
+      name: 'quote',
+      title: 'Quote',
+      type: 'text',
+      rows: 4,
+      description: 'A short quote or short sentence to display before the biography.',
+    }),
+    defineField({
+      name: 'bio',
+      title: 'Biography',
       type: 'array',
       of: [
         {
@@ -83,13 +98,6 @@ export const about = defineType({
       ],
     }),
     defineField({
-      name: 'bio',
-      title: 'Bio',
-      type: 'text',
-      rows: 4,
-      description: 'A short biography displayed prominently on the page.',
-    }),
-    defineField({
       name: 'cv',
       title: 'CV',
       type: 'file',
@@ -131,7 +139,25 @@ export const about = defineType({
           title: 'LinkedIn',
           type: 'url',
         },
+        {
+          name: 'facebook',
+          title: 'Facebook',
+          type: 'url',
+        },
       ],
+    }),
+    defineField({
+      name: 'arteosLogo',
+      title: 'Arteos Logo',
+      type: 'image',
+      options: {
+        hotspot: true,
+      },
+    }),
+    defineField({
+      name: 'arteosDescription',
+      title: 'Arteos Description',
+      type: 'text',
     }),
   ],
   preview: {

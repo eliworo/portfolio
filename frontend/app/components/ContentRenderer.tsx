@@ -185,16 +185,13 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
       }`}
     >
       {block.images.map((image, idx) => (
-        <figure
-          key={idx}
-          className='border-5 border-yellow-600 h-[50vh] w-auto relative'
-        >
+        <figure key={idx} className='h-full w-auto relative'>
           <Image
             src={urlFor(image).url()}
             alt={image.alt}
             width={1200}
             height={1200}
-            className='object-cover border-4 border-red-500 w-full h-auto'
+            className='object-cover w-full h-full'
           />
           {(image.caption ||
             image.material ||

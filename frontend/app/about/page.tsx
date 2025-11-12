@@ -2,119 +2,146 @@ import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
 import { sanityFetch } from '@/sanity/lib/live'
 import { aboutPageQuery } from '@/sanity/lib/queries'
+import type { AboutPageQueryResult } from '@/sanity.types'
+import { FiInstagram, FiFacebook } from 'react-icons/fi'
+import { BiLogoFacebookSquare } from 'react-icons/bi'
 
 export default async function AboutPage() {
-  const { data: aboutPage } = await sanityFetch({
+  const { data } = await sanityFetch({
     query: aboutPageQuery,
   })
+
+  const aboutPage = data as AboutPageQueryResult
 
   if (!aboutPage) {
     return null
   }
 
   return (
-    <main className='w-full pl-60 pr-8'>
+    <main className='w-full min-h-screen relative overflow-hidden'>
+      {aboutPage.quote && (
+        <div className='text-base lg:text-2xl leading-tight lg:max-w-[60vw] lg:ml-132 mt-58 mb-8 lg:mb-0 px-8 lg:mt-32'>
+          <p>&ldquo;{aboutPage.quote}&rdquo;</p>
+        </div>
+      )}
       {aboutPage.logo?.asset?.url && (
-        <div className='mb-8 fixed left-12 top-12 -rotate-4'>
+        <div className='mb-8 fixed left-12 top-12 -rotate-4 z-20'>
           <Image
             src={aboutPage.logo.asset.url}
             alt='About Logo'
             width={600}
             height={200}
-            style={{
-              objectFit: 'contain',
-              width: 'auto',
-              maxHeight: '200px',
-            }}
+            className='object-contain w-auto h-[150px] lg:h-[200px]'
           />
         </div>
       )}
 
-      <div className='flex w-full'>
-        <div className='w-full'></div>
-        {/* Content */}
-        <div className='text-black/85 text-2xl leading-tight font-agrandir-tight mb-12 w-full columns-1 py-32'>
-          {/* Bio */}
-          {aboutPage.bio && (
-            <div className='mb-12'>
-              <p>{aboutPage.bio}</p>
-            </div>
-          )}
+      <div className='lg:container mx-auto lg:px-8 lg:py-24 relative'>
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-16 items-start'>
+          <div className='relative'>
+            {aboutPage.profileImage?.asset?.url && (
+              <div className='relative -ml-24 lg:-mt-16 lg:ml-8'>
+                <Image
+                  src={aboutPage.profileImage.asset.url}
+                  alt={aboutPage.profileImage.alt || 'Profile Image'}
+                  width={400}
+                  height={600}
+                  className='w-[80vw] lg:w-full lg:max-w-lg h-auto object-cover'
+                />
+              </div>
+            )}
+          </div>
 
-          {/* Content Blocks */}
-          {aboutPage.content && (
-            <div className='mb-12'>
-              <PortableText value={aboutPage.content} />
-            </div>
-          )}
-
-          {/* Profile Image */}
-          {aboutPage.profileImage?.asset?.url && (
-            <div className='fixed left-[20%] top-[28%] mb-12 -z-1'>
-              <Image
-                src={aboutPage.profileImage.asset.url}
-                alt={aboutPage.profileImage.alt || 'Profile Image'}
-                width={2000}
-                height={2000}
-                className='w-full max-w-md h-auto object-cover'
-              />
-            </div>
-          )}
-
-          {/* Contact Information */}
-          {aboutPage.contact && (
-            <div className='mb-12'>
-              <h3 className='text-xl font-semibold mb-4'>Contact</h3>
-              {aboutPage.contact.email && (
-                <p className='mb-2'>
-                  <a
-                    href={`mailto:${aboutPage.contact.email}`}
-                    className='hover:underline'
-                  >
-                    {aboutPage.contact.email}
-                  </a>
-                </p>
+          <div className='space-y-12 -mt-124 px-4 lg:mt-0 lg:-ml-80 z-10 w-full lg:max-w-[30vw]'>
+            {aboutPage.bio && (
+              <div className='text-sm lg:text-xl max-w-none leading-tight pl-34 lg:px-0'>
+                <PortableText value={aboutPage.bio} />
+              </div>
+            )}
+            <div className='relative lg:absolute lg:right-60 lg:top-0 lg:mt-0 -mt-16'>
+              {/* Logo - Absolutely positioned on left on mobile */}
+              {aboutPage.arteosLogo?.asset?.url && (
+                <div className='absolute -left-2 -top-14 lg:left-auto lg:top-auto lg:relative z-10'>
+                  <Image
+                    src={aboutPage.arteosLogo.asset.url}
+                    alt='Arteos Logo'
+                    width={100}
+                    height={1000}
+                    className='w-auto h-44 lg:h-64 object-contain'
+                  />
+                </div>
               )}
-              {aboutPage.contact.instagram && (
-                <p className='mb-2'>
-                  <a
-                    href={aboutPage.contact.instagram}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    className='hover:underline'
-                  >
-                    Instagram
-                  </a>
-                </p>
-              )}
-              {aboutPage.contact.linkedin && (
-                <p className='mb-2'>
-                  <a
-                    href={aboutPage.contact.linkedin}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    className='hover:underline'
-                  >
-                    LinkedIn
-                  </a>
-                </p>
-              )}
-            </div>
-          )}
 
-          {/* CV Download */}
-          {aboutPage.cv?.asset?.url && (
-            <div className='mb-12'>
-              <a
-                href={aboutPage.cv.asset.url}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='inline-block bg-black text-white px-6 py-3 hover:bg-gray-800 transition-colors'
-              >
-                Download CV
-              </a>
+              {/* Description Box */}
+              <div className='bg-black rounded-lg px-6 lg:px-8 py-6 lg:py-8 relative lg:absolute lg:left-44 lg:top-16 w-[65vw] lg:w-[20vw] ml-28 lg:ml-0 mt-40 lg:mt-0'>
+                <div className='max-w-full lg:max-w-74 bg-white text-black rounded-lg -rotate-6 p-4 lg:p-5'>
+                  <p className='text-sm lg:text-base leading-tight'>
+                    {aboutPage.arteosDescription}
+                  </p>
+                </div>
+              </div>
             </div>
-          )}
+
+            <div className='lg:absolute lg:right-0 lg:bottom-0'>
+              {aboutPage.contactImage?.asset?.url && (
+                <div className='z-10 relative lg:-ml-44'>
+                  <Image
+                    src={aboutPage.contactImage.asset.url}
+                    alt='Contact Image'
+                    width={1000}
+                    height={1000}
+                    className='w-auto h-32 object-contain'
+                  />
+                </div>
+              )}
+
+              <div className='space-y-4'>
+                <div className='flex gap-1 items-center mb-4'>
+                  {aboutPage.contact?.instagram && (
+                    <a
+                      href={aboutPage.contact.instagram}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='hover:opacity-70 transition-opacity order-2'
+                    >
+                      <FiInstagram className='w-6 h-6' />
+                    </a>
+                  )}
+                  {aboutPage.contact?.facebook && (
+                    <a
+                      href={aboutPage.contact.facebook}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='hover:opacity-70 transition-opacity order-3'
+                    >
+                      <BiLogoFacebookSquare className='w-7 h-7' />
+                    </a>
+                  )}
+                  {aboutPage.contact?.email && (
+                    <a
+                      href={`mailto:${aboutPage.contact.email}`}
+                      className='text-sm hover:opacity-70 transition-opacity block mr-4 lg:mr-0 ml-2 order-1 lg:order-3'
+                    >
+                      {aboutPage.contact.email}
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {aboutPage.cv?.asset?.url && (
+              <div>
+                <a
+                  href={aboutPage.cv.asset.url}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='inline-block text-black border-b border-black text-sm'
+                >
+                  Download CV
+                </a>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </main>

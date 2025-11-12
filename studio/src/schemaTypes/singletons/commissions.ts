@@ -17,136 +17,108 @@ export const commissions = defineType({
       },
     }),
     defineField({
-      name: 'introduction',
-      title: 'Introduction',
-      type: 'array',
-      of: [
-        {
-          type: 'block',
-          styles: [
-            {title: 'Normal', value: 'normal'},
-            {title: 'H2', value: 'h2'},
-            {title: 'H3', value: 'h3'},
-            {title: 'Quote', value: 'blockquote'},
-          ],
-          marks: {
-            decorators: [
-              {title: 'Strong', value: 'strong'},
-              {title: 'Emphasis', value: 'em'},
-            ],
-          },
-        },
-      ],
-      description: 'General information about your commission process',
+      name: 'quote',
+      title: 'Quote',
+      type: 'text',
+      rows: 4,
+      description: 'A short quote or sentence to display at the top of the page.',
     }),
     defineField({
-      name: 'services',
-      title: 'Services',
+      name: 'tools',
+      title: 'Tools',
       type: 'array',
       of: [
         {
           type: 'object',
           fields: [
-            {
-              name: 'title',
-              title: 'Service Title',
+            defineField({
+              name: 'titleImage',
+              title: 'Tool Title Image',
+              type: 'image',
+              description: 'Image for the tool title',
+              options: {
+                hotspot: true,
+              },
+            }),
+            defineField({
+              name: 'subtitle',
+              title: 'Subtitle',
               type: 'string',
-              validation: (Rule) => Rule.required(),
-            },
-            {
+              description: 'Short subtitle for the tool',
+            }),
+            defineField({
               name: 'description',
               title: 'Description',
               type: 'text',
               rows: 3,
-            },
-            {
-              name: 'priceRange',
-              title: 'Price Range',
-              type: 'string',
-              description: 'E.g., "From €500" or "€1000-2000"',
-            },
-          ],
-          preview: {
-            select: {
-              title: 'title',
-              subtitle: 'priceRange',
-            },
-          },
-        },
-      ],
-      description: 'Different types of commissions you offer',
-    }),
-    defineField({
-      name: 'process',
-      title: 'Commission Process',
-      type: 'array',
-      of: [
-        {
-          type: 'object',
-          fields: [
-            {
-              name: 'step',
-              title: 'Step Number',
+              description: 'Short descriptive text for the tool',
+            }),
+            defineField({
+              name: 'image',
+              title: 'Tool Image',
+              type: 'image',
+              description: 'Main image for the tool (will be blurred by default)',
+              options: {
+                hotspot: true,
+              },
+              fields: [
+                {
+                  name: 'alt',
+                  type: 'string',
+                  title: 'Alternative text',
+                },
+              ],
+            }),
+            defineField({
+              name: 'offsetY',
+              title: 'Vertical Offset',
               type: 'number',
-              validation: (Rule) => Rule.required().min(1),
-            },
-            {
-              name: 'title',
-              title: 'Step Title',
-              type: 'string',
-              validation: (Rule) => Rule.required(),
-            },
-            {
-              name: 'description',
-              title: 'Description',
-              type: 'text',
-              rows: 2,
-            },
+              description: 'Move up (negative) or down (positive). Range: -100 to 100',
+              validation: (Rule) => Rule.min(-100).max(100),
+              initialValue: 0,
+            }),
+            defineField({
+              name: 'offsetX',
+              title: 'Horizontal Offset',
+              type: 'number',
+              description: 'Move left (negative) or right (positive). Range: -50 to 50',
+              validation: (Rule) => Rule.min(-50).max(50),
+              initialValue: 0,
+            }),
+            defineField({
+              name: 'rotation',
+              title: 'Rotation',
+              type: 'number',
+              description: 'Rotate the card. Range: -15 to 15 degrees',
+              validation: (Rule) => Rule.min(-15).max(15),
+              initialValue: 0,
+            }),
+            defineField({
+              name: 'scale',
+              title: 'Size',
+              type: 'number',
+              description: 'Make it bigger or smaller. Range: 0.8 to 1.2',
+              validation: (Rule) => Rule.min(0.8).max(1.2),
+              initialValue: 1,
+            }),
           ],
           preview: {
             select: {
-              title: 'title',
-              subtitle: 'step',
+              title: 'subtitle',
+              media: 'titleImage',
+              offsetY: 'offsetY',
+              rotation: 'rotation',
             },
-            prepare({title, subtitle}) {
+            prepare({title, media, offsetY, rotation}) {
               return {
-                title: title,
-                subtitle: `Step ${subtitle}`,
+                title: title || 'Untitled Tool',
+                subtitle: `Y: ${offsetY || 0}px, Rotation: ${rotation || 0}°`,
+                media,
               }
             },
           },
         },
       ],
-      description: 'Steps in your commission process',
-    }),
-    defineField({
-      name: 'contactInfo',
-      title: 'Contact Information',
-      type: 'text',
-      rows: 3,
-      description: 'How potential clients can get in touch',
-    }),
-    defineField({
-      name: 'showContactForm',
-      title: 'Show Contact Form',
-      type: 'boolean',
-      description: 'Enable a contact form on the commissions page',
-      initialValue: true,
-    }),
-    defineField({
-      name: 'featuredCommissions',
-      title: 'Featured Commissions',
-      type: 'array',
-      of: [
-        {
-          type: 'reference',
-          to: [{type: 'project'}],
-          options: {
-            filter: 'projectType->slug.current == "commissions"',
-          },
-        },
-      ],
-      description: 'Highlight past commission projects',
     }),
   ],
   preview: {

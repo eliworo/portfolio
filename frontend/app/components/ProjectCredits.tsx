@@ -52,7 +52,7 @@ export function ProjectCredits({
               <h3 className='font-agrandir-bold uppercase text-xl mb-4'>
                 Crédits
               </h3>
-              <div className='prose'>
+              <div className='leading-[1.5]'>
                 <PortableText value={credits} components={components} />
               </div>
             </>
