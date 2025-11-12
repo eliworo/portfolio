@@ -25,7 +25,7 @@ export default async function AboutPage() {
         </div>
       )}
       {aboutPage.logo?.asset?.url && (
-        <div className='mb-8 fixed left-8 lg:left-12 top-24 lg:top-12 -rotate-4 z-20'>
+        <div className='mb-8 absolute left-8 lg:left-12 top-24 lg:top-12 -rotate-4 z-20'>
           <Image
             src={aboutPage.logo.asset.url}
             alt='About Logo'
@@ -90,57 +90,60 @@ export default async function AboutPage() {
                     alt='Contact Image'
                     width={1000}
                     height={1000}
-                    className='w-auto h-32 object-contain'
+                    className='w-auto h-24 lg:h-32 object-contain'
                   />
                 </div>
               )}
 
-              <div className='space-y-4'>
-                <div className='flex gap-1 items-center mb-4'>
-                  {aboutPage.contact?.instagram && (
-                    <a
-                      href={aboutPage.contact.instagram}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='hover:opacity-70 transition-opacity order-2'
-                    >
-                      <FiInstagram className='w-6 h-6' />
-                    </a>
-                  )}
-                  {aboutPage.contact?.facebook && (
-                    <a
-                      href={aboutPage.contact.facebook}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='hover:opacity-70 transition-opacity order-3'
-                    >
-                      <BiLogoFacebookSquare className='w-7 h-7' />
-                    </a>
-                  )}
+              <div className='space-y-4 pb-8'>
+                <div className='flex flex-col lg:flex-row lg:items-center gap-1 items-start ml-4'>
+                  <div className='flex items-center order-2'>
+                    {aboutPage.contact?.instagram && (
+                      <a
+                        href={aboutPage.contact.instagram}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='hover:opacity-70 transition-opacity'
+                      >
+                        <FiInstagram className='w-6 h-6' />
+                      </a>
+                    )}
+                    {aboutPage.contact?.facebook && (
+                      <a
+                        href={aboutPage.contact.facebook}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='hover:opacity-70 transition-opacity'
+                      >
+                        <BiLogoFacebookSquare className='w-7 h-7' />
+                      </a>
+                    )}
+                  </div>
+
                   {aboutPage.contact?.email && (
                     <a
                       href={`mailto:${aboutPage.contact.email}`}
-                      className='text-sm hover:opacity-70 transition-opacity block mr-4 lg:mr-0 ml-2 order-1 lg:order-3'
+                      className='text-sm hover:opacity-70 transition-opacity block mr-4 lg:mr-0 order-1 lg:order-3'
                     >
                       {aboutPage.contact.email}
                     </a>
                   )}
+
+                  {aboutPage.cv?.asset?.url && (
+                    <div className='order-5'>
+                      <a
+                        href={aboutPage.cv.asset.url}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='inline-block text-black border-b border-black text-sm'
+                      >
+                        Download CV
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-
-            {aboutPage.cv?.asset?.url && (
-              <div>
-                <a
-                  href={aboutPage.cv.asset.url}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='inline-block text-black border-b border-black text-sm'
-                >
-                  Download CV
-                </a>
-              </div>
-            )}
           </div>
         </div>
       </div>

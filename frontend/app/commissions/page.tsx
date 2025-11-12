@@ -31,13 +31,13 @@ export default async function CommissionsPage() {
 
       {/* Quote */}
       {commissionsPage.quote && (
-        <div className='text-base xl:text-2xl leading-tight xl:max-w-[60vw] xl:ml-180 mt-60 mb-8 xl:mb-0 px-8 xl:mt-32'>
+        <div className='text-base xl:text-2xl leading-tight xl:max-w-[60vw] xl:ml-180 mt-62 mb-8 xl:mb-0 px-8 xl:mt-32'>
           <p>{commissionsPage.quote}</p>
         </div>
       )}
 
       {/* Tools Grid */}
-      <div className='xl:pl-60 3xl:pl-88 mt-12 px-8 pb-32'>
+      <div className='xl:pl-60 3xl:pl-88 mt-8 xl:mt-12 px-8 pb-32'>
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 xl:gap-16 3xl:gap-32'>
           {commissionsPage.tools?.map((tool, index) => (
             <ToolCard key={index} tool={tool} />

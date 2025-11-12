@@ -26,15 +26,15 @@ type Tool = {
 export default function ToolCard({ tool }: { tool: Tool }) {
   const [isHovered, setIsHovered] = useState(false)
 
-  const transformStyle = {
-    transform: `translate(${tool.offsetX || 0}px, ${tool.offsetY || 0}px) 
-                rotate(${tool.rotation || 0}deg) 
-                scale(${tool.scale || 1})`,
-    transition: 'transform 0.3s ease',
-  }
+  // const transformStyle = {
+  //   transform: `translate(${tool.offsetX || 0}px, ${tool.offsetY || 0}px)
+  //               rotate(${tool.rotation || 0}deg)
+  //               scale(${tool.scale || 1})`,
+  //   transition: 'transform 0.3s ease',
+  // }
 
   return (
-    <div className='space-y-4' style={transformStyle}>
+    <div className='space-y-4'>
       {/* Tool Title Image */}
       {tool.titleImage?.asset?.url && (
         <div className='-ml-4 -mb-0.5 -rotate-2'>
@@ -49,7 +49,7 @@ export default function ToolCard({ tool }: { tool: Tool }) {
       )}
 
       {/* Subtitle */}
-      {tool.subtitle && <h3 className='text-3xl uppercase'>{tool.subtitle}</h3>}
+      {tool.subtitle && <h3 className='text-2xl uppercase'>{tool.subtitle}</h3>}
 
       {/* Image with Description Overlay */}
       {tool.image?.asset?.url && (
@@ -57,6 +57,13 @@ export default function ToolCard({ tool }: { tool: Tool }) {
           className='relative aspect-video rounded-lg cursor-pointer'
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
+          style={{
+            transform:
+              window.innerWidth >= 1024
+                ? `translate(${tool.offsetX || 0}px, ${tool.offsetY || 0}px) rotate(${tool.rotation || 0}deg) scale(${tool.scale || 1})`
+                : 'none',
+            transition: 'transform 0.3s ease',
+          }}
         >
           <Image
             src={tool.image.asset.url}
