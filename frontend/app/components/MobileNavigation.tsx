@@ -45,24 +45,64 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
 
   return (
     <>
-      {/* Hamburger Icon */}
+      <Link href='/' className='fixed top-8 left-4 z-50 block'>
+        {navImages?.homepage?.logo?.asset?.url ? (
+          <Image
+            src={navImages.homepage.logo.asset.url}
+            alt='E'
+            width={200}
+            height={200}
+            className='object-contain w-14 h-auto'
+          />
+        ) : (
+          <div className='text-3xl font-bold'>E</div>
+        )}
+      </Link>
+
       <button
         onClick={toggleMenu}
-        className='fixed top-8 left-4 z-50 flex flex-col -space-y-0.5'
+        className='fixed top-8 right-4 z-50 flex flex-col justify-center items-center w-16 h-12'
         aria-label='Toggle menu'
       >
-        <HamburgerHorizontalLine
-          theme={{ fill: 'black' }}
-          className='w-16 h-auto'
-        />
-        <HamburgerHorizontalLine
-          theme={{ fill: 'black' }}
-          className='w-16 h-auto'
-        />
-        <HamburgerHorizontalLine
-          theme={{ fill: 'black' }}
-          className='w-16 h-auto'
-        />
+        <motion.div
+          className='absolute'
+          animate={{
+            rotate: isOpen ? 45 : 0,
+            y: isOpen ? 0 : -10,
+          }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+        >
+          <HamburgerHorizontalLine
+            theme={{ fill: 'black' }}
+            className='w-16 h-auto'
+          />
+        </motion.div>
+        <motion.div
+          className='absolute'
+          animate={{
+            opacity: isOpen ? 0 : 1,
+            scaleX: isOpen ? 0 : 1,
+          }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+        >
+          <HamburgerHorizontalLine
+            theme={{ fill: 'black' }}
+            className='w-16 h-auto'
+          />
+        </motion.div>
+        <motion.div
+          className='absolute'
+          animate={{
+            rotate: isOpen ? -45 : 0,
+            y: isOpen ? 0 : 10,
+          }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+        >
+          <HamburgerHorizontalLine
+            theme={{ fill: 'black' }}
+            className='w-16 h-auto'
+          />
+        </motion.div>
       </button>
 
       <AnimatePresence>

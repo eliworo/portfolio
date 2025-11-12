@@ -20,12 +20,12 @@ export default async function AboutPage() {
   return (
     <main className='w-full min-h-screen relative overflow-hidden'>
       {aboutPage.quote && (
-        <div className='text-base lg:text-2xl leading-tight lg:max-w-[60vw] lg:ml-132 mt-58 mb-8 lg:mb-0 px-8 lg:mt-32'>
+        <div className='text-base lg:text-2xl leading-tight lg:max-w-[60vw] lg:ml-132 mt-70 mb-8 lg:mb-0 px-8 pl-20 lg:px-8 lg:mt-32'>
           <p>&ldquo;{aboutPage.quote}&rdquo;</p>
         </div>
       )}
       {aboutPage.logo?.asset?.url && (
-        <div className='mb-8 fixed left-12 top-12 -rotate-4 z-20'>
+        <div className='mb-8 fixed left-8 lg:left-12 top-24 lg:top-12 -rotate-4 z-20'>
           <Image
             src={aboutPage.logo.asset.url}
             alt='About Logo'
