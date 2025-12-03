@@ -37,8 +37,17 @@ export const homepage = defineType({
       options: {hotspot: true},
     }),
     defineField({
-      name: 'heroVideo',
-      title: 'Hero Video (Upload)',
+      name: 'heroVideoMobile',
+      title: 'Hero Video (Mobile)',
+      type: 'file',
+      options: {
+        accept: 'video/*',
+      },
+      hidden: ({parent}) => parent?.heroType !== 'video',
+    }),
+    defineField({
+      name: 'heroVideoDesktop',
+      title: 'Hero Video (Desktop)',
       type: 'file',
       options: {
         accept: 'video/*',

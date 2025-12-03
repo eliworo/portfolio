@@ -1,5 +1,6 @@
 import {defineType, defineField} from 'sanity'
 import {TagIcon} from '@sanity/icons'
+import CategorySync from '../../../components/CategorySync'
 
 export const categorySection = defineType({
   name: 'categorySection',
@@ -14,26 +15,60 @@ export const categorySection = defineType({
       to: [{type: 'category'}],
       description: 'The category this section relates to',
       validation: (rule) => rule.required(),
+      // components: {
+      //   input: CategorySync,
+      // },
     }),
+    // defineField({
+    //   name: 'categoryTitle',
+    //   title: 'Category Title',
+    //   type: 'string',
+    //   hidden: true,
+    //   readOnly: true,
+    // }),
     defineField({
       name: 'preview',
       title: 'Preview',
       type: 'object',
-      options: {collapsed: true},
+      options: {collapsible: true, collapsed: false},
       fields: [
         defineField({
+          name: 'mode',
+          title: 'Preview Type',
+          type: 'string',
+          options: {
+            list: [
+              {title: 'Image', value: 'image'},
+              {title: 'Text Extract', value: 'text'},
+            ],
+            layout: 'radio',
+          },
+          initialValue: 'image',
+          validation: (rule) => rule.required(),
+        }),
+        defineField({
           name: 'image',
+          title: 'Preview Image',
           type: 'image',
           options: {hotspot: true},
+          hidden: ({parent}) => parent?.mode !== 'image',
         }),
         defineField({
-          name: 'imageAlt',
-          type: 'string',
-        }),
-        defineField({
-          name: 'text',
+          name: 'textOverride',
+          title: 'Custom Text',
           type: 'text',
-          rows: 4,
+          rows: 3,
+          description: 'Optional manual text. Leave empty to pull text from the section content.',
+          hidden: ({parent}) => parent?.mode !== 'text',
+        }),
+        defineField({
+          name: 'textExtractIndex',
+          title: 'Text Block Number',
+          type: 'number',
+          description:
+            'Select which text block (1 = first, 2 = second, etc.) from this section’s content should be used.',
+          hidden: ({parent}) => parent?.mode !== 'text',
+          validation: (rule) => rule.min(1),
         }),
       ],
     }),

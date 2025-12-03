@@ -35,12 +35,40 @@ export const textBlock = defineType({
                 title: 'Link',
                 fields: [
                   {
+                    name: 'linkType',
+                    type: 'string',
+                    title: 'Link Type',
+                    options: {
+                      list: [
+                        {title: 'Internal Page', value: 'internal'},
+                        {title: 'External URL', value: 'external'},
+                      ],
+                      layout: 'radio',
+                    },
+                    initialValue: 'internal',
+                  },
+                  {
+                    name: 'internalLink',
+                    type: 'string',
+                    title: 'Internal Page',
+                    description: 'e.g., /works, /productions, /about',
+                    hidden: ({parent}) => parent?.linkType !== 'internal',
+                  },
+                  {
                     name: 'href',
                     type: 'url',
+                    title: 'External URL',
+                    hidden: ({parent}) => parent?.linkType !== 'external',
                     validation: (Rule) =>
                       Rule.uri({
                         scheme: ['http', 'https', 'mailto', 'tel'],
                       }),
+                  },
+                  {
+                    name: 'openInNewTab',
+                    type: 'boolean',
+                    title: 'Open in new tab',
+                    initialValue: false,
                   },
                 ],
               },
@@ -56,7 +84,7 @@ export const textBlock = defineType({
               name: 'alt',
               type: 'string',
               title: 'Alt Text',
-              validation: (Rule) => Rule.required(),
+              // validation: (Rule) => Rule.required(),
             },
             {
               name: 'caption',
@@ -135,7 +163,7 @@ export const imageBlock = defineType({
               name: 'alt',
               type: 'string',
               title: 'Alt Text',
-              validation: (Rule) => Rule.required(),
+              // validation: (Rule) => Rule.required(),
             },
             {
               name: 'caption',
@@ -255,7 +283,7 @@ export const imageGallery = defineType({
               name: 'alt',
               type: 'string',
               title: 'Alt Text',
-              validation: (Rule) => Rule.required(),
+              // validation: (Rule) => Rule.required(),
             },
             {
               name: 'caption',
@@ -277,12 +305,12 @@ export const imageGallery = defineType({
               type: 'string',
               title: 'Year',
             },
-            {
-              name: 'category',
-              type: 'reference',
-              to: [{type: 'category'}],
-              title: 'Category',
-            },
+            // {
+            //   name: 'category',
+            //   type: 'reference',
+            //   to: [{type: 'category'}],
+            //   title: 'Category',
+            // },
           ],
         },
       ],
@@ -351,7 +379,7 @@ export const textWithImage = defineType({
           name: 'alt',
           type: 'string',
           title: 'Alt Text',
-          validation: (Rule) => Rule.required(),
+          // validation: (Rule) => Rule.required(),
         },
         {
           name: 'caption',

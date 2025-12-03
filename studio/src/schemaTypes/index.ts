@@ -22,6 +22,8 @@ import {
   videoBlock,
 } from './objects/contentBlock'
 import {categorySection} from './objects/categorySection'
+import {productions} from './singletons/productions'
+import {studioWorks} from './singletons/studioWorks'
 
 // Export an array of all the schema types.  This is used in the Sanity Studio configuration. https://www.sanity.io/docs/schema-types
 
@@ -33,6 +35,8 @@ export const schemaTypes = [
   navigation,
   commissions,
   about,
+  productions,
+  studioWorks,
   // Documents
   page,
   post,

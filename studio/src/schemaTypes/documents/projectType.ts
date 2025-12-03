@@ -8,13 +8,16 @@ export const projectType = defineType({
   title: 'Project Type',
   type: 'document',
   icon: TagIcon,
+  __experimental_omnisearch_visibility: false, // Hide from global search
+
   fields: [
-    orderRankField({type: 'projectType'}),
+    // orderRankField({type: 'projectType'}),
 
     defineField({
       name: 'title',
       title: 'Title',
       type: 'string',
+      readOnly: true, // Can't edit title
       validation: (rule) => rule.required(),
     }),
     defineField({

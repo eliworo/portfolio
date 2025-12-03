@@ -84,13 +84,43 @@ export const structure: StructureResolver = (S: StructureBuilder, context) =>
                     ]),
                 ),
 
-              orderableDocumentListDeskItem({
-                type: 'projectType',
-                title: 'Groups',
-                icon: StackCompactIcon,
-                S,
-                context,
-              }),
+              S.divider(),
+
+              S.listItem()
+                .title('Productions')
+                .icon(CaseIcon)
+                .child(S.document().schemaType('productions').documentId('productionsPage')),
+
+              S.listItem()
+                .title('Studio Works')
+                .icon(StackCompactIcon)
+                .child(
+                  S.document()
+                    .schemaType('studioWorks')
+                    .documentId('studioWorksPage')
+                    .title('Studio Works'),
+                ),
+
+              // Studio Works - using existing ID
+              // S.listItem()
+              //   .title('Studio')
+              //   .icon(StackCompactIcon)
+              //   .child(
+              //     S.document()
+              //       .schemaType('projectType')
+              //       .documentId('1e97637b-d4fc-491e-8dc4-0e0205242ab5')
+              //       .title('Studio Works'),
+              //   ),
+
+              S.divider(),
+
+              // orderableDocumentListDeskItem({
+              //   type: 'projectType',
+              //   title: 'Groups',
+              //   icon: StackCompactIcon,
+              //   S,
+              //   context,
+              // }),
 
               S.listItem()
                 .title('Categories')

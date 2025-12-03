@@ -75,12 +75,6 @@ export type ImageGallery = {
     material?: string
     dimensions?: string
     year?: string
-    category?: {
-      _ref: string
-      _type: 'reference'
-      _weak?: boolean
-      [internalGroqTypeReferenceTo]?: 'category'
-    }
     _type: 'image'
     _key: string
   }>
@@ -126,7 +120,10 @@ export type TextBlock = {
         style?: 'normal' | 'h2' | 'h3' | 'h4' | 'blockquote'
         listItem?: 'bullet' | 'number'
         markDefs?: Array<{
+          linkType?: 'internal' | 'external'
+          internalLink?: string
           href?: string
+          openInNewTab?: boolean
           _type: 'link'
           _key: string
         }>
@@ -162,6 +159,23 @@ export type CategorySection = {
     _weak?: boolean
     [internalGroqTypeReferenceTo]?: 'category'
   }
+  preview?: {
+    mode?: 'image' | 'text'
+    image?: {
+      asset?: {
+        _ref: string
+        _type: 'reference'
+        _weak?: boolean
+        [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+      }
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      _type: 'image'
+    }
+    textOverride?: string
+    textExtractIndex?: number
+  }
   content?: Array<
     | ({
         _key: string
@@ -179,14 +193,6 @@ export type CategorySection = {
         _key: string
       } & VideoBlock)
   >
-}
-
-export type CallToAction = {
-  _type: 'callToAction'
-  heading?: string
-  text?: string
-  buttonText?: string
-  link?: Link
 }
 
 export type Link = {
@@ -208,42 +214,19 @@ export type Link = {
   openInNewTab?: boolean
 }
 
+export type CallToAction = {
+  _type: 'callToAction'
+  heading?: string
+  text?: string
+  buttonText?: string
+  link?: Link
+}
+
 export type InfoSection = {
   _type: 'infoSection'
   heading?: string
   subheading?: string
-  content?: Array<{
-    children?: Array<{
-      marks?: Array<string>
-      text?: string
-      _type: 'span'
-      _key: string
-    }>
-    style?: 'normal' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'blockquote'
-    listItem?: 'bullet' | 'number'
-    markDefs?: Array<{
-      linkType?: 'href' | 'page' | 'post'
-      href?: string
-      page?: {
-        _ref: string
-        _type: 'reference'
-        _weak?: boolean
-        [internalGroqTypeReferenceTo]?: 'page'
-      }
-      post?: {
-        _ref: string
-        _type: 'reference'
-        _weak?: boolean
-        [internalGroqTypeReferenceTo]?: 'post'
-      }
-      openInNewTab?: boolean
-      _type: 'link'
-      _key: string
-    }>
-    level?: number
-    _type: 'block'
-    _key: string
-  }>
+  content?: BlockContent
 }
 
 export type BlockContent = Array<{
@@ -279,136 +262,6 @@ export type BlockContent = Array<{
   _key: string
 }>
 
-export type Project = {
-  _id: string
-  _type: 'project'
-  _createdAt: string
-  _updatedAt: string
-  _rev: string
-  orderRank?: string
-  projectKind?: 'professional' | 'personal'
-  title?: string
-  titleImage?: {
-    asset?: {
-      _ref: string
-      _type: 'reference'
-      _weak?: boolean
-      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
-    }
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: 'image'
-  }
-  slug?: Slug
-  year?: string
-  projectType?: {
-    _ref: string
-    _type: 'reference'
-    _weak?: boolean
-    [internalGroqTypeReferenceTo]?: 'projectType'
-  }
-  categories?: Array<{
-    _ref: string
-    _type: 'reference'
-    _weak?: boolean
-    _key: string
-    [internalGroqTypeReferenceTo]?: 'category'
-  }>
-  description?: string
-  coverImage?: {
-    asset?: {
-      _ref: string
-      _type: 'reference'
-      _weak?: boolean
-      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
-    }
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    alt?: string
-    _type: 'image'
-  }
-  content?: Array<
-    | ({
-        _key: string
-      } & TextBlock)
-    | ({
-        _key: string
-      } & ImageBlock)
-    | ({
-        _key: string
-      } & ImageGallery)
-    | ({
-        _key: string
-      } & TextWithImage)
-    | ({
-        _key: string
-      } & VideoBlock)
-  >
-  categorySections?: Array<
-    {
-      _key: string
-    } & CategorySection
-  >
-  credits?: Array<{
-    children?: Array<{
-      marks?: Array<string>
-      text?: string
-      _type: 'span'
-      _key: string
-    }>
-    style?: 'normal' | 'h4'
-    listItem?: 'bullet' | 'number'
-    markDefs?: Array<{
-      href?: string
-      _type: 'link'
-      _key: string
-    }>
-    level?: number
-    _type: 'block'
-    _key: string
-  }>
-  press?: Array<{
-    children?: Array<{
-      marks?: Array<string>
-      text?: string
-      _type: 'span'
-      _key: string
-    }>
-    style?: 'normal' | 'h4'
-    listItem?: 'bullet' | 'number'
-    markDefs?: Array<{
-      href?: string
-      _type: 'link'
-      _key: string
-    }>
-    level?: number
-    _type: 'block'
-    _key: string
-  }>
-  tournee?: Array<{
-    children?: Array<{
-      marks?: Array<string>
-      text?: string
-      _type: 'span'
-      _key: string
-    }>
-    style?: 'normal' | 'h4'
-    listItem?: 'bullet' | 'number'
-    markDefs?: Array<{
-      href?: string
-      _type: 'link'
-      _key: string
-    }>
-    level?: number
-    _type: 'block'
-    _key: string
-  }>
-  publishedAt?: string
-  visible?: boolean
-}
-
 export type Category = {
   _id: string
   _type: 'category'
@@ -432,13 +285,34 @@ export type Category = {
   description?: string
 }
 
+export type Slug = {
+  _type: 'slug'
+  current?: string
+  source?: string
+}
+
+export type SanityImageCrop = {
+  _type: 'sanity.imageCrop'
+  top?: number
+  bottom?: number
+  left?: number
+  right?: number
+}
+
+export type SanityImageHotspot = {
+  _type: 'sanity.imageHotspot'
+  x?: number
+  y?: number
+  height?: number
+  width?: number
+}
+
 export type ProjectType = {
   _id: string
   _type: 'projectType'
   _createdAt: string
   _updatedAt: string
   _rev: string
-  orderRank?: string
   title?: string
   titleImage?: {
     asset?: {
@@ -455,6 +329,137 @@ export type ProjectType = {
   slug?: Slug
   description?: string
   visibleInNav?: boolean
+  featuredProjects?: Array<{
+    project?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'project'
+    }
+    categorySectionKey?: string
+    offsetX?: number
+    offsetY?: number
+    rotation?: number
+    scale?: number
+    zIndex?: number
+    _type: 'featuredItem'
+    _key: string
+  }>
+}
+
+export type StudioWorks = {
+  _id: string
+  _type: 'studioWorks'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  titleImage?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  }
+  description?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal' | 'h2' | 'h3' | 'blockquote'
+    listItem?: 'bullet' | 'number'
+    markDefs?: Array<{
+      href?: string
+      _type: 'link'
+      _key: string
+    }>
+    level?: number
+    _type: 'block'
+    _key: string
+  }>
+  featuredProjects?: Array<{
+    project?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'project'
+    }
+    categorySectionKey?: string
+    offsetX?: number
+    offsetY?: number
+    rotation?: number
+    scale?: number
+    zIndex?: number
+    _type: 'featuredItem'
+    _key: string
+  }>
+}
+
+export type Productions = {
+  _id: string
+  _type: 'productions'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  titleImage?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  }
+  description?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal' | 'h2' | 'h3' | 'blockquote'
+    listItem?: 'bullet' | 'number'
+    markDefs?: Array<{
+      href?: string
+      _type: 'link'
+      _key: string
+    }>
+    level?: number
+    _type: 'block'
+    _key: string
+  }>
+  featuredProjects?: Array<{
+    project?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'project'
+    }
+    titlePosition?:
+      | 'top-left'
+      | 'top-right'
+      | 'middle-left'
+      | 'middle-right'
+      | 'bottom-left'
+      | 'bottom-right'
+    offsetY?: number
+    offsetX?: number
+    rotation?: number
+    scale?: number
+    zIndex?: number
+    _key: string
+  }>
 }
 
 export type About = {
@@ -556,6 +561,7 @@ export type About = {
     hotspot?: SanityImageHotspot
     crop?: SanityImageCrop
     alt?: string
+    credit?: string
     _type: 'image'
   }
   contact?: {
@@ -626,6 +632,10 @@ export type Commissions = {
       alt?: string
       _type: 'image'
     }
+    offsetY?: number
+    offsetX?: number
+    rotation?: number
+    scale?: number
     _key: string
   }>
 }
@@ -722,12 +732,226 @@ export type Works = {
     _key: string
   }>
   featuredProjects?: Array<{
+    project?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'project'
+    }
+    offsetY?: number
+    offsetX?: number
+    rotation?: number
+    scale?: number
+    zIndex?: number
+    _key: string
+  }>
+}
+
+export type Project = {
+  _id: string
+  _type: 'project'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  orderRank?: string
+  projectKind?: 'professional' | 'personal'
+  projectSize?: 'small' | 'large'
+  projectSubtype?: 'artwork' | 'writing'
+  title?: string
+  titleImage?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
+  slug?: Slug
+  year?: string
+  categories?: Array<{
     _ref: string
     _type: 'reference'
     _weak?: boolean
     _key: string
-    [internalGroqTypeReferenceTo]?: 'project'
+    [internalGroqTypeReferenceTo]?: 'category'
   }>
+  description?: string
+  previewType?: 'image' | 'text'
+  coverImage?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  }
+  textExtractIndex?: number
+  images?: Array<
+    | {
+        asset?: {
+          _ref: string
+          _type: 'reference'
+          _weak?: boolean
+          [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+        }
+        media?: unknown
+        hotspot?: SanityImageHotspot
+        crop?: SanityImageCrop
+        title?: string
+        alt?: string
+        _type: 'image'
+        _key: string
+      }
+    | {
+        video?: {
+          asset?: {
+            _ref: string
+            _type: 'reference'
+            _weak?: boolean
+            [internalGroqTypeReferenceTo]?: 'sanity.fileAsset'
+          }
+          media?: unknown
+          _type: 'file'
+        }
+        title?: string
+        poster?: {
+          asset?: {
+            _ref: string
+            _type: 'reference'
+            _weak?: boolean
+            [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+          }
+          media?: unknown
+          hotspot?: SanityImageHotspot
+          crop?: SanityImageCrop
+          _type: 'image'
+        }
+        _type: 'videoItem'
+        _key: string
+      }
+  >
+  writingLayout?: 'single' | 'double'
+  writingContent?: Array<
+    | {
+        content?: string
+        _type: 'writingTextBlock'
+        _key: string
+      }
+    | {
+        image?: {
+          asset?: {
+            _ref: string
+            _type: 'reference'
+            _weak?: boolean
+            [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+          }
+          media?: unknown
+          hotspot?: SanityImageHotspot
+          crop?: SanityImageCrop
+          alt?: string
+          _type: 'image'
+        }
+        caption?: string
+        _type: 'writingImageBlock'
+        _key: string
+      }
+  >
+  content?: Array<
+    | ({
+        _key: string
+      } & TextBlock)
+    | ({
+        _key: string
+      } & ImageBlock)
+    | ({
+        _key: string
+      } & ImageGallery)
+    | ({
+        _key: string
+      } & TextWithImage)
+    | ({
+        _key: string
+      } & VideoBlock)
+  >
+  categorySections?: Array<
+    {
+      _key: string
+    } & CategorySection
+  >
+  credits?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal' | 'h4'
+    listItem?: 'bullet' | 'number'
+    markDefs?: Array<{
+      linkType?: 'internal' | 'external'
+      internalLink?: string
+      href?: string
+      openInNewTab?: boolean
+      _type: 'link'
+      _key: string
+    }>
+    level?: number
+    _type: 'block'
+    _key: string
+  }>
+  press?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal' | 'h4'
+    listItem?: 'bullet' | 'number'
+    markDefs?: Array<{
+      linkType?: 'internal' | 'external'
+      internalLink?: string
+      href?: string
+      openInNewTab?: boolean
+      _type: 'link'
+      _key: string
+    }>
+    level?: number
+    _type: 'block'
+    _key: string
+  }>
+  tournee?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal' | 'h4'
+    listItem?: 'bullet' | 'number'
+    markDefs?: Array<{
+      linkType?: 'internal' | 'external'
+      internalLink?: string
+      href?: string
+      openInNewTab?: boolean
+      _type: 'link'
+      _key: string
+    }>
+    level?: number
+    _type: 'block'
+    _key: string
+  }>
+  publishedAt?: string
+  visible?: boolean
 }
 
 export type Homepage = {
@@ -761,7 +985,17 @@ export type Homepage = {
     crop?: SanityImageCrop
     _type: 'image'
   }
-  heroVideo?: {
+  heroVideoMobile?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.fileAsset'
+    }
+    media?: unknown
+    _type: 'file'
+  }
+  heroVideoDesktop?: {
     asset?: {
       _ref: string
       _type: 'reference'
@@ -1072,20 +1306,15 @@ export type SanityImageDimensions = {
   aspectRatio?: number
 }
 
-export type SanityImageHotspot = {
-  _type: 'sanity.imageHotspot'
-  x?: number
-  y?: number
-  height?: number
-  width?: number
-}
-
-export type SanityImageCrop = {
-  _type: 'sanity.imageCrop'
-  top?: number
-  bottom?: number
-  left?: number
-  right?: number
+export type SanityImageMetadata = {
+  _type: 'sanity.imageMetadata'
+  location?: Geopoint
+  dimensions?: SanityImageDimensions
+  palette?: SanityImagePalette
+  lqip?: string
+  blurHash?: string
+  hasAlpha?: boolean
+  isOpaque?: boolean
 }
 
 export type SanityFileAsset = {
@@ -1108,6 +1337,13 @@ export type SanityFileAsset = {
   path?: string
   url?: string
   source?: SanityAssetSourceData
+}
+
+export type SanityAssetSourceData = {
+  _type: 'sanity.assetSourceData'
+  name?: string
+  id?: string
+  url?: string
 }
 
 export type SanityImageAsset = {
@@ -1133,35 +1369,11 @@ export type SanityImageAsset = {
   source?: SanityAssetSourceData
 }
 
-export type SanityImageMetadata = {
-  _type: 'sanity.imageMetadata'
-  location?: Geopoint
-  dimensions?: SanityImageDimensions
-  palette?: SanityImagePalette
-  lqip?: string
-  blurHash?: string
-  hasAlpha?: boolean
-  isOpaque?: boolean
-}
-
 export type Geopoint = {
   _type: 'geopoint'
   lat?: number
   lng?: number
   alt?: number
-}
-
-export type Slug = {
-  _type: 'slug'
-  current?: string
-  source?: string
-}
-
-export type SanityAssetSourceData = {
-  _type: 'sanity.assetSourceData'
-  name?: string
-  id?: string
-  url?: string
 }
 
 export type AllSanitySchemaTypes =
@@ -1171,17 +1383,22 @@ export type AllSanitySchemaTypes =
   | ImageBlock
   | TextBlock
   | CategorySection
-  | CallToAction
   | Link
+  | CallToAction
   | InfoSection
   | BlockContent
-  | Project
   | Category
+  | Slug
+  | SanityImageCrop
+  | SanityImageHotspot
   | ProjectType
+  | StudioWorks
+  | Productions
   | About
   | Commissions
   | Navigation
   | Works
+  | Project
   | Homepage
   | Settings
   | Page
@@ -1202,12 +1419,9 @@ export type AllSanitySchemaTypes =
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions
-  | SanityImageHotspot
-  | SanityImageCrop
-  | SanityFileAsset
-  | SanityImageAsset
   | SanityImageMetadata
-  | Geopoint
-  | Slug
+  | SanityFileAsset
   | SanityAssetSourceData
+  | SanityImageAsset
+  | Geopoint
 export declare const internalGroqTypeReferenceTo: unique symbol

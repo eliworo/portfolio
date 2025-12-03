@@ -117,6 +117,12 @@ export const about = defineType({
           title: 'Alternative text',
           description: 'Important for SEO and accessibility.',
         },
+        {
+          name: 'credit',
+          type: 'string',
+          title: 'Credit',
+          description: 'Photo credit or source information.',
+        },
       ],
     }),
     defineField({
