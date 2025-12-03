@@ -1,25 +1,50 @@
-import { stegaClean } from "@sanity/client/stega";
-import { Image } from "next-sanity/image";
-import { getImageDimensions } from "@sanity/asset-utils";
-import { urlForImage } from "@/sanity/lib/utils";
+import NextImage from 'next/image'
+import { stegaClean } from '@sanity/client/stega'
+import { getImageDimensions } from '@sanity/asset-utils'
+import { urlForImage } from '@/sanity/lib/utils'
 
 interface CoverImageProps {
-  image: any;
-  priority?: boolean;
+  image: any
+  priority?: boolean
 }
 
-export default function CoverImage(props: CoverImageProps) {
-  const { image: source, priority } = props;
-  const image = source?.asset?._ref ? (
-    <Image
-      className="object-cover"
-      width={getImageDimensions(source).width}
-      height={getImageDimensions(source).height}
-      alt={stegaClean(source?.alt) || ""}
-      src={urlForImage(source)?.url() as string}
-      priority={priority}
-    />
-  ) : null;
+const normalizeImageSource = (source?: any) => {
+  if (!source?.asset) return null
+  if (source.asset._ref) return source
+  if (source.asset._id) {
+    return {
+      ...source,
+      asset: { _ref: source.asset._id },
+    }
+  }
+  return null
+}
 
-  return <div className="relative">{image}</div>;
+export default function CoverImage({
+  image: source,
+  priority,
+}: CoverImageProps) {
+  const normalized = normalizeImageSource(source)
+  const fallbackUrl = source?.asset?.url
+  const imageUrl = (normalized && urlForImage(normalized)?.url()) || fallbackUrl
+
+  if (!imageUrl) return null
+
+  const { width, height } = normalized
+    ? getImageDimensions(normalized)
+    : { width: 1600, height: 900 }
+
+  return (
+    <div className='relative w-full h-auto'>
+      <NextImage
+        src={imageUrl}
+        alt={stegaClean(source?.alt) || ''}
+        width={width}
+        height={height}
+        className='w-full h-auto object-cover'
+        priority={priority}
+        sizes='(min-width: 1024px) 25vw, 45vw'
+      />
+    </div>
+  )
 }

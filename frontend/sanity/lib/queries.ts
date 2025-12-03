@@ -102,7 +102,10 @@ export const homepageQuery = `
   heroImage{
     asset->{url}
   },
-  heroVideo{
+  heroVideoMobile{
+    asset->{url}
+  },
+  heroVideoDesktop{
     asset->{url}
   },
   vimeoUrl,
@@ -146,9 +149,9 @@ const featuredProjectFields = /* groq */ `
       }
     },
     coverImage {
-      asset->{
-        url
-      },
+      asset->{ _id, url },
+      crop,
+      hotspot,
       alt
     },
     projectType->{
@@ -270,10 +273,16 @@ export const navigationImagesQuery = defineQuery(`{
   "commissions": *[_type == "commissions"][0]{
     titleImage{asset->{url}}
   },
+  "productions": *[_type == "productions"][0]{
+    titleImage{asset->{url}}
+  },
+  "studioWorks": *[_type == "studioWorks"][0]{
+    titleImage{asset->{url}}
+  },
   "homepage": *[_type == "homepage"][0]{
     logo{asset->{url}}
   },
-  "projectGroups": *[_type == "projectType" && visibleInNav == true] | order(orderRank asc) {
+  "projectGroups": *[_type == "projectType" && visibleInNav == true] | order(title asc) {
     _id,
     title,
     "slug": slug.current,
@@ -310,6 +319,7 @@ export const projectGroupQuery =
         titleImage{asset->{url}},
         coverImage{asset->{url}, alt},
         description,
+        year,
         "categories": categories[]->{
           _id,
           title,
@@ -377,6 +387,9 @@ export const projectQuery = defineQuery(`
     slug,
     year,
     description,
+    projectKind,
+    projectSize,
+    projectSubtype,
     "projectType": projectType->title,
     "projectTypeSlug": projectType->slug.current,
     titleImage {
@@ -403,8 +416,11 @@ export const projectQuery = defineQuery(`
       _type == "imageBlock" => {
         images[] {
           asset-> {
+            _id,
             url
           },
+          crop,
+          hotspot,
           alt,
           caption,
           material,
@@ -701,7 +717,8 @@ const aboutFields = /* groq */ `
     asset->{
       url
     },
-    alt
+    alt,
+    credit
   },
   contact{
     email,
@@ -768,3 +785,200 @@ export const commissionsPageQuery = defineQuery(`
     ${commissionsFields}
   }
 `)
+
+const productionsFields = /* groq */ `
+  _id,
+  titleImage{
+    asset->{
+      url,
+      metadata {
+        dimensions
+      }
+    }
+  },
+  description
+`
+
+const productionsFeaturedProjectFields = /* groq */ `
+  project->{
+    _id,
+    title,
+    slug {
+      current
+    },
+    titleImage {
+      asset->{
+        url
+      }
+    },
+    coverImage,
+    projectKind,
+    categories[]->{
+      _id,
+      title,
+      slug{current},
+      titleImage {
+        asset->{
+          url
+        }
+      }
+    }
+  },
+  titlePosition,
+  offsetY,
+  offsetX,
+  rotation,
+  scale,
+  zIndex
+`
+
+export const productionsPageQuery = defineQuery(`
+  *[_type == "productions" && _id == "productionsPage"][0]{
+    ${productionsFields},
+    featuredProjects[]{
+      ${productionsFeaturedProjectFields}
+    }
+  }
+`)
+
+const projectFields = /* groq */ `
+  _id,
+  title,
+  slug { current },
+  projectKind,
+  projectSize,
+  projectSubtype,
+  titleImage { asset->{ url } },
+  coverImage {
+    asset->{ _id, url },
+    crop,
+    hotspot,
+    alt
+  },
+ images[] {
+    _type,
+    _type == "image" => {
+      asset->{ _id, url },
+      crop,
+      hotspot,
+      alt,
+      title
+    },
+    _type == "videoItem" => {
+      video {
+        asset->{ url }
+      },
+      title,
+      poster {
+        asset->{ url }
+      }
+    }
+  },
+  description,
+  year,
+  categories[]->{
+    _id,
+    title,
+    slug{current},
+    titleImage { asset->{ url } }
+  },
+  content,
+  writingLayout,
+  writingContent[] {
+    _type,
+    _key,
+    _type == "writingTextBlock" => { content },
+    _type == "writingImageBlock" => {
+      image {
+        asset->{ _id, url },
+        crop,
+        hotspot,
+        alt
+      },
+      caption
+    }
+  },
+  previewType,
+  textExtractIndex,
+  categorySections[] {
+    _key,
+    category->{ _id, title, slug{current}, titleImage { asset->{ url } } },
+    preview {
+      _type,
+      mode,
+      textOverride,
+      textExtractIndex,
+      image {
+        asset->{ _id, url },
+        crop,
+        hotspot,
+        alt
+      },
+      text
+    },
+    content[] {
+      _type,
+      _key,
+      _type == "textBlock" => {
+        content,
+        columns,
+        alignment
+      },
+      _type == "imageBlock" => {
+        images[] {
+          asset->{ _id, url },
+          crop,
+          hotspot,
+          alt
+        }
+      },
+      _type == "imageGallery" => {
+        images[] {
+          asset->{ _id, url },
+          crop,
+          hotspot,
+          alt
+        }
+      },
+      _type == "textWithImage" => {
+        text,
+        image {
+          asset->{ _id, url },
+          alt,
+          caption
+        },
+        imagePosition,
+        imageSize
+      }
+    }
+  },
+  credits,
+  press,
+  tournee,
+  publishedAt,
+  visible
+`
+
+export const studioWorksQuery = /* groq */ `
+  *[_type == "studioWorks"][0]{
+    title,
+    titleImage {
+      asset->{
+        url
+      }
+    },
+    description,
+    featuredProjects[] {
+      _key,
+      project->{
+        ${projectFields}
+      },
+      categorySectionKey,
+      offsetY,
+      offsetX,
+      rotation,
+      scale,
+      zIndex
+    }
+  }
+`

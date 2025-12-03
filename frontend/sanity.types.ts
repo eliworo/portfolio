@@ -75,12 +75,6 @@ export type ImageGallery = {
     material?: string;
     dimensions?: string;
     year?: string;
-    category?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "category";
-    };
     _type: "image";
     _key: string;
   }>;
@@ -125,7 +119,10 @@ export type TextBlock = {
     style?: "normal" | "h2" | "h3" | "h4" | "blockquote";
     listItem?: "bullet" | "number";
     markDefs?: Array<{
+      linkType?: "internal" | "external";
+      internalLink?: string;
       href?: string;
+      openInNewTab?: boolean;
       _type: "link";
       _key: string;
     }>;
@@ -159,6 +156,23 @@ export type CategorySection = {
     _weak?: boolean;
     [internalGroqTypeReferenceTo]?: "category";
   };
+  preview?: {
+    mode?: "image" | "text";
+    image?: {
+      asset?: {
+        _ref: string;
+        _type: "reference";
+        _weak?: boolean;
+        [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+      };
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      _type: "image";
+    };
+    textOverride?: string;
+    textExtractIndex?: number;
+  };
   content?: Array<{
     _key: string;
   } & TextBlock | {
@@ -170,14 +184,6 @@ export type CategorySection = {
   } & TextWithImage | {
     _key: string;
   } & VideoBlock>;
-};
-
-export type CallToAction = {
-  _type: "callToAction";
-  heading?: string;
-  text?: string;
-  buttonText?: string;
-  link?: Link;
 };
 
 export type Link = {
@@ -199,42 +205,19 @@ export type Link = {
   openInNewTab?: boolean;
 };
 
+export type CallToAction = {
+  _type: "callToAction";
+  heading?: string;
+  text?: string;
+  buttonText?: string;
+  link?: Link;
+};
+
 export type InfoSection = {
   _type: "infoSection";
   heading?: string;
   subheading?: string;
-  content?: Array<{
-    children?: Array<{
-      marks?: Array<string>;
-      text?: string;
-      _type: "span";
-      _key: string;
-    }>;
-    style?: "normal" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "blockquote";
-    listItem?: "bullet" | "number";
-    markDefs?: Array<{
-      linkType?: "href" | "page" | "post";
-      href?: string;
-      page?: {
-        _ref: string;
-        _type: "reference";
-        _weak?: boolean;
-        [internalGroqTypeReferenceTo]?: "page";
-      };
-      post?: {
-        _ref: string;
-        _type: "reference";
-        _weak?: boolean;
-        [internalGroqTypeReferenceTo]?: "post";
-      };
-      openInNewTab?: boolean;
-      _type: "link";
-      _key: string;
-    }>;
-    level?: number;
-    _type: "block";
-    _key: string;
-  }>;
+  content?: BlockContent;
 };
 
 export type BlockContent = Array<{
@@ -270,128 +253,6 @@ export type BlockContent = Array<{
   _key: string;
 }>;
 
-export type Project = {
-  _id: string;
-  _type: "project";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  orderRank?: string;
-  projectKind?: "professional" | "personal";
-  title?: string;
-  titleImage?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    _type: "image";
-  };
-  slug?: Slug;
-  year?: string;
-  projectType?: {
-    _ref: string;
-    _type: "reference";
-    _weak?: boolean;
-    [internalGroqTypeReferenceTo]?: "projectType";
-  };
-  categories?: Array<{
-    _ref: string;
-    _type: "reference";
-    _weak?: boolean;
-    _key: string;
-    [internalGroqTypeReferenceTo]?: "category";
-  }>;
-  description?: string;
-  coverImage?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    _type: "image";
-  };
-  content?: Array<{
-    _key: string;
-  } & TextBlock | {
-    _key: string;
-  } & ImageBlock | {
-    _key: string;
-  } & ImageGallery | {
-    _key: string;
-  } & TextWithImage | {
-    _key: string;
-  } & VideoBlock>;
-  categorySections?: Array<{
-    _key: string;
-  } & CategorySection>;
-  credits?: Array<{
-    children?: Array<{
-      marks?: Array<string>;
-      text?: string;
-      _type: "span";
-      _key: string;
-    }>;
-    style?: "normal" | "h4";
-    listItem?: "bullet" | "number";
-    markDefs?: Array<{
-      href?: string;
-      _type: "link";
-      _key: string;
-    }>;
-    level?: number;
-    _type: "block";
-    _key: string;
-  }>;
-  press?: Array<{
-    children?: Array<{
-      marks?: Array<string>;
-      text?: string;
-      _type: "span";
-      _key: string;
-    }>;
-    style?: "normal" | "h4";
-    listItem?: "bullet" | "number";
-    markDefs?: Array<{
-      href?: string;
-      _type: "link";
-      _key: string;
-    }>;
-    level?: number;
-    _type: "block";
-    _key: string;
-  }>;
-  tournee?: Array<{
-    children?: Array<{
-      marks?: Array<string>;
-      text?: string;
-      _type: "span";
-      _key: string;
-    }>;
-    style?: "normal" | "h4";
-    listItem?: "bullet" | "number";
-    markDefs?: Array<{
-      href?: string;
-      _type: "link";
-      _key: string;
-    }>;
-    level?: number;
-    _type: "block";
-    _key: string;
-  }>;
-  publishedAt?: string;
-  visible?: boolean;
-};
-
 export type Category = {
   _id: string;
   _type: "category";
@@ -415,13 +276,34 @@ export type Category = {
   description?: string;
 };
 
+export type Slug = {
+  _type: "slug";
+  current?: string;
+  source?: string;
+};
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x?: number;
+  y?: number;
+  height?: number;
+  width?: number;
+};
+
 export type ProjectType = {
   _id: string;
   _type: "projectType";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  orderRank?: string;
   title?: string;
   titleImage?: {
     asset?: {
@@ -438,6 +320,131 @@ export type ProjectType = {
   slug?: Slug;
   description?: string;
   visibleInNav?: boolean;
+  featuredProjects?: Array<{
+    project?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "project";
+    };
+    categorySectionKey?: string;
+    offsetX?: number;
+    offsetY?: number;
+    rotation?: number;
+    scale?: number;
+    zIndex?: number;
+    _type: "featuredItem";
+    _key: string;
+  }>;
+};
+
+export type StudioWorks = {
+  _id: string;
+  _type: "studioWorks";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  titleImage?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  description?: Array<{
+    children?: Array<{
+      marks?: Array<string>;
+      text?: string;
+      _type: "span";
+      _key: string;
+    }>;
+    style?: "normal" | "h2" | "h3" | "blockquote";
+    listItem?: "bullet" | "number";
+    markDefs?: Array<{
+      href?: string;
+      _type: "link";
+      _key: string;
+    }>;
+    level?: number;
+    _type: "block";
+    _key: string;
+  }>;
+  featuredProjects?: Array<{
+    project?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "project";
+    };
+    categorySectionKey?: string;
+    offsetX?: number;
+    offsetY?: number;
+    rotation?: number;
+    scale?: number;
+    zIndex?: number;
+    _type: "featuredItem";
+    _key: string;
+  }>;
+};
+
+export type Productions = {
+  _id: string;
+  _type: "productions";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  titleImage?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  description?: Array<{
+    children?: Array<{
+      marks?: Array<string>;
+      text?: string;
+      _type: "span";
+      _key: string;
+    }>;
+    style?: "normal" | "h2" | "h3" | "blockquote";
+    listItem?: "bullet" | "number";
+    markDefs?: Array<{
+      href?: string;
+      _type: "link";
+      _key: string;
+    }>;
+    level?: number;
+    _type: "block";
+    _key: string;
+  }>;
+  featuredProjects?: Array<{
+    project?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "project";
+    };
+    titlePosition?: "top-left" | "top-right" | "middle-left" | "middle-right" | "bottom-left" | "bottom-right";
+    offsetY?: number;
+    offsetX?: number;
+    rotation?: number;
+    scale?: number;
+    zIndex?: number;
+    _key: string;
+  }>;
 };
 
 export type About = {
@@ -536,6 +543,7 @@ export type About = {
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     alt?: string;
+    credit?: string;
     _type: "image";
   };
   contact?: {
@@ -606,6 +614,10 @@ export type Commissions = {
       alt?: string;
       _type: "image";
     };
+    offsetY?: number;
+    offsetX?: number;
+    rotation?: number;
+    scale?: number;
     _key: string;
   }>;
 };
@@ -702,12 +714,212 @@ export type Works = {
     _key: string;
   }>;
   featuredProjects?: Array<{
+    project?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "project";
+    };
+    offsetY?: number;
+    offsetX?: number;
+    rotation?: number;
+    scale?: number;
+    zIndex?: number;
+    _key: string;
+  }>;
+};
+
+export type Project = {
+  _id: string;
+  _type: "project";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  orderRank?: string;
+  projectKind?: "professional" | "personal";
+  projectSize?: "small" | "large";
+  projectSubtype?: "artwork" | "writing";
+  title?: string;
+  titleImage?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  slug?: Slug;
+  year?: string;
+  categories?: Array<{
     _ref: string;
     _type: "reference";
     _weak?: boolean;
     _key: string;
-    [internalGroqTypeReferenceTo]?: "project";
+    [internalGroqTypeReferenceTo]?: "category";
   }>;
+  description?: string;
+  previewType?: "image" | "text";
+  coverImage?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  textExtractIndex?: number;
+  images?: Array<{
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    title?: string;
+    alt?: string;
+    _type: "image";
+    _key: string;
+  } | {
+    video?: {
+      asset?: {
+        _ref: string;
+        _type: "reference";
+        _weak?: boolean;
+        [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
+      };
+      media?: unknown;
+      _type: "file";
+    };
+    title?: string;
+    poster?: {
+      asset?: {
+        _ref: string;
+        _type: "reference";
+        _weak?: boolean;
+        [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+      };
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      _type: "image";
+    };
+    _type: "videoItem";
+    _key: string;
+  }>;
+  writingLayout?: "single" | "double";
+  writingContent?: Array<{
+    content?: string;
+    _type: "writingTextBlock";
+    _key: string;
+  } | {
+    image?: {
+      asset?: {
+        _ref: string;
+        _type: "reference";
+        _weak?: boolean;
+        [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+      };
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      alt?: string;
+      _type: "image";
+    };
+    caption?: string;
+    _type: "writingImageBlock";
+    _key: string;
+  }>;
+  content?: Array<{
+    _key: string;
+  } & TextBlock | {
+    _key: string;
+  } & ImageBlock | {
+    _key: string;
+  } & ImageGallery | {
+    _key: string;
+  } & TextWithImage | {
+    _key: string;
+  } & VideoBlock>;
+  categorySections?: Array<{
+    _key: string;
+  } & CategorySection>;
+  credits?: Array<{
+    children?: Array<{
+      marks?: Array<string>;
+      text?: string;
+      _type: "span";
+      _key: string;
+    }>;
+    style?: "normal" | "h4";
+    listItem?: "bullet" | "number";
+    markDefs?: Array<{
+      linkType?: "internal" | "external";
+      internalLink?: string;
+      href?: string;
+      openInNewTab?: boolean;
+      _type: "link";
+      _key: string;
+    }>;
+    level?: number;
+    _type: "block";
+    _key: string;
+  }>;
+  press?: Array<{
+    children?: Array<{
+      marks?: Array<string>;
+      text?: string;
+      _type: "span";
+      _key: string;
+    }>;
+    style?: "normal" | "h4";
+    listItem?: "bullet" | "number";
+    markDefs?: Array<{
+      linkType?: "internal" | "external";
+      internalLink?: string;
+      href?: string;
+      openInNewTab?: boolean;
+      _type: "link";
+      _key: string;
+    }>;
+    level?: number;
+    _type: "block";
+    _key: string;
+  }>;
+  tournee?: Array<{
+    children?: Array<{
+      marks?: Array<string>;
+      text?: string;
+      _type: "span";
+      _key: string;
+    }>;
+    style?: "normal" | "h4";
+    listItem?: "bullet" | "number";
+    markDefs?: Array<{
+      linkType?: "internal" | "external";
+      internalLink?: string;
+      href?: string;
+      openInNewTab?: boolean;
+      _type: "link";
+      _key: string;
+    }>;
+    level?: number;
+    _type: "block";
+    _key: string;
+  }>;
+  publishedAt?: string;
+  visible?: boolean;
 };
 
 export type Homepage = {
@@ -741,7 +953,17 @@ export type Homepage = {
     crop?: SanityImageCrop;
     _type: "image";
   };
-  heroVideo?: {
+  heroVideoMobile?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
+    };
+    media?: unknown;
+    _type: "file";
+  };
+  heroVideoDesktop?: {
     asset?: {
       _ref: string;
       _type: "reference";
@@ -1035,20 +1257,15 @@ export type SanityImageDimensions = {
   aspectRatio?: number;
 };
 
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x?: number;
-  y?: number;
-  height?: number;
-  width?: number;
-};
-
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top?: number;
-  bottom?: number;
-  left?: number;
-  right?: number;
+export type SanityImageMetadata = {
+  _type: "sanity.imageMetadata";
+  location?: Geopoint;
+  dimensions?: SanityImageDimensions;
+  palette?: SanityImagePalette;
+  lqip?: string;
+  blurHash?: string;
+  hasAlpha?: boolean;
+  isOpaque?: boolean;
 };
 
 export type SanityFileAsset = {
@@ -1071,6 +1288,13 @@ export type SanityFileAsset = {
   path?: string;
   url?: string;
   source?: SanityAssetSourceData;
+};
+
+export type SanityAssetSourceData = {
+  _type: "sanity.assetSourceData";
+  name?: string;
+  id?: string;
+  url?: string;
 };
 
 export type SanityImageAsset = {
@@ -1096,17 +1320,6 @@ export type SanityImageAsset = {
   source?: SanityAssetSourceData;
 };
 
-export type SanityImageMetadata = {
-  _type: "sanity.imageMetadata";
-  location?: Geopoint;
-  dimensions?: SanityImageDimensions;
-  palette?: SanityImagePalette;
-  lqip?: string;
-  blurHash?: string;
-  hasAlpha?: boolean;
-  isOpaque?: boolean;
-};
-
 export type Geopoint = {
   _type: "geopoint";
   lat?: number;
@@ -1114,20 +1327,7 @@ export type Geopoint = {
   alt?: number;
 };
 
-export type Slug = {
-  _type: "slug";
-  current?: string;
-  source?: string;
-};
-
-export type SanityAssetSourceData = {
-  _type: "sanity.assetSourceData";
-  name?: string;
-  id?: string;
-  url?: string;
-};
-
-export type AllSanitySchemaTypes = VideoBlock | TextWithImage | ImageGallery | ImageBlock | TextBlock | CategorySection | CallToAction | Link | InfoSection | BlockContent | Project | Category | ProjectType | About | Commissions | Navigation | Works | Homepage | Settings | Page | Post | Person | SanityAssistInstructionTask | SanityAssistTaskStatus | SanityAssistSchemaTypeAnnotations | SanityAssistOutputType | SanityAssistOutputField | SanityAssistInstructionContext | AssistInstructionContext | SanityAssistInstructionUserInput | SanityAssistInstructionPrompt | SanityAssistInstructionFieldRef | SanityAssistInstruction | SanityAssistSchemaTypeField | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageHotspot | SanityImageCrop | SanityFileAsset | SanityImageAsset | SanityImageMetadata | Geopoint | Slug | SanityAssetSourceData;
+export type AllSanitySchemaTypes = VideoBlock | TextWithImage | ImageGallery | ImageBlock | TextBlock | CategorySection | Link | CallToAction | InfoSection | BlockContent | Category | Slug | SanityImageCrop | SanityImageHotspot | ProjectType | StudioWorks | Productions | About | Commissions | Navigation | Works | Project | Homepage | Settings | Page | Post | Person | SanityAssistInstructionTask | SanityAssistTaskStatus | SanityAssistSchemaTypeAnnotations | SanityAssistOutputType | SanityAssistOutputField | SanityAssistInstructionContext | AssistInstructionContext | SanityAssistInstructionUserInput | SanityAssistInstructionPrompt | SanityAssistInstructionFieldRef | SanityAssistInstruction | SanityAssistSchemaTypeField | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
 export declare const internalGroqTypeReferenceTo: unique symbol;
 // Source: ./sanity/lib/queries.ts
 // Variable: settingsQuery
@@ -1402,7 +1602,7 @@ export type PagesSlugsResult = Array<{
   slug: string | null;
 }>;
 // Variable: worksPageQuery
-// Query: *[_type == "works" && _id == "worksPage"][0]{      _id,  titleImage{    asset->{      url,      metadata {        dimensions      }    }  },  description,    featuredProjects[]{        project->{    _id,    title,    slug {      current    },    titleImage {      asset->{        url      }    },    coverImage {      asset->{        url      },      alt    },    projectType->{      title,      slug {        current      }    },    categories[]->{      _id,      title,      slug{current},      titleImage {        asset->{          url        }      }    }  },  offsetY,  offsetX,  rotation,  scale,  zIndex    }  }
+// Query: *[_type == "works" && _id == "worksPage"][0]{      _id,  titleImage{    asset->{      url,      metadata {        dimensions      }    }  },  description,    featuredProjects[]{        project->{    _id,    title,    slug {      current    },    titleImage {      asset->{        url      }    },    coverImage {      asset->{ _id, url },      crop,      hotspot,      alt    },    projectType->{      title,      slug {        current      }    },    categories[]->{      _id,      title,      slug{current},      titleImage {        asset->{          url        }      }    }  },  offsetY,  offsetX,  rotation,  scale,  zIndex    }  }
 export type WorksPageQueryResult = {
   _id: string;
   titleImage: {
@@ -1432,12 +1632,45 @@ export type WorksPageQueryResult = {
     _key: string;
   }> | null;
   featuredProjects: Array<{
-    project: null;
-    offsetY: null;
-    offsetX: null;
-    rotation: null;
-    scale: null;
-    zIndex: null;
+    project: {
+      _id: string;
+      title: string | null;
+      slug: {
+        current: string | null;
+      } | null;
+      titleImage: {
+        asset: {
+          url: string | null;
+        } | null;
+      } | null;
+      coverImage: {
+        asset: {
+          _id: string;
+          url: string | null;
+        } | null;
+        crop: SanityImageCrop | null;
+        hotspot: SanityImageHotspot | null;
+        alt: string | null;
+      } | null;
+      projectType: null;
+      categories: Array<{
+        _id: string;
+        title: string | null;
+        slug: {
+          current: string | null;
+        } | null;
+        titleImage: {
+          asset: {
+            url: string | null;
+          } | null;
+        } | null;
+      }> | null;
+    } | null;
+    offsetY: number | null;
+    offsetX: number | null;
+    rotation: number | null;
+    scale: number | null;
+    zIndex: number | null;
   }> | null;
 } | null;
 // Variable: projectTypesQuery
@@ -1456,7 +1689,7 @@ export type ProjectsByTypeQueryResult = Array<{
   slug: Slug | null;
   mainImage: null;
   excerpt: null;
-  projectType: string | null;
+  projectType: null;
 }>;
 // Variable: allProjectsQuery
 // Query: *[_type == "project"] | order(orderRank asc) {    _id,    title,    slug,    mainImage{      asset->{        url      }    },    excerpt,    "projectType": projectType->title  }
@@ -1466,7 +1699,7 @@ export type AllProjectsQueryResult = Array<{
   slug: Slug | null;
   mainImage: null;
   excerpt: null;
-  projectType: string | null;
+  projectType: null;
 }>;
 // Variable: navigationQuery
 // Query: *[_type == "navigation"][0]{    logoE{      asset->{        url,        metadata {          dimensions        }      }    },    mainItems[]{      title,      slug,      logo{        asset->{          url,          metadata {            dimensions          }        }      },      subItems[]{        title,        slug,        logo{          asset->{            url,            metadata {              dimensions            }          }        }      }    }  }
@@ -1505,7 +1738,7 @@ export type NavigationQueryResult = {
   }> | null;
 } | null;
 // Variable: navigationImagesQuery
-// Query: {  "works": *[_type == "works"][0]{    titleImage{asset->{url}}  },  "about": *[_type == "about"][0]{    titleImage{asset->{url}}  },  "commissions": *[_type == "commissions"][0]{    titleImage{asset->{url}}  },  "homepage": *[_type == "homepage"][0]{    logo{asset->{url}}  },  "projectGroups": *[_type == "projectType" && visibleInNav == true] | order(orderRank asc) {    _id,    title,    "slug": slug.current,    titleImage{asset->{url}},    "projects": *[_type == "project" && references(^._id) && defined(visible) && visible == true] | order(orderRank asc) {      title,      "slug": slug.current,      titleImage{asset->{url}},       coverImage{asset->{url}, alt}    }  }}
+// Query: {  "works": *[_type == "works"][0]{    titleImage{asset->{url}}  },  "about": *[_type == "about"][0]{    titleImage{asset->{url}}  },  "commissions": *[_type == "commissions"][0]{    titleImage{asset->{url}}  },  "productions": *[_type == "productions"][0]{    titleImage{asset->{url}}  },  "studioWorks": *[_type == "studioWorks"][0]{    titleImage{asset->{url}}  },  "homepage": *[_type == "homepage"][0]{    logo{asset->{url}}  },  "projectGroups": *[_type == "projectType" && visibleInNav == true] | order(title asc) {    _id,    title,    "slug": slug.current,    titleImage{asset->{url}},    "projects": *[_type == "project" && references(^._id) && defined(visible) && visible == true] | order(orderRank asc) {      title,      "slug": slug.current,      titleImage{asset->{url}},       coverImage{asset->{url}, alt}    }  }}
 export type NavigationImagesQueryResult = {
   works: {
     titleImage: {
@@ -1522,6 +1755,20 @@ export type NavigationImagesQueryResult = {
     } | null;
   } | null;
   commissions: {
+    titleImage: {
+      asset: {
+        url: string | null;
+      } | null;
+    } | null;
+  } | null;
+  productions: {
+    titleImage: {
+      asset: {
+        url: string | null;
+      } | null;
+    } | null;
+  } | null;
+  studioWorks: {
     titleImage: {
       asset: {
         url: string | null;
@@ -1562,7 +1809,7 @@ export type NavigationImagesQueryResult = {
   }>;
 };
 // Variable: projectGroupQuery
-// Query: *[_type == "projectType" && slug.current == $slug][0]{    _id,    title,    description,    titleImage{asset->{url}},    "featuredProjects": featuredProjects[]{      _key,      offsetY,      offsetX,      rotation,      scale,      zIndex,      categorySectionKey,      project->{        _id,        title,        "slug": slug.current,        projectKind,        "projectTypeSlug": projectType->slug.current,        titleImage{asset->{url}},        coverImage{asset->{url}, alt},        description,        "categories": categories[]->{          _id,          title,          slug{current},          titleImage{asset->{url}}        },        content[]{          _type,          _key,          _type == "imageBlock" => {            _type,            _key,            images[]{asset->{url}, alt}          },          _type == "imageGallery" => {            _type,            _key,            images[]{asset->{url}, alt}          },          _type == "videoBlock" => { _type, _key, url, caption, aspectRatio },          _type == "textBlock" => { _type, _key, content, columns, alignment },          _type == "textWithImage" => {            _type, _key,            image{asset->{url}, alt, caption},            text, imagePosition, imageSize          }        },        "categorySections": categorySections[]{          _key,          category->{ _id, title, "slug": slug.current, titleImage{asset->{url}} },          preview{            _type,            image{asset->{url}, alt},            text          },          content[]{            _type,            _key,            _type == "imageBlock" => { _type, _key, images[]{asset->{url}, alt} },            _type == "imageGallery" => { _type, _key, images[]{asset->{url}, alt} }          }        }      }    },    "projects": *[_type == "project" && references(^._id) && visible == true] | order(orderRank asc) {      _id,      title,      "slug": slug.current,      titleImage{asset->{url}},      coverImage{asset->{url}, alt},      "projectType": ^.title,      "categories": categories[]->{         _id,         title,         slug{current},         titleImage{asset->{url}}       }    }  }
+// Query: *[_type == "projectType" && slug.current == $slug][0]{    _id,    title,    description,    titleImage{asset->{url}},    "featuredProjects": featuredProjects[]{      _key,      offsetY,      offsetX,      rotation,      scale,      zIndex,      categorySectionKey,      project->{        _id,        title,        "slug": slug.current,        projectKind,        "projectTypeSlug": projectType->slug.current,        titleImage{asset->{url}},        coverImage{asset->{url}, alt},        description,        year,        "categories": categories[]->{          _id,          title,          slug{current},          titleImage{asset->{url}}        },        content[]{          _type,          _key,          _type == "imageBlock" => {            _type,            _key,            images[]{asset->{url}, alt}          },          _type == "imageGallery" => {            _type,            _key,            images[]{asset->{url}, alt}          },          _type == "videoBlock" => { _type, _key, url, caption, aspectRatio },          _type == "textBlock" => { _type, _key, content, columns, alignment },          _type == "textWithImage" => {            _type, _key,            image{asset->{url}, alt, caption},            text, imagePosition, imageSize          }        },        "categorySections": categorySections[]{          _key,          category->{ _id, title, "slug": slug.current, titleImage{asset->{url}} },          preview{            _type,            image{asset->{url}, alt},            text          },          content[]{            _type,            _key,            _type == "imageBlock" => { _type, _key, images[]{asset->{url}, alt} },            _type == "imageGallery" => { _type, _key, images[]{asset->{url}, alt} }          }        }      }    },    "projects": *[_type == "project" && references(^._id) && visible == true] | order(orderRank asc) {      _id,      title,      "slug": slug.current,      titleImage{asset->{url}},      coverImage{asset->{url}, alt},      "projectType": ^.title,      "categories": categories[]->{         _id,         title,         slug{current},         titleImage{asset->{url}}       }    }  }
 export type ProjectGroupQueryResult = {
   _id: string;
   title: string | null;
@@ -1572,7 +1819,193 @@ export type ProjectGroupQueryResult = {
       url: string | null;
     } | null;
   } | null;
-  featuredProjects: null;
+  featuredProjects: Array<{
+    _key: string;
+    offsetY: number | null;
+    offsetX: number | null;
+    rotation: number | null;
+    scale: number | null;
+    zIndex: number | null;
+    categorySectionKey: string | null;
+    project: {
+      _id: string;
+      title: string | null;
+      slug: string | null;
+      projectKind: "personal" | "professional" | null;
+      projectTypeSlug: null;
+      titleImage: {
+        asset: {
+          url: string | null;
+        } | null;
+      } | null;
+      coverImage: {
+        asset: {
+          url: string | null;
+        } | null;
+        alt: string | null;
+      } | null;
+      description: string | null;
+      year: string | null;
+      categories: Array<{
+        _id: string;
+        title: string | null;
+        slug: {
+          current: string | null;
+        } | null;
+        titleImage: {
+          asset: {
+            url: string | null;
+          } | null;
+        } | null;
+      }> | null;
+      content: Array<{
+        _type: "imageBlock";
+        _key: string;
+        images: Array<{
+          asset: {
+            url: string | null;
+          } | null;
+          alt: string | null;
+        }> | null;
+      } | {
+        _type: "imageGallery";
+        _key: string;
+        images: Array<{
+          asset: {
+            url: string | null;
+          } | null;
+          alt: string | null;
+        }> | null;
+      } | {
+        _type: "textBlock";
+        _key: string;
+        content: Array<{
+          children?: Array<{
+            marks?: Array<string>;
+            text?: string;
+            _type: "span";
+            _key: string;
+          }>;
+          style?: "blockquote" | "h2" | "h3" | "h4" | "normal";
+          listItem?: "bullet" | "number";
+          markDefs?: Array<{
+            linkType?: "external" | "internal";
+            internalLink?: string;
+            href?: string;
+            openInNewTab?: boolean;
+            _type: "link";
+            _key: string;
+          }>;
+          level?: number;
+          _type: "block";
+          _key: string;
+        } | {
+          asset?: {
+            _ref: string;
+            _type: "reference";
+            _weak?: boolean;
+            [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+          };
+          media?: unknown;
+          hotspot?: SanityImageHotspot;
+          crop?: SanityImageCrop;
+          alt?: string;
+          caption?: string;
+          _type: "image";
+          _key: string;
+        }> | null;
+        columns: "full" | "three" | "two" | null;
+        alignment: "center" | "left" | "right" | null;
+      } | {
+        _type: "textWithImage";
+        _key: string;
+        image: {
+          asset: {
+            url: string | null;
+          } | null;
+          alt: string | null;
+          caption: string | null;
+        } | null;
+        text: Array<{
+          children?: Array<{
+            marks?: Array<string>;
+            text?: string;
+            _type: "span";
+            _key: string;
+          }>;
+          style?: "blockquote" | "h2" | "h3" | "normal";
+          listItem?: "bullet" | "number";
+          markDefs?: Array<{
+            href?: string;
+            _type: "link";
+            _key: string;
+          }>;
+          level?: number;
+          _type: "block";
+          _key: string;
+        }> | null;
+        imagePosition: "left" | "right" | null;
+        imageSize: "large" | "medium" | "small" | null;
+      } | {
+        _type: "videoBlock";
+        _key: string;
+        url: string | null;
+        caption: string | null;
+        aspectRatio: "1:1" | "16:9" | "4:3" | "9:16" | null;
+      }> | null;
+      categorySections: Array<{
+        _key: string;
+        category: {
+          _id: string;
+          title: string | null;
+          slug: string | null;
+          titleImage: {
+            asset: {
+              url: string | null;
+            } | null;
+          } | null;
+        } | null;
+        preview: {
+          _type: null;
+          image: {
+            asset: {
+              url: string | null;
+            } | null;
+            alt: null;
+          } | null;
+          text: null;
+        } | null;
+        content: Array<{
+          _type: "imageBlock";
+          _key: string;
+          images: Array<{
+            asset: {
+              url: string | null;
+            } | null;
+            alt: string | null;
+          }> | null;
+        } | {
+          _type: "imageGallery";
+          _key: string;
+          images: Array<{
+            asset: {
+              url: string | null;
+            } | null;
+            alt: string | null;
+          }> | null;
+        } | {
+          _type: "textBlock";
+          _key: string;
+        } | {
+          _type: "textWithImage";
+          _key: string;
+        } | {
+          _type: "videoBlock";
+          _key: string;
+        }> | null;
+      }> | null;
+    } | null;
+  }> | null;
   projects: Array<{
     _id: string;
     title: string | null;
@@ -1604,15 +2037,18 @@ export type ProjectGroupQueryResult = {
   }>;
 } | null;
 // Variable: projectQuery
-// Query: *[_type == "project" && slug.current == $projectSlug][0] {    _id,    title,    slug,    year,    description,    "projectType": projectType->title,    "projectTypeSlug": projectType->slug.current,    titleImage {      asset-> {        url      }    },    coverImage {      asset-> {        url      },      alt    },    content[] {      _type,      _key,      // Text Block      _type == "textBlock" => {        content,        columns,        alignment      },      // Image Block      _type == "imageBlock" => {        images[] {          asset-> {            url          },          alt,          caption,          material,          dimensions,          year        },        layout,        position,        spacing      },      // Image Gallery      _type == "imageGallery" => {        images[] {          asset-> {            url          },          alt,          caption,          material,          dimensions,          year,          category-> {            title          }        },        displayStyle,        aspectRatio      },      // Text with Image      _type == "textWithImage" => {        image {          asset-> {            url          },          alt,          caption        },        text,        imagePosition,        imageSize      },      // Video Block      _type == "videoBlock" => {        url,        caption,        aspectRatio      }    },    categorySections[] {      _key,      category-> {        _id,        title,        slug,        titleImage {          asset-> {            url          }        }      },      content[] {        _type,        _key,        // Text Block        _type == "textBlock" => {          content,          columns,          alignment        },        // Image Block        _type == "imageBlock" => {          images[] {            asset-> {              url            },            alt,            caption,            material,            dimensions,            year          },          layout,          position,          spacing        },        // Image Gallery        _type == "imageGallery" => {          images[] {            asset-> {              url            },            alt,            caption,            material,            dimensions,            year,            category-> {              title            }          },          displayStyle,          aspectRatio        },        // Text with Image        _type == "textWithImage" => {          image {            asset-> {              url            },            alt,            caption          },          text,          imagePosition,          imageSize        },        // Video Block        _type == "videoBlock" => {          url,          caption,          aspectRatio        }      }    },    categories[]-> {      title,      slug    },    credits,    press,    tournee,    publishedAt,    featured,    visible  }
+// Query: *[_type == "project" && slug.current == $projectSlug][0] {    _id,    title,    slug,    year,    description,    projectKind,    projectSize,    projectSubtype,    "projectType": projectType->title,    "projectTypeSlug": projectType->slug.current,    titleImage {      asset-> {        url      }    },    coverImage {      asset-> {        url      },      alt    },    content[] {      _type,      _key,      // Text Block      _type == "textBlock" => {        content,        columns,        alignment      },      // Image Block      _type == "imageBlock" => {        images[] {          asset-> {            _id,            url          },          crop,          hotspot,          alt,          caption,          material,          dimensions,          year        },        layout,        position,        spacing      },      // Image Gallery      _type == "imageGallery" => {        images[] {          asset-> {            url          },          alt,          caption,          material,          dimensions,          year,          category-> {            title          }        },        displayStyle,        aspectRatio      },      // Text with Image      _type == "textWithImage" => {        image {          asset-> {            url          },          alt,          caption        },        text,        imagePosition,        imageSize      },      // Video Block      _type == "videoBlock" => {        url,        caption,        aspectRatio      }    },    categorySections[] {      _key,      category-> {        _id,        title,        slug,        titleImage {          asset-> {            url          }        }      },      content[] {        _type,        _key,        // Text Block        _type == "textBlock" => {          content,          columns,          alignment        },        // Image Block        _type == "imageBlock" => {          images[] {            asset-> {              url            },            alt,            caption,            material,            dimensions,            year          },          layout,          position,          spacing        },        // Image Gallery        _type == "imageGallery" => {          images[] {            asset-> {              url            },            alt,            caption,            material,            dimensions,            year,            category-> {              title            }          },          displayStyle,          aspectRatio        },        // Text with Image        _type == "textWithImage" => {          image {            asset-> {              url            },            alt,            caption          },          text,          imagePosition,          imageSize        },        // Video Block        _type == "videoBlock" => {          url,          caption,          aspectRatio        }      }    },    categories[]-> {      title,      slug    },    credits,    press,    tournee,    publishedAt,    featured,    visible  }
 export type ProjectQueryResult = {
   _id: string;
   title: string | null;
   slug: Slug | null;
   year: string | null;
   description: string | null;
-  projectType: string | null;
-  projectTypeSlug: string | null;
+  projectKind: "personal" | "professional" | null;
+  projectSize: "large" | "small" | null;
+  projectSubtype: "artwork" | "writing" | null;
+  projectType: null;
+  projectTypeSlug: null;
   titleImage: {
     asset: {
       url: string | null;
@@ -1629,8 +2065,11 @@ export type ProjectQueryResult = {
     _key: string;
     images: Array<{
       asset: {
+        _id: string;
         url: string | null;
       } | null;
+      crop: SanityImageCrop | null;
+      hotspot: SanityImageHotspot | null;
       alt: string | null;
       caption: string | null;
       material: string | null;
@@ -1652,9 +2091,7 @@ export type ProjectQueryResult = {
       material: string | null;
       dimensions: string | null;
       year: string | null;
-      category: {
-        title: string | null;
-      } | null;
+      category: null;
     }> | null;
     displayStyle: "carousel" | "grid" | null;
     aspectRatio: "landscape" | "original" | "portrait" | "square" | null;
@@ -1671,7 +2108,10 @@ export type ProjectQueryResult = {
       style?: "blockquote" | "h2" | "h3" | "h4" | "normal";
       listItem?: "bullet" | "number";
       markDefs?: Array<{
+        linkType?: "external" | "internal";
+        internalLink?: string;
         href?: string;
+        openInNewTab?: boolean;
         _type: "link";
         _key: string;
       }>;
@@ -1772,9 +2212,7 @@ export type ProjectQueryResult = {
         material: string | null;
         dimensions: string | null;
         year: string | null;
-        category: {
-          title: string | null;
-        } | null;
+        category: null;
       }> | null;
       displayStyle: "carousel" | "grid" | null;
       aspectRatio: "landscape" | "original" | "portrait" | "square" | null;
@@ -1791,7 +2229,10 @@ export type ProjectQueryResult = {
         style?: "blockquote" | "h2" | "h3" | "h4" | "normal";
         listItem?: "bullet" | "number";
         markDefs?: Array<{
+          linkType?: "external" | "internal";
+          internalLink?: string;
           href?: string;
+          openInNewTab?: boolean;
           _type: "link";
           _key: string;
         }>;
@@ -1867,7 +2308,10 @@ export type ProjectQueryResult = {
     style?: "h4" | "normal";
     listItem?: "bullet" | "number";
     markDefs?: Array<{
+      linkType?: "external" | "internal";
+      internalLink?: string;
       href?: string;
+      openInNewTab?: boolean;
       _type: "link";
       _key: string;
     }>;
@@ -1885,7 +2329,10 @@ export type ProjectQueryResult = {
     style?: "h4" | "normal";
     listItem?: "bullet" | "number";
     markDefs?: Array<{
+      linkType?: "external" | "internal";
+      internalLink?: string;
       href?: string;
+      openInNewTab?: boolean;
       _type: "link";
       _key: string;
     }>;
@@ -1903,7 +2350,10 @@ export type ProjectQueryResult = {
     style?: "h4" | "normal";
     listItem?: "bullet" | "number";
     markDefs?: Array<{
+      linkType?: "external" | "internal";
+      internalLink?: string;
       href?: string;
+      openInNewTab?: boolean;
       _type: "link";
       _key: string;
     }>;
@@ -1929,7 +2379,7 @@ export type ProjectsListQueryResult = Array<{
     } | null;
     alt: string | null;
   } | null;
-  projectType: string | null;
+  projectType: null;
   categories: Array<{
     title: string | null;
   }> | null;
@@ -1964,10 +2414,7 @@ export type AllProjectsByCategoryQueryResult = {
         url: string | null;
       } | null;
     } | null;
-    projectType: {
-      title: string | null;
-      slug: string | null;
-    } | null;
+    projectType: null;
     categories: Array<{
       _id: string;
       title: string | null;
@@ -2031,12 +2478,7 @@ export type CategoryProjectsQueryResult = {
         url: string | null;
       } | null;
     } | null;
-    projectType: {
-      title: string | null;
-      slug: {
-        current: string | null;
-      } | null;
-    } | null;
+    projectType: null;
     categories: Array<{
       _id: string;
       title: string | null;
@@ -2064,7 +2506,7 @@ export type CategoryProjectsQueryResult = {
   }>;
 } | null;
 // Variable: aboutPageQuery
-// Query: *[_type == "about"][0]{      _id,  logo{    asset->{      url,      metadata {        dimensions      }    }  },  titleImage{    asset->{      url,      metadata {        dimensions      }    }  },  contactImage{    asset->{      url,      metadata {        dimensions      }    }  },  quote,  bio,  cv{    asset->{      url    }  },  profileImage{    asset->{      url    },    alt  },  contact{    email,    instagram,    linkedin,    facebook  },  arteosDescription,  arteosLogo{    asset->{      url,      metadata {        dimensions      }    }  }  }
+// Query: *[_type == "about"][0]{      _id,  logo{    asset->{      url,      metadata {        dimensions      }    }  },  titleImage{    asset->{      url,      metadata {        dimensions      }    }  },  contactImage{    asset->{      url,      metadata {        dimensions      }    }  },  quote,  bio,  cv{    asset->{      url    }  },  profileImage{    asset->{      url    },    alt,    credit  },  contact{    email,    instagram,    linkedin,    facebook  },  arteosDescription,  arteosLogo{    asset->{      url,      metadata {        dimensions      }    }  }  }
 export type AboutPageQueryResult = {
   _id: string;
   logo: {
@@ -2134,6 +2576,7 @@ export type AboutPageQueryResult = {
       url: string | null;
     } | null;
     alt: string | null;
+    credit: string | null;
   } | null;
   contact: {
     email: string | null;
@@ -2181,10 +2624,87 @@ export type CommissionsPageQueryResult = {
       } | null;
       alt: string | null;
     } | null;
-    offsetY: null;
-    offsetX: null;
-    rotation: null;
-    scale: null;
+    offsetY: number | null;
+    offsetX: number | null;
+    rotation: number | null;
+    scale: number | null;
+  }> | null;
+} | null;
+// Variable: productionsPageQuery
+// Query: *[_type == "productions" && _id == "productionsPage"][0]{      _id,  titleImage{    asset->{      url,      metadata {        dimensions      }    }  },  description,    featuredProjects[]{        project->{    _id,    title,    slug {      current    },    titleImage {      asset->{        url      }    },    coverImage,    projectKind,    categories[]->{      _id,      title,      slug{current},      titleImage {        asset->{          url        }      }    }  },  titlePosition,  offsetY,  offsetX,  rotation,  scale,  zIndex    }  }
+export type ProductionsPageQueryResult = {
+  _id: string;
+  titleImage: {
+    asset: {
+      url: string | null;
+      metadata: {
+        dimensions: SanityImageDimensions | null;
+      } | null;
+    } | null;
+  } | null;
+  description: Array<{
+    children?: Array<{
+      marks?: Array<string>;
+      text?: string;
+      _type: "span";
+      _key: string;
+    }>;
+    style?: "blockquote" | "h2" | "h3" | "normal";
+    listItem?: "bullet" | "number";
+    markDefs?: Array<{
+      href?: string;
+      _type: "link";
+      _key: string;
+    }>;
+    level?: number;
+    _type: "block";
+    _key: string;
+  }> | null;
+  featuredProjects: Array<{
+    project: {
+      _id: string;
+      title: string | null;
+      slug: {
+        current: string | null;
+      } | null;
+      titleImage: {
+        asset: {
+          url: string | null;
+        } | null;
+      } | null;
+      coverImage: {
+        asset?: {
+          _ref: string;
+          _type: "reference";
+          _weak?: boolean;
+          [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+        };
+        media?: unknown;
+        hotspot?: SanityImageHotspot;
+        crop?: SanityImageCrop;
+        alt?: string;
+        _type: "image";
+      } | null;
+      projectKind: "personal" | "professional" | null;
+      categories: Array<{
+        _id: string;
+        title: string | null;
+        slug: {
+          current: string | null;
+        } | null;
+        titleImage: {
+          asset: {
+            url: string | null;
+          } | null;
+        } | null;
+      }> | null;
+    } | null;
+    titlePosition: "bottom-left" | "bottom-right" | "middle-left" | "middle-right" | "top-left" | "top-right" | null;
+    offsetY: number | null;
+    offsetX: number | null;
+    rotation: number | null;
+    scale: number | null;
+    zIndex: number | null;
   }> | null;
 } | null;
 
@@ -2200,19 +2720,20 @@ declare module "@sanity/client" {
     "\n  *[_type == \"post\" && slug.current == $slug] [0] {\n    content[]{\n    ...,\n    markDefs[]{\n      ...,\n      \n  _type == \"link\" => {\n    \"page\": page->slug.current,\n    \"post\": post->slug.current\n  }\n\n    }\n  },\n    \n  _id,\n  \"status\": select(_originalId in path(\"drafts.**\") => \"draft\", \"published\"),\n  \"title\": coalesce(title, \"Untitled\"),\n  \"slug\": slug.current,\n  excerpt,\n  coverImage,\n  \"date\": coalesce(date, _updatedAt),\n  \"author\": author->{firstName, lastName, picture},\n\n  }\n": PostQueryResult;
     "\n  *[_type == \"post\" && defined(slug.current)]\n  {\"slug\": slug.current}\n": PostPagesSlugsResult;
     "\n  *[_type == \"page\" && defined(slug.current)]\n  {\"slug\": slug.current}\n": PagesSlugsResult;
-    "\n  *[_type == \"works\" && _id == \"worksPage\"][0]{\n    \n  _id,\n  titleImage{\n    asset->{\n      url,\n      metadata {\n        dimensions\n      }\n    }\n  },\n  description\n,\n    featuredProjects[]{\n      \n  project->{\n    _id,\n    title,\n    slug {\n      current\n    },\n    titleImage {\n      asset->{\n        url\n      }\n    },\n    coverImage {\n      asset->{\n        url\n      },\n      alt\n    },\n    projectType->{\n      title,\n      slug {\n        current\n      }\n    },\n    categories[]->{\n      _id,\n      title,\n      slug{current},\n      titleImage {\n        asset->{\n          url\n        }\n      }\n    }\n  },\n  offsetY,\n  offsetX,\n  rotation,\n  scale,\n  zIndex\n\n    }\n  }\n": WorksPageQueryResult;
+    "\n  *[_type == \"works\" && _id == \"worksPage\"][0]{\n    \n  _id,\n  titleImage{\n    asset->{\n      url,\n      metadata {\n        dimensions\n      }\n    }\n  },\n  description\n,\n    featuredProjects[]{\n      \n  project->{\n    _id,\n    title,\n    slug {\n      current\n    },\n    titleImage {\n      asset->{\n        url\n      }\n    },\n    coverImage {\n      asset->{ _id, url },\n      crop,\n      hotspot,\n      alt\n    },\n    projectType->{\n      title,\n      slug {\n        current\n      }\n    },\n    categories[]->{\n      _id,\n      title,\n      slug{current},\n      titleImage {\n        asset->{\n          url\n        }\n      }\n    }\n  },\n  offsetY,\n  offsetX,\n  rotation,\n  scale,\n  zIndex\n\n    }\n  }\n": WorksPageQueryResult;
     "\n  *[_type == \"projectType\" && visibleInNav == true] | order(title asc) {\n    _id,\n    title,\n    \"slug\": slug.current,\n    description\n  }\n": ProjectTypesQueryResult;
     "\n  *[_type == \"project\" && projectType->slug.current == $typeSlug] | order(orderRank asc) {\n    _id,\n    title,\n    slug,\n    mainImage{\n      asset->{\n        url\n      }\n    },\n    excerpt,\n    \"projectType\": projectType->title\n  }\n": ProjectsByTypeQueryResult;
     "\n  *[_type == \"project\"] | order(orderRank asc) {\n    _id,\n    title,\n    slug,\n    mainImage{\n      asset->{\n        url\n      }\n    },\n    excerpt,\n    \"projectType\": projectType->title\n  }\n": AllProjectsQueryResult;
     "\n  *[_type == \"navigation\"][0]{\n    logoE{\n      asset->{\n        url,\n        metadata {\n          dimensions\n        }\n      }\n    },\n    mainItems[]{\n      title,\n      slug,\n      logo{\n        asset->{\n          url,\n          metadata {\n            dimensions\n          }\n        }\n      },\n      subItems[]{\n        title,\n        slug,\n        logo{\n          asset->{\n            url,\n            metadata {\n              dimensions\n            }\n          }\n        }\n      }\n    }\n  }\n": NavigationQueryResult;
-    "{\n  \"works\": *[_type == \"works\"][0]{\n    titleImage{asset->{url}}\n  },\n  \"about\": *[_type == \"about\"][0]{\n    titleImage{asset->{url}}\n  },\n  \"commissions\": *[_type == \"commissions\"][0]{\n    titleImage{asset->{url}}\n  },\n  \"homepage\": *[_type == \"homepage\"][0]{\n    logo{asset->{url}}\n  },\n  \"projectGroups\": *[_type == \"projectType\" && visibleInNav == true] | order(orderRank asc) {\n    _id,\n    title,\n    \"slug\": slug.current,\n    titleImage{asset->{url}},\n    \"projects\": *[_type == \"project\" && references(^._id) && defined(visible) && visible == true] | order(orderRank asc) {\n      title,\n      \"slug\": slug.current,\n      titleImage{asset->{url}}, \n      coverImage{asset->{url}, alt}\n    }\n  }\n}": NavigationImagesQueryResult;
-    "*[_type == \"projectType\" && slug.current == $slug][0]{\n    _id,\n    title,\n    description,\n    titleImage{asset->{url}},\n    \"featuredProjects\": featuredProjects[]{\n      _key,\n      offsetY,\n      offsetX,\n      rotation,\n      scale,\n      zIndex,\n      categorySectionKey,\n      project->{\n        _id,\n        title,\n        \"slug\": slug.current,\n        projectKind,\n        \"projectTypeSlug\": projectType->slug.current,\n        titleImage{asset->{url}},\n        coverImage{asset->{url}, alt},\n        description,\n        \"categories\": categories[]->{\n          _id,\n          title,\n          slug{current},\n          titleImage{asset->{url}}\n        },\n        content[]{\n          _type,\n          _key,\n          _type == \"imageBlock\" => {\n            _type,\n            _key,\n            images[]{asset->{url}, alt}\n          },\n          _type == \"imageGallery\" => {\n            _type,\n            _key,\n            images[]{asset->{url}, alt}\n          },\n          _type == \"videoBlock\" => { _type, _key, url, caption, aspectRatio },\n          _type == \"textBlock\" => { _type, _key, content, columns, alignment },\n          _type == \"textWithImage\" => {\n            _type, _key,\n            image{asset->{url}, alt, caption},\n            text, imagePosition, imageSize\n          }\n        },\n        \"categorySections\": categorySections[]{\n          _key,\n          category->{ _id, title, \"slug\": slug.current, titleImage{asset->{url}} },\n          preview{\n            _type,\n            image{asset->{url}, alt},\n            text\n          },\n          content[]{\n            _type,\n            _key,\n            _type == \"imageBlock\" => { _type, _key, images[]{asset->{url}, alt} },\n            _type == \"imageGallery\" => { _type, _key, images[]{asset->{url}, alt} }\n          }\n        }\n      }\n    },\n    \"projects\": *[_type == \"project\" && references(^._id) && visible == true] | order(orderRank asc) {\n      _id,\n      title,\n      \"slug\": slug.current,\n      titleImage{asset->{url}},\n      coverImage{asset->{url}, alt},\n      \"projectType\": ^.title,\n      \"categories\": categories[]->{ \n        _id, \n        title, \n        slug{current}, \n        titleImage{asset->{url}} \n      }\n    }\n  }": ProjectGroupQueryResult;
-    "\n  *[_type == \"project\" && slug.current == $projectSlug][0] {\n    _id,\n    title,\n    slug,\n    year,\n    description,\n    \"projectType\": projectType->title,\n    \"projectTypeSlug\": projectType->slug.current,\n    titleImage {\n      asset-> {\n        url\n      }\n    },\n    coverImage {\n      asset-> {\n        url\n      },\n      alt\n    },\n    content[] {\n      _type,\n      _key,\n      // Text Block\n      _type == \"textBlock\" => {\n        content,\n        columns,\n        alignment\n      },\n      // Image Block\n      _type == \"imageBlock\" => {\n        images[] {\n          asset-> {\n            url\n          },\n          alt,\n          caption,\n          material,\n          dimensions,\n          year\n        },\n        layout,\n        position,\n        spacing\n      },\n      // Image Gallery\n      _type == \"imageGallery\" => {\n        images[] {\n          asset-> {\n            url\n          },\n          alt,\n          caption,\n          material,\n          dimensions,\n          year,\n          category-> {\n            title\n          }\n        },\n        displayStyle,\n        aspectRatio\n      },\n      // Text with Image\n      _type == \"textWithImage\" => {\n        image {\n          asset-> {\n            url\n          },\n          alt,\n          caption\n        },\n        text,\n        imagePosition,\n        imageSize\n      },\n      // Video Block\n      _type == \"videoBlock\" => {\n        url,\n        caption,\n        aspectRatio\n      }\n    },\n    categorySections[] {\n      _key,\n      category-> {\n        _id,\n        title,\n        slug,\n        titleImage {\n          asset-> {\n            url\n          }\n        }\n      },\n      content[] {\n        _type,\n        _key,\n        // Text Block\n        _type == \"textBlock\" => {\n          content,\n          columns,\n          alignment\n        },\n        // Image Block\n        _type == \"imageBlock\" => {\n          images[] {\n            asset-> {\n              url\n            },\n            alt,\n            caption,\n            material,\n            dimensions,\n            year\n          },\n          layout,\n          position,\n          spacing\n        },\n        // Image Gallery\n        _type == \"imageGallery\" => {\n          images[] {\n            asset-> {\n              url\n            },\n            alt,\n            caption,\n            material,\n            dimensions,\n            year,\n            category-> {\n              title\n            }\n          },\n          displayStyle,\n          aspectRatio\n        },\n        // Text with Image\n        _type == \"textWithImage\" => {\n          image {\n            asset-> {\n              url\n            },\n            alt,\n            caption\n          },\n          text,\n          imagePosition,\n          imageSize\n        },\n        // Video Block\n        _type == \"videoBlock\" => {\n          url,\n          caption,\n          aspectRatio\n        }\n      }\n    },\n    categories[]-> {\n      title,\n      slug\n    },\n    credits,\n    press,\n    tournee,\n    publishedAt,\n    featured,\n    visible\n  }\n": ProjectQueryResult;
+    "{\n  \"works\": *[_type == \"works\"][0]{\n    titleImage{asset->{url}}\n  },\n  \"about\": *[_type == \"about\"][0]{\n    titleImage{asset->{url}}\n  },\n  \"commissions\": *[_type == \"commissions\"][0]{\n    titleImage{asset->{url}}\n  },\n  \"productions\": *[_type == \"productions\"][0]{\n    titleImage{asset->{url}}\n  },\n  \"studioWorks\": *[_type == \"studioWorks\"][0]{\n    titleImage{asset->{url}}\n  },\n  \"homepage\": *[_type == \"homepage\"][0]{\n    logo{asset->{url}}\n  },\n  \"projectGroups\": *[_type == \"projectType\" && visibleInNav == true] | order(title asc) {\n    _id,\n    title,\n    \"slug\": slug.current,\n    titleImage{asset->{url}},\n    \"projects\": *[_type == \"project\" && references(^._id) && defined(visible) && visible == true] | order(orderRank asc) {\n      title,\n      \"slug\": slug.current,\n      titleImage{asset->{url}}, \n      coverImage{asset->{url}, alt}\n    }\n  }\n}": NavigationImagesQueryResult;
+    "*[_type == \"projectType\" && slug.current == $slug][0]{\n    _id,\n    title,\n    description,\n    titleImage{asset->{url}},\n    \"featuredProjects\": featuredProjects[]{\n      _key,\n      offsetY,\n      offsetX,\n      rotation,\n      scale,\n      zIndex,\n      categorySectionKey,\n      project->{\n        _id,\n        title,\n        \"slug\": slug.current,\n        projectKind,\n        \"projectTypeSlug\": projectType->slug.current,\n        titleImage{asset->{url}},\n        coverImage{asset->{url}, alt},\n        description,\n        year,\n        \"categories\": categories[]->{\n          _id,\n          title,\n          slug{current},\n          titleImage{asset->{url}}\n        },\n        content[]{\n          _type,\n          _key,\n          _type == \"imageBlock\" => {\n            _type,\n            _key,\n            images[]{asset->{url}, alt}\n          },\n          _type == \"imageGallery\" => {\n            _type,\n            _key,\n            images[]{asset->{url}, alt}\n          },\n          _type == \"videoBlock\" => { _type, _key, url, caption, aspectRatio },\n          _type == \"textBlock\" => { _type, _key, content, columns, alignment },\n          _type == \"textWithImage\" => {\n            _type, _key,\n            image{asset->{url}, alt, caption},\n            text, imagePosition, imageSize\n          }\n        },\n        \"categorySections\": categorySections[]{\n          _key,\n          category->{ _id, title, \"slug\": slug.current, titleImage{asset->{url}} },\n          preview{\n            _type,\n            image{asset->{url}, alt},\n            text\n          },\n          content[]{\n            _type,\n            _key,\n            _type == \"imageBlock\" => { _type, _key, images[]{asset->{url}, alt} },\n            _type == \"imageGallery\" => { _type, _key, images[]{asset->{url}, alt} }\n          }\n        }\n      }\n    },\n    \"projects\": *[_type == \"project\" && references(^._id) && visible == true] | order(orderRank asc) {\n      _id,\n      title,\n      \"slug\": slug.current,\n      titleImage{asset->{url}},\n      coverImage{asset->{url}, alt},\n      \"projectType\": ^.title,\n      \"categories\": categories[]->{ \n        _id, \n        title, \n        slug{current}, \n        titleImage{asset->{url}} \n      }\n    }\n  }": ProjectGroupQueryResult;
+    "\n  *[_type == \"project\" && slug.current == $projectSlug][0] {\n    _id,\n    title,\n    slug,\n    year,\n    description,\n    projectKind,\n    projectSize,\n    projectSubtype,\n    \"projectType\": projectType->title,\n    \"projectTypeSlug\": projectType->slug.current,\n    titleImage {\n      asset-> {\n        url\n      }\n    },\n    coverImage {\n      asset-> {\n        url\n      },\n      alt\n    },\n    content[] {\n      _type,\n      _key,\n      // Text Block\n      _type == \"textBlock\" => {\n        content,\n        columns,\n        alignment\n      },\n      // Image Block\n      _type == \"imageBlock\" => {\n        images[] {\n          asset-> {\n            _id,\n            url\n          },\n          crop,\n          hotspot,\n          alt,\n          caption,\n          material,\n          dimensions,\n          year\n        },\n        layout,\n        position,\n        spacing\n      },\n      // Image Gallery\n      _type == \"imageGallery\" => {\n        images[] {\n          asset-> {\n            url\n          },\n          alt,\n          caption,\n          material,\n          dimensions,\n          year,\n          category-> {\n            title\n          }\n        },\n        displayStyle,\n        aspectRatio\n      },\n      // Text with Image\n      _type == \"textWithImage\" => {\n        image {\n          asset-> {\n            url\n          },\n          alt,\n          caption\n        },\n        text,\n        imagePosition,\n        imageSize\n      },\n      // Video Block\n      _type == \"videoBlock\" => {\n        url,\n        caption,\n        aspectRatio\n      }\n    },\n    categorySections[] {\n      _key,\n      category-> {\n        _id,\n        title,\n        slug,\n        titleImage {\n          asset-> {\n            url\n          }\n        }\n      },\n      content[] {\n        _type,\n        _key,\n        // Text Block\n        _type == \"textBlock\" => {\n          content,\n          columns,\n          alignment\n        },\n        // Image Block\n        _type == \"imageBlock\" => {\n          images[] {\n            asset-> {\n              url\n            },\n            alt,\n            caption,\n            material,\n            dimensions,\n            year\n          },\n          layout,\n          position,\n          spacing\n        },\n        // Image Gallery\n        _type == \"imageGallery\" => {\n          images[] {\n            asset-> {\n              url\n            },\n            alt,\n            caption,\n            material,\n            dimensions,\n            year,\n            category-> {\n              title\n            }\n          },\n          displayStyle,\n          aspectRatio\n        },\n        // Text with Image\n        _type == \"textWithImage\" => {\n          image {\n            asset-> {\n              url\n            },\n            alt,\n            caption\n          },\n          text,\n          imagePosition,\n          imageSize\n        },\n        // Video Block\n        _type == \"videoBlock\" => {\n          url,\n          caption,\n          aspectRatio\n        }\n      }\n    },\n    categories[]-> {\n      title,\n      slug\n    },\n    credits,\n    press,\n    tournee,\n    publishedAt,\n    featured,\n    visible\n  }\n": ProjectQueryResult;
     "\n  *[_type == \"project\" && visible == true && projectType->slug.current == $typeSlug] | order(orderRank) {\n    _id,\n    title,\n    slug,\n    year,\n    description,\n    coverImage {\n      asset-> {\n        url\n      },\n      alt\n    },\n    \"projectType\": projectType->title,\n    categories[]-> {\n      title\n    }\n  }\n": ProjectsListQueryResult;
     "{\n  \"categories\": *[_type == \"category\"] {\n    _id,\n    title,\n    \"slug\": slug.current,\n    titleImage {\n      asset-> {\n        url\n      }\n    }\n  },\n  \"projects\": *[_type == \"project\" && visible != false] {\n    _id,\n    title,\n    \"slug\": slug.current,\n    projectKind,\n    year,\n    coverImage {\n      asset-> {\n        url\n      },\n      alt\n    },\n    titleImage {\n      asset-> {\n        url\n      }\n    },\n    projectType-> {\n      title,\n      \"slug\": slug.current\n    },\n    // For personal projects\n    categories[]-> {\n      _id,\n      title,\n      \"slug\": slug.current\n    },\n    // For professional projects\n    categorySections[] {\n      category-> {\n        _id,\n        title,\n        \"slug\": slug.current\n      }\n    }\n  }\n}": AllProjectsByCategoryQueryResult;
     "\n  *[_type == \"works\"]{\n    _id,\n    _type,\n    titleImage\n  }\n": DebugWorksQueryResult;
     "\n  *[_type == \"category\" && slug.current == $categorySlug][0]{\n    _id,\n    title,\n    slug{current},\n    titleImage{\n      asset->{url}\n    }\n  } | {\n    ...,\n    \"projects\": *[_type == \"project\" && references(^._id) && projectType->slug.current == $groupSlug && visible == true]{\n      _id,\n      title,\n      slug{current},\n      coverImage{\n        asset->{url},\n        alt\n      },\n      titleImage{\n        asset->{url}\n      },\n      projectType->{\n        title,\n        slug{current}\n      },\n      categories[]->{\n        _id,\n        title,\n        slug{current},\n        titleImage{\n          asset->{url}\n        }\n      }\n    },\n    \"allCategories\": *[_type == \"category\" && count(*[_type == \"project\" && references(^._id) && projectType->slug.current == $groupSlug]) > 0]{\n      _id,\n      title,\n      slug{current},\n      titleImage{\n        asset->{url}\n      }\n    }\n  }\n": CategoryProjectsQueryResult;
-    "\n  *[_type == \"about\"][0]{\n    \n  _id,\n  logo{\n    asset->{\n      url,\n      metadata {\n        dimensions\n      }\n    }\n  },\n  titleImage{\n    asset->{\n      url,\n      metadata {\n        dimensions\n      }\n    }\n  },\n  contactImage{\n    asset->{\n      url,\n      metadata {\n        dimensions\n      }\n    }\n  },\n  quote,\n  bio,\n  cv{\n    asset->{\n      url\n    }\n  },\n  profileImage{\n    asset->{\n      url\n    },\n    alt\n  },\n  contact{\n    email,\n    instagram,\n    linkedin,\n    facebook\n  },\n  arteosDescription,\n  arteosLogo{\n    asset->{\n      url,\n      metadata {\n        dimensions\n      }\n    }\n  }\n\n  }\n": AboutPageQueryResult;
+    "\n  *[_type == \"about\"][0]{\n    \n  _id,\n  logo{\n    asset->{\n      url,\n      metadata {\n        dimensions\n      }\n    }\n  },\n  titleImage{\n    asset->{\n      url,\n      metadata {\n        dimensions\n      }\n    }\n  },\n  contactImage{\n    asset->{\n      url,\n      metadata {\n        dimensions\n      }\n    }\n  },\n  quote,\n  bio,\n  cv{\n    asset->{\n      url\n    }\n  },\n  profileImage{\n    asset->{\n      url\n    },\n    alt,\n    credit\n  },\n  contact{\n    email,\n    instagram,\n    linkedin,\n    facebook\n  },\n  arteosDescription,\n  arteosLogo{\n    asset->{\n      url,\n      metadata {\n        dimensions\n      }\n    }\n  }\n\n  }\n": AboutPageQueryResult;
     "\n  *[_type == \"commissions\"][0]{\n    \n    _id,\n  titleImage{\n    asset->{\n      url,\n      metadata {\n        dimensions\n      }\n    }\n  },\n  quote,\n  tools[]{\n    titleImage{\n      asset->{\n        url,\n        metadata {\n          dimensions\n        }\n      }\n    },\n    subtitle,\n    description,\n    image{\n      asset->{\n        url\n      },\n      alt\n    },\n    offsetY,\n    offsetX,\n    rotation,\n    scale\n  }\n\n  }\n": CommissionsPageQueryResult;
+    "\n  *[_type == \"productions\" && _id == \"productionsPage\"][0]{\n    \n  _id,\n  titleImage{\n    asset->{\n      url,\n      metadata {\n        dimensions\n      }\n    }\n  },\n  description\n,\n    featuredProjects[]{\n      \n  project->{\n    _id,\n    title,\n    slug {\n      current\n    },\n    titleImage {\n      asset->{\n        url\n      }\n    },\n    coverImage,\n    projectKind,\n    categories[]->{\n      _id,\n      title,\n      slug{current},\n      titleImage {\n        asset->{\n          url\n        }\n      }\n    }\n  },\n  titlePosition,\n  offsetY,\n  offsetX,\n  rotation,\n  scale,\n  zIndex\n\n    }\n  }\n": ProductionsPageQueryResult;
   }
 }

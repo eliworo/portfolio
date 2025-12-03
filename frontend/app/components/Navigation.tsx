@@ -14,23 +14,23 @@ type NavigationProps = {
 
 function buildNavStructure(navImages: NavigationProps['navImages']) {
   const mainCategories = [
-    // {
-    //   title: 'WORKS',
-    //   slug: '/works',
-    //   subCategories:
-    //     navImages?.projectGroups?.map((group) => ({
-    //       title: group.title?.toUpperCase(),
-    //       slug: `/${group.slug}`,
-    //       titleImage: group.titleImage,
-    //       projects:
-    //         group.projects?.map((project) => ({
-    //           title: project.title,
-    //           slug: `/${group.slug}/p/${project.slug}`,
-    //           titleImage: project.titleImage,
-    //           coverImage: project.coverImage,
-    //         })) ?? [],
-    //     })) ?? [],
-    // },
+    {
+      title: 'WORKS',
+      slug: '/works',
+      subCategories:
+        navImages?.projectGroups?.map((group) => ({
+          title: group.title?.toUpperCase(),
+          slug: `/${group.slug}`,
+          titleImage: group.titleImage,
+          projects:
+            group.projects?.map((project) => ({
+              title: project.title,
+              slug: `/${group.slug}/p/${project.slug}`,
+              titleImage: project.titleImage,
+              coverImage: project.coverImage,
+            })) ?? [],
+        })) ?? [],
+    },
     { title: 'ABOUT', slug: '/about' },
     { title: 'COMMISSIONS', slug: '/commissions' },
   ]
@@ -115,8 +115,8 @@ export default function Navigation({ navImages }: NavigationProps) {
               <Image
                 src={navImages.homepage.logo.asset.url}
                 alt='E'
-                width={120}
-                height={120}
+                width={115}
+                height={115}
                 className='object-contain'
               />
             ) : (
@@ -173,7 +173,10 @@ export default function Navigation({ navImages }: NavigationProps) {
                               setActiveCategory(category.title)
                             }
                           >
-                            <Link href={category.slug}>
+                            <Link
+                              href={category.slug}
+                              onClick={() => setShowMenu(false)}
+                            >
                               {imageUrl ? (
                                 <Image
                                   src={imageUrl}
@@ -201,7 +204,7 @@ export default function Navigation({ navImages }: NavigationProps) {
                           </div>
 
                           {/* Subcategories */}
-                          {/* <AnimatePresence>
+                          <AnimatePresence>
                             {activeCategory === category.title &&
                               category.subCategories &&
                               category.subCategories.length > 0 && (
@@ -232,7 +235,7 @@ export default function Navigation({ navImages }: NavigationProps) {
 
                                           return (
                                             <li
-                                              key={subCategory.title}
+                                              key={`${category.title}-${subCategory.title}`}
                                               className='relative w-fit'
                                             >
                                               <div
@@ -243,7 +246,12 @@ export default function Navigation({ navImages }: NavigationProps) {
                                                   )
                                                 }
                                               >
-                                                <Link href={subCategory.slug}>
+                                                <Link
+                                                  href={subCategory.slug}
+                                                  onClick={() =>
+                                                    setShowMenu(false)
+                                                  }
+                                                >
                                                   {hasImage ? (
                                                     <Image
                                                       src={
@@ -283,7 +291,7 @@ export default function Navigation({ navImages }: NavigationProps) {
                                   </motion.div>
                                 </div>
                               )}
-                          </AnimatePresence> */}
+                          </AnimatePresence>
                         </li>
                       )
                     })}

@@ -3,6 +3,9 @@ import { PortableText } from '@portabletext/react'
 import { urlFor } from '@/sanity/lib/image'
 import { cleanBlock } from '@/utils/CleanInvisible'
 import { Image } from 'next-sanity/image'
+import CoverImage from './CoverImage'
+import NextImage from 'next/image'
+import Link from 'next/link'
 
 type ContentBlock =
   | TextBlock
@@ -97,7 +100,7 @@ function TextBlockRenderer({ block }: { block: TextBlock }) {
   const columnClasses = {
     full: 'max-w-4xl',
     two: 'columns-2 gap-8 max-w-6xl',
-    three: 'columns-3 gap-8 max-w-7xl',
+    three: 'columns-1 xl:columns-3 gap-8 max-w-7xl',
   }
 
   const alignmentClasses = {
@@ -108,13 +111,18 @@ function TextBlockRenderer({ block }: { block: TextBlock }) {
 
   return (
     <div
-      className={`text-lg leading-snug ${columnClasses[block.columns]} ${
+      className={`text-sm xl:text-lg leading-snug ${columnClasses[block.columns]} ${
         alignmentClasses[block.alignment]
       }`}
     >
       <PortableText
         value={block.content}
         components={{
+          block: {
+            normal: ({ children }) => (
+              <p className='mb-4 last:mb-0'>{children}</p>
+            ),
+          },
           types: {
             image: ({ value }) => (
               <figure className='my-8'>
@@ -132,6 +140,34 @@ function TextBlockRenderer({ block }: { block: TextBlock }) {
                 )}
               </figure>
             ),
+          },
+          marks: {
+            link: ({ children, value }) => {
+              const isInternal = value?.linkType === 'internal'
+              const href = isInternal ? value?.internalLink : value?.href
+              const openInNewTab = value?.openInNewTab
+
+              if (!href) return <span>{children}</span>
+
+              if (isInternal) {
+                return (
+                  <Link href={href} className='underline'>
+                    {children}
+                  </Link>
+                )
+              }
+
+              return (
+                <a
+                  href={href}
+                  className='underline'
+                  target={openInNewTab ? '_blank' : undefined}
+                  rel={openInNewTab ? 'noopener noreferrer' : undefined}
+                >
+                  {children}
+                </a>
+              )
+            },
           },
         }}
       />
@@ -156,8 +192,8 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
     'single-full': 'w-full',
     'single-large': 'max-w-5xl',
     'single-medium': 'max-w-3xl',
-    'two-row': 'grid grid-cols-2',
-    'three-row': 'grid grid-cols-3',
+    'two-row': 'grid grid-cols-2 items-start',
+    'three-row': 'grid grid-cols-3 items-start',
   } as const
 
   type Layout = keyof typeof layoutClasses
@@ -184,20 +220,22 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
         !layout.includes('row') ? positionClasses[position] : ''
       }`}
     >
-      {block.images.map((image, idx) => (
-        <figure key={idx} className='h-full w-auto relative'>
-          <Image
+      {(block.images ?? []).map((image, idx) => (
+        <figure key={idx} className='w-full leading-none h-fit relative group'>
+          {/* <Image
             src={urlFor(image).url()}
-            alt={image.alt}
-            width={1200}
-            height={1200}
-            className='object-cover w-full h-full'
-          />
+            alt={image.alt || `Image ${idx + 1}`}
+            width={0}
+            height={0}
+            sizes='100vw'
+            className='w-full h-auto'
+          /> */}
+          <CoverImage image={image} />
           {(image.caption ||
             image.material ||
             image.dimensions ||
             image.year) && (
-            <figcaption className='text-sm text-gray-600 flex items-center justify-start gap-1 mt-2'>
+            <figcaption className='h-auto text-xs lg:text-sm text-gray-600 flex items-center leading-tight justify-start gap-1 mt-2 opacity-0 hidden lg:block group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto ml-1'>
               {image.caption && <p>{image.caption}</p>}{' '}
               {image.year && <span>({image.year})</span>}
             </figcaption>
@@ -215,19 +253,14 @@ function ImageGalleryRenderer({ block }: { block: ImageGallery }) {
     )
   }
 
-  // if (block.displayStyle === 'masonry') {
-  //   return <MasonryGallery images={block.images} />
-  // }
-
-  // Grid layout
   return (
-    <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
+    <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 lg:gap-4'>
       {block.images.map((image, idx) => (
         <figure key={idx} className='group cursor-pointer'>
-          <div className='relative overflow-hidden rounded-lg aspect-square'>
+          <div className='relative overflow-hidden aspect-square'>
             <Image
               src={urlFor(image).url()}
-              alt={image.alt}
+              alt={image.alt || `Image ${idx + 1}`}
               fill
               className='object-cover transition-transform group-hover:scale-105'
             />
@@ -250,42 +283,50 @@ function CarouselGallery({
   images: ImageGallery['images']
   aspectRatio: string
 }) {
+  // Tailwind aspect ratio class
+  const aspectClass =
+    aspectRatio === 'square'
+      ? 'aspect-square'
+      : aspectRatio === 'landscape'
+        ? 'aspect-[16/9]'
+        : aspectRatio === 'portrait'
+          ? 'aspect-[3/4]'
+          : 'aspect-[16/9]'
+
   return (
-    <div className='overflow-x-auto'>
-      <div className='flex gap-6 pb-4'>
-        {images.map((image, idx) => (
-          <figure key={idx} className='flex-shrink-0 w-[80vw] max-w-4xl'>
-            <div
-              className='relative w-full'
-              style={{
-                aspectRatio:
-                  aspectRatio === 'square'
-                    ? '1/1'
-                    : aspectRatio === 'landscape'
-                      ? '16/9'
-                      : aspectRatio === 'portrait'
-                        ? '3/4'
-                        : 'auto',
-              }}
+    <div className='relative py-6'>
+      <div className='pointer-events-none absolute right-2 -bottom-2 lg:-bottom-4 z-10'>
+        <NextImage
+          src='/images/arrowRightLogo.png'
+          alt='Next'
+          width={150}
+          height={150}
+          className='object-contain h-8 lg:h-10 w-auto select-none'
+        />
+      </div>
+      <div className='overflow-x-auto'>
+        <div className='flex gap-0 pb-4'>
+          {images.map((image, idx) => (
+            <figure
+              key={idx}
+              className={`flex-shrink-0 w-[80vw] max-w-4xl relative ${aspectClass}`}
             >
-              <Image
-                src={urlFor(image).url()}
-                alt={image.alt}
-                fill={aspectRatio !== 'original'}
-                width={aspectRatio === 'original' ? 1200 : undefined}
-                height={aspectRatio === 'original' ? 800 : undefined}
-                className={
-                  aspectRatio === 'original' ? 'w-full h-auto' : 'object-cover'
-                }
-              />
-            </div>
-            {image.caption && (
-              <figcaption className='text-sm text-gray-600 mt-3'>
-                {image.caption}
-              </figcaption>
-            )}
-          </figure>
-        ))}
+              <div className='relative w-full h-full'>
+                <Image
+                  src={urlFor(image).url()}
+                  alt={image.alt || `Image ${idx + 1}`}
+                  fill
+                  className='object-cover w-full h-full'
+                />
+                {image.caption && (
+                  <figcaption className='absolute bottom-0 left-0 w-full bg-black/60 text-white text-sm px-4 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto z-10'>
+                    {image.caption}
+                  </figcaption>
+                )}
+              </div>
+            </figure>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -298,7 +339,7 @@ function MasonryGallery({ images }: { images: ImageGallery['images'] }) {
         <figure key={idx} className='mb-4 break-inside-avoid'>
           <Image
             src={urlFor(image).url()}
-            alt={image.alt}
+            alt={image.alt || `Image ${idx + 1}`}
             width={600}
             height={800}
             className='w-full h-auto rounded-lg'
@@ -372,19 +413,19 @@ function VideoBlockRenderer({ block }: { block: VideoBlock }) {
   }
 
   return (
-    <figure className='max-w-5xl mx-auto'>
+    <figure className='w-full mx-auto'>
       <div
         className={`relative w-full ${aspectRatioMap[block.aspectRatio] || 'aspect-video'}`}
       >
         <iframe
           src={getEmbedUrl(block.url)}
-          className='absolute inset-0 w-full h-full rounded-lg'
+          className='absolute inset-0 w-full h-full'
           allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
           allowFullScreen
         />
       </div>
       {block.caption && (
-        <figcaption className='text-sm text-gray-600 mt-3 text-center'>
+        <figcaption className='text-sm text-gray-600 mt-3 text-left'>
           {block.caption}
         </figcaption>
       )}

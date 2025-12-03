@@ -29,56 +29,66 @@ export default function ToolCard({ tool }: { tool: Tool }) {
   return (
     <div className='space-y-4'>
       {/* Tool Title Image */}
-      {tool.titleImage?.asset?.url && (
-        <div className='-ml-4 -mb-0.5 -rotate-2'>
-          <Image
-            src={tool.titleImage.asset.url}
-            alt={tool.subtitle || ''}
-            width={300}
-            height={100}
-            className='w-full h-auto object-contain object-left max-h-16'
-          />
-        </div>
-      )}
-
-      {/* Subtitle */}
-      {tool.subtitle && <h3 className='text-2xl uppercase'>{tool.subtitle}</h3>}
-
-      {/* Image with Description Overlay */}
-      {tool.image?.asset?.url && (
-        <div
-          className='relative aspect-video rounded-lg cursor-pointer'
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          style={{
-            transform:
-              typeof window !== 'undefined' && window.innerWidth >= 1024
-                ? `translate(${tool.offsetX || 0}px, ${tool.offsetY || 0}px) rotate(${tool.rotation || 0}deg) scale(${tool.scale || 1})`
-                : 'none',
-            transition: 'transform 0.3s ease',
-          }}
-        >
-          <Image
-            src={tool.image.asset.url}
-            alt={tool.image.alt || tool.subtitle || ''}
-            fill
-            className={`object-cover transition-all duration-150 ${
-              isHovered ? 'blur-none' : 'blur-md'
-            }`}
-          />
-
-          {/* Description Overlay */}
-          <div
-            className={`absolute inset-0 flex items-center justify-center p-6 transition-opacity duration-150 ${
-              isHovered ? 'opacity-0' : 'opacity-100'
-            }`}
-          >
-            <p className='text-white text-sm leading-tight drop-shadow-lg h-full'>
-              {tool.description}
-            </p>
+      <div
+        className=''
+        style={{
+          transform:
+            typeof window !== 'undefined' && window.innerWidth >= 1024
+              ? `translate(${tool.offsetX || 0}px, ${tool.offsetY || 0}px) rotate(${tool.rotation || 0}deg) scale(${tool.scale || 1})`
+              : 'none',
+          transition: 'transform 0.3s ease',
+        }}
+      >
+        {' '}
+        {tool.titleImage?.asset?.url && (
+          <div className='-ml-4 -mb-0.5 -rotate-2'>
+            <Image
+              src={tool.titleImage.asset.url}
+              alt={tool.subtitle || ''}
+              width={300}
+              height={100}
+              className='w-full h-auto object-contain object-left max-h-16'
+            />
           </div>
-        </div>
-      )}
+        )}
+        {/* Subtitle */}
+        {tool.subtitle && (
+          <h3 className='text-2xl uppercase'>{tool.subtitle}</h3>
+        )}
+        {/* Image with Description Overlay */}
+        {tool.image?.asset?.url && (
+          <div
+            className='relative aspect-video rounded-lg cursor-pointer'
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <Image
+              src={tool.image.asset.url}
+              alt={tool.image.alt || tool.subtitle || ''}
+              fill
+              className={`object-cover transition-all duration-150 border-4  ${
+                isHovered ? 'blur-none' : 'blur-md'
+              }`}
+            />
+
+            {/* Description Overlay */}
+            <div className='relative h-full'>
+              <div
+                className={`absolute inset-0 flex items-center justify-center p-6 transition-opacity duration-150 bg-black/50 blur-md ${
+                  isHovered ? 'opacity-0' : 'opacity-100'
+                }`}
+              ></div>
+              <p
+                className={`text-white text-sm leading-tight drop-shadow-lg h-full p-6 ${
+                  isHovered ? 'opacity-0' : 'opacity-100'
+                }`}
+              >
+                {tool.description}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

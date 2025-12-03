@@ -3,8 +3,33 @@ import { PortableText } from '@portabletext/react'
 import { sanityFetch } from '@/sanity/lib/live'
 import { aboutPageQuery } from '@/sanity/lib/queries'
 import type { AboutPageQueryResult } from '@/sanity.types'
-import { FiInstagram, FiFacebook } from 'react-icons/fi'
-import { BiLogoFacebookSquare } from 'react-icons/bi'
+import ContactNav from '@/app/components/ContactNav'
+import { Metadata, ResolvingMetadata } from 'next'
+import { resolveOpenGraphImage } from '@/sanity/lib/utils'
+
+export async function generateMetadata(
+  _props: any,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { data: aboutPage } = await sanityFetch({
+    query: aboutPageQuery,
+    stega: false,
+  })
+  const previousImages = (await parent).openGraph?.images || []
+  const ogImage = resolveOpenGraphImage(aboutPage?.logo)
+
+  return {
+    title: 'About',
+    description: aboutPage?.bio
+      ? typeof aboutPage.bio === 'string'
+        ? aboutPage.bio
+        : undefined
+      : undefined,
+    openGraph: {
+      images: ogImage ? [ogImage, ...previousImages] : previousImages,
+    },
+  } satisfies Metadata
+}
 
 export default async function AboutPage() {
   const { data } = await sanityFetch({
@@ -48,6 +73,11 @@ export default async function AboutPage() {
                   height={600}
                   className='w-[80vw] lg:w-full lg:max-w-lg h-auto object-cover'
                 />
+                {aboutPage.profileImage.credit && (
+                  <p className='text-xs text-gray-600 mt-2 text-left'>
+                    {aboutPage.profileImage.credit}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -58,7 +88,7 @@ export default async function AboutPage() {
                 <PortableText value={aboutPage.bio} />
               </div>
             )}
-            <div className='relative lg:absolute lg:right-60 lg:top-0 lg:mt-0 -mt-16'>
+            <div className='relative lg:absolute lg:right-60 lg:top-16 lg:mt-0 -mt-16'>
               {/* Logo - Absolutely positioned on left on mobile */}
               {aboutPage.arteosLogo?.asset?.url && (
                 <div className='absolute -left-2 -top-14 lg:left-auto lg:top-auto lg:relative z-10'>
@@ -73,8 +103,8 @@ export default async function AboutPage() {
               )}
 
               {/* Description Box */}
-              <div className='bg-black rounded-lg px-6 lg:px-8 py-6 lg:py-8 relative lg:absolute lg:left-44 lg:top-16 w-[65vw] lg:w-[20vw] ml-28 lg:ml-0 mt-40 lg:mt-0'>
-                <div className='max-w-full lg:max-w-74 bg-white text-black rounded-lg -rotate-6 p-4 lg:p-5'>
+              <div className='bg-black rounded-[2px] px-6 lg:px-6 py-6 lg:py-8 relative lg:absolute lg:left-44 lg:top-16 w-[65vw] lg:max-w-[17vw] ml-28 lg:ml-0 mt-40 lg:mt-0'>
+                <div className='max-w-full lg:max-w-74 bg-white text-black rounded-lg -rotate-6 p-4'>
                   <p className='text-sm lg:text-base leading-tight'>
                     {aboutPage.arteosDescription}
                   </p>
@@ -82,71 +112,16 @@ export default async function AboutPage() {
               </div>
             </div>
 
-            <div className='lg:absolute lg:right-0 lg:bottom-0'>
-              {aboutPage.contactImage?.asset?.url && (
-                <div className='z-10 relative lg:-ml-44'>
-                  <Image
-                    src={aboutPage.contactImage.asset.url}
-                    alt='Contact Image'
-                    width={1000}
-                    height={1000}
-                    className='w-auto h-24 lg:h-32 object-contain'
-                  />
-                </div>
-              )}
-
-              <div className='space-y-4 pb-8'>
-                <div className='flex flex-col lg:flex-row lg:items-center gap-1 items-start ml-4'>
-                  <div className='flex items-center order-2'>
-                    {aboutPage.contact?.instagram && (
-                      <a
-                        href={aboutPage.contact.instagram}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        className='hover:opacity-70 transition-opacity'
-                      >
-                        <FiInstagram className='w-6 h-6' />
-                      </a>
-                    )}
-                    {aboutPage.contact?.facebook && (
-                      <a
-                        href={aboutPage.contact.facebook}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        className='hover:opacity-70 transition-opacity'
-                      >
-                        <BiLogoFacebookSquare className='w-7 h-7' />
-                      </a>
-                    )}
-                  </div>
-
-                  {aboutPage.contact?.email && (
-                    <a
-                      href={`mailto:${aboutPage.contact.email}`}
-                      className='text-sm hover:opacity-70 transition-opacity block mr-4 lg:mr-0 order-1 lg:order-3'
-                    >
-                      {aboutPage.contact.email}
-                    </a>
-                  )}
-
-                  {aboutPage.cv?.asset?.url && (
-                    <div className='order-5'>
-                      <a
-                        href={aboutPage.cv.asset.url}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        className='inline-block text-black border-b border-black text-sm'
-                      >
-                        Download CV
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+            {/* Remove the old contact section */}
           </div>
         </div>
       </div>
+
+      <ContactNav
+        contact={aboutPage.contact}
+        cv={aboutPage.cv}
+        contactImageUrl={aboutPage.contactImage?.asset?.url}
+      />
     </main>
   )
 }

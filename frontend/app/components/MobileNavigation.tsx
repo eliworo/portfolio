@@ -6,7 +6,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { NavigationImagesQueryResult } from '@/sanity.types'
 import HamburgerHorizontalLine from './lines/HamburgerHorizontalLine'
-import Dropdown from './drawings/Dropdown'
+import HorizontalLine from './lines/HorizontalLine'
+import VerticalLine from './lines/VerticalLine'
 
 type MobileNavigationProps = {
   navImages: NavigationImagesQueryResult
@@ -14,23 +15,21 @@ type MobileNavigationProps = {
 
 export default function MobileNavigation({ navImages }: MobileNavigationProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [expanded, setExpanded] = useState(false)
 
   const toggleMenu = () => setIsOpen(!isOpen)
-  const toggleWorks = () => setExpanded(!expanded)
 
   const mainCategories = [
-    // {
-    //   title: 'WORKS',
-    //   slug: '/works',
-    //   imageUrl: navImages?.works?.titleImage?.asset?.url,
-    //   subCategories:
-    //     navImages?.projectGroups?.map((group) => ({
-    //       title: group.title,
-    //       slug: `/${group.slug}`,
-    //       imageUrl: group.titleImage?.asset?.url,
-    //     })) ?? [],
-    // },
+    {
+      title: 'WORKS',
+      slug: '/works',
+      imageUrl: navImages?.works?.titleImage?.asset?.url,
+      subCategories:
+        navImages?.projectGroups?.map((group) => ({
+          title: group.title,
+          slug: `/${group.slug}`,
+          imageUrl: group.titleImage?.asset?.url,
+        })) ?? [],
+    },
     {
       title: 'ABOUT',
       slug: '/about',
@@ -60,6 +59,39 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
       </Link>
 
       <button
+        onClick={toggleMenu}
+        className='fixed top-8 right-4 z-50 flex justify-center items-center w-14 h-12'
+        aria-label={isOpen ? 'Close menu' : 'Open menu'}
+      >
+        <motion.div
+          className='relative w-12 h-auto'
+          animate={{ opacity: isOpen ? 0 : 1 }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+        >
+          <Image
+            src='/images/hamburger-1.png'
+            alt='Open menu'
+            width={600}
+            height={600}
+            className='object-contain w-auto h-12 -ml-2'
+          />
+        </motion.div>
+        <motion.div
+          className='absolute w-14 h-auto'
+          animate={{ opacity: isOpen ? 1 : 0 }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+        >
+          <Image
+            src='/images/close.png'
+            alt='Close menu'
+            width={400}
+            height={400}
+            className='object-contain w-auto h-12'
+          />
+        </motion.div>
+      </button>
+
+      {/* <button
         onClick={toggleMenu}
         className='fixed top-8 right-4 z-50 flex flex-col justify-center items-center w-14 h-12'
         aria-label='Toggle menu'
@@ -103,7 +135,7 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
             className='w-14 h-auto'
           />
         </motion.div>
-      </button>
+      </button> */}
 
       <AnimatePresence>
         {isOpen && (
@@ -114,109 +146,114 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <nav className='w-fit space-y-8'>
-              {mainCategories.map((category) => (
-                <div key={category.title} className='w-full'>
-                  {category.title === 'WORKS' ? (
-                    <>
-                      {/* Works with dropdown */}
-                      <div className='relative flex items-center justify-between w-[300px]'>
-                        <Link
-                          href={category.slug}
-                          onClick={() => setIsOpen(false)}
-                          className='flex-1'
-                        >
-                          {category.imageUrl ? (
-                            <Image
-                              src={category.imageUrl}
-                              alt={category.title}
-                              width={300}
-                              height={80}
-                              className='object-contain w-full h-auto max-h-[60px]'
-                            />
-                          ) : (
-                            <span className='text-3xl font-bold'>
-                              {category.title}
-                            </span>
-                          )}
-                        </Link>
+            <div className='flex items-center absolute -left-4'>
+              {/* Horizontal line */}
+              <HorizontalLine className='w-12' theme={{ fill: 'black' }} />
 
-                        <button
-                          onClick={toggleWorks}
-                          className='flex-shrink-0 -ml-16'
-                          aria-label='Toggle project groups'
-                        >
-                          <Dropdown
-                            className={`w-8 h-8 transition-transform duration-300 ${
-                              expanded ? 'rotate-180' : ''
-                            }`}
-                            theme={{ fill: '#000' }}
-                          />
-                        </button>
+              {/* Main menu */}
+              <div className='relative'>
+                <ul className='flex flex-col items-start relative pl-2 w-auto'>
+                  {/* Vertical line for main menu */}
+                  <div className='absolute left-0 top-0 h-full'>
+                    <VerticalLine
+                      className='h-full'
+                      theme={{ fill: 'black' }}
+                    />
+                  </div>
+
+                  {mainCategories.map((category) => (
+                    <li key={category.title} className='relative w-auto'>
+                      <div className='flex items-center gap-0 pl-4'>
+                        {category.title === 'WORKS' ? (
+                          <>
+                            <Link
+                              href={category.slug}
+                              onClick={() => setIsOpen(false)}
+                              className=''
+                            >
+                              {category.imageUrl ? (
+                                <Image
+                                  src={category.imageUrl}
+                                  alt={category.title}
+                                  width={200}
+                                  height={50}
+                                  className='object-contain object-left h-auto max-h-[40px] w-auto'
+                                />
+                              ) : (
+                                <span className='text-lg font-medium'>
+                                  {category.title}
+                                </span>
+                              )}
+                            </Link>
+                          </>
+                        ) : (
+                          <Link
+                            href={category.slug}
+                            onClick={() => setIsOpen(false)}
+                            className='w-fit'
+                          >
+                            {category.imageUrl ? (
+                              <Image
+                                src={category.imageUrl}
+                                alt={category.title}
+                                width={200}
+                                height={50}
+                                className='object-contain object-left h-auto max-h-[40px]'
+                              />
+                            ) : (
+                              <span className='text-lg font-medium'>
+                                {category.title}
+                              </span>
+                            )}
+                          </Link>
+                        )}
                       </div>
 
-                      {/* Project Groups Submenu */}
-                      {/* <AnimatePresence>
-                        {expanded && (
-                          <motion.ul
-                            className='mt-6 space-y-4 pl-4'
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            {category.subCategories?.map((sub) => (
-                              <li key={sub.slug}>
-                                <Link
-                                  href={sub.slug}
-                                  onClick={() => setIsOpen(false)}
-                                  className='block'
-                                >
-                                  {sub.imageUrl ? (
-                                    <Image
-                                      src={sub.imageUrl}
-                                      alt={sub.title || ''}
-                                      width={250}
-                                      height={60}
-                                      className='object-contain w-full h-auto max-h-[50px] hover:opacity-80 transition-opacity'
-                                    />
-                                  ) : (
-                                    <span className='text-2xl font-medium hover:opacity-80 transition-opacity'>
-                                      {sub.title}
-                                    </span>
-                                  )}
-                                </Link>
-                              </li>
-                            ))}
-                          </motion.ul>
-                        )}
-                      </AnimatePresence> */}
-                    </>
-                  ) : (
-                    /* Other menu items */
-                    <Link
-                      href={category.slug}
-                      onClick={() => setIsOpen(false)}
-                      className='block'
-                    >
-                      {category.imageUrl ? (
-                        <Image
-                          src={category.imageUrl}
-                          alt={category.title}
-                          width={300}
-                          height={80}
-                          className='object-contain w-full h-auto max-h-[60px] hover:opacity-80 transition-opacity'
-                        />
-                      ) : (
-                        <span className='text-3xl font-bold hover:opacity-80 transition-opacity'>
-                          {category.title}
-                        </span>
+                      {/* Submenu for WORKS - always visible */}
+                      {category.title === 'WORKS' && (
+                        <div className='flex items-start my-4 ml-2'>
+                          <div className='relative'>
+                            <ul className='flex flex-col space-y-3 relative ml-6 pl-3'>
+                              {/* Vertical line for submenu */}
+                              <div className='absolute left-0 top-0 h-full'>
+                                <VerticalLine
+                                  className='h-full'
+                                  theme={{ fill: 'black' }}
+                                />
+                              </div>
+
+                              {category.subCategories?.map((sub) => (
+                                <li key={sub.slug}>
+                                  <Link
+                                    href={sub.slug}
+                                    onClick={() => setIsOpen(false)}
+                                    className='block'
+                                  >
+                                    {sub.imageUrl ? (
+                                      <Image
+                                        src={sub.imageUrl}
+                                        alt={sub.title || ''}
+                                        width={150}
+                                        height={40}
+                                        className='object-contain h-auto max-h-[40px] object-left'
+                                      />
+                                    ) : (
+                                      <span className='text-base font-medium'>
+                                        {sub.title}
+                                      </span>
+                                    )}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
                       )}
-                    </Link>
-                  )}
-                </div>
-              ))}
-            </nav>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

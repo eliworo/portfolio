@@ -1,14 +1,15 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import PaintBrush from './drawings/PaintBrush'
 import ProjectModal from './ProjectModal'
 import CategoryNav from './CategoryNav'
+import CoverImage from './CoverImage'
+import { urlForImage } from '@/sanity/lib/utils'
 
-// Sanitization helpers
 const stripInvisible = (s?: string) =>
   (s || '').replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g, '').trim()
 
@@ -19,6 +20,47 @@ const cleanAlt = (alt: string | undefined, fallback: string) => {
 
 const normalizeCategoryKey = (key: string) =>
   stripInvisible(key).substring(0, 12)
+
+type SanityImageAsset = {
+  _ref?: string
+  _id?: string
+  _type?: string
+  url?: string
+}
+
+type SanityImageSource = {
+  asset?: SanityImageAsset
+  crop?: Record<string, number>
+  hotspot?: Record<string, number>
+  alt?: string
+  [key: string]: any
+}
+
+const hasImageAsset = (image?: SanityImageSource) =>
+  Boolean(
+    image?.asset &&
+      (image.asset._ref || image.asset._id || image.asset._type === 'reference')
+  )
+
+const normalizeImageSource = (image?: SanityImageSource) => {
+  if (!image?.asset) return undefined
+  if (image.asset._ref) return image
+  if (image.asset._id) {
+    return {
+      ...image,
+      asset: { _ref: image.asset._id },
+    }
+  }
+  return undefined
+}
+
+const buildImageUrl = (image?: SanityImageSource, width = 1400) => {
+  const normalized = normalizeImageSource(image)
+  if (!normalized) return image?.asset?.url
+  return (
+    urlForImage(normalized)?.width(width).quality(85).url() || image?.asset?.url
+  )
+}
 
 type FeaturedProject = {
   _key: string
@@ -31,36 +73,61 @@ type FeaturedProject = {
   project: {
     _id: string
     title: string
-    slug: string
+    slug: { current: string }
     projectKind: 'professional' | 'personal'
+    projectSize?: 'small' | 'large'
+    projectSubtype?: 'artwork' | 'writing'
     projectTypeSlug?: string
     titleImage?: { asset?: { url?: string } }
-    coverImage?: { asset?: { url?: string }; alt?: string }
+    coverImage?: SanityImageSource
+    images?: Array<SanityImageSource & { title?: string }>
     description?: string
+    year?: string
     content?: any[]
+    previewType?: 'image' | 'text'
+    textExtractIndex?: number
+    writingContent?: Array<{
+      _type: string
+      _key: string
+      content?: string
+      image?: { asset?: { url?: string }; alt?: string }
+      caption?: string
+    }>
     categories?: Array<{
       _id: string
       title: string
       slug: { current: string }
       titleImage?: { asset?: { url?: string } }
     }>
+    writingLayout?: 'single' | 'double'
     categorySections?: Array<{
       _key: string
       category: {
         _id: string
         title: string
-        slug: string
+        slug: { current: string }
         titleImage?: { asset?: { url?: string } }
       }
       preview?: {
-        _type: 'image' | 'text'
-        image?: { asset?: { url?: string }; alt?: string }
+        mode?: 'image' | 'text'
+        _type?: 'image' | 'text'
+        image?: SanityImageSource
         text?: string
+        textOverride?: string
+        textExtractIndex?: number
       }
       content?: any[]
     }>
   }
 }
+
+type PreviewResult =
+  | { type: 'image'; image?: SanityImageSource }
+  | { type: 'text'; content: string }
+
+const kindOf = (p: any) => String(p?.projectKind ?? '').toLowerCase()
+const isPersonalKind = (p: any) => kindOf(p).includes('personal')
+const isProfessionalKind = (p: any) => kindOf(p).includes('professional')
 
 export default function CreativeProjectsList({
   featuredProjects,
@@ -79,75 +146,35 @@ export default function CreativeProjectsList({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(
     initialCategory || null
   )
-  const kindOf = (p: any) => String(p?.projectKind ?? '').toLowerCase()
-  const isPersonalKind = (p: any) => kindOf(p).includes('personal')
-  const isProfessionalKind = (p: any) => kindOf(p).includes('professional')
-
-  console.log('featured projects', featuredProjects)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    if (initialCategory) {
-      setSelectedCategory(initialCategory)
-    }
+    if (initialCategory) setSelectedCategory(initialCategory)
   }, [initialCategory])
 
-  const coverForItem = (item: FeaturedProject) => {
-    const p = item.project
-    if (!p) return undefined
-    if (isPersonalKind(p)) return p.coverImage?.asset?.url
-
-    // professional
-    if (item.categorySectionKey && p.categorySections?.length) {
-      const coreKey = normalizeCategoryKey(item.categorySectionKey)
-      const sec = p.categorySections.find((s) => s._key.startsWith(coreKey))
-
-      console.log(
-        'Professional item:',
-        item._key,
-        'categorySectionKey (core):',
-        coreKey,
-        'section found:',
-        sec ? 'yes' : 'no',
-        'preview image:',
-        sec?.preview?.image?.asset?.url
-      )
-
-      if (sec?.preview?.image?.asset?.url) {
-        return sec.preview.image.asset.url
-      }
-      if (sec?.content) {
-        for (const block of sec.content) {
-          if (
-            (block?._type === 'imageBlock' ||
-              block?._type === 'imageGallery') &&
-            block?.images?.length
-          ) {
-            const url = block.images[0]?.asset?.url
-            if (url) return url
-          }
-        }
-      }
-      return undefined
-    }
-
-    return p.coverImage?.asset?.url
-  }
+  useEffect(() => {
+    const updateViewport = () => setIsMobile(window.innerWidth < 768)
+    updateViewport()
+    window.addEventListener('resize', updateViewport)
+    return () => window.removeEventListener('resize', updateViewport)
+  }, [])
 
   const hrefFor = (item: FeaturedProject) => {
     const p = item.project
     if (!p) return '#'
-    const projectTypeSlug = p.projectTypeSlug || groupSlug
 
     if (isProfessionalKind(p)) {
-      let url = `/${projectTypeSlug}/${p.slug}`
+      let url = `/productions/${p.slug.current}`
       if (item.categorySectionKey && p.categorySections) {
         const coreKey = normalizeCategoryKey(item.categorySectionKey)
         const sec = p.categorySections.find((s) => s._key.startsWith(coreKey))
-        if (sec?.category?.slug) {
-          url += `#${sec.category.slug}`
-        }
+        if (sec?.category?.slug?.current) url += `#${sec.category.slug.current}`
       }
       return url
+    }
+
+    if (isPersonalKind(p) && p.projectSize === 'large' && p.slug?.current) {
+      return `/studio-works/${p.slug.current}`
     }
 
     return '#'
@@ -156,70 +183,72 @@ export default function CreativeProjectsList({
   const brushColor = (i: number) =>
     ['#FFB6C1', '#98D8C8', '#F7DC6F', '#BB8FCE', '#F8B88B'][i % 5]
 
-  const allCategories = Array.from(
-    new Map(
-      featuredProjects
-        .filter((item) => item?.project)
-        .flatMap((item) => {
-          const categories = []
+  const allCategories = useMemo(() => {
+    const pairs: [string, any][] = featuredProjects
+      .filter((item) => item?.project)
+      .flatMap((item) => {
+        const categories: [string, any][] = []
 
-          if (item.categorySectionKey && isProfessionalKind(item.project)) {
-            const coreKey = normalizeCategoryKey(item.categorySectionKey)
-            const sec = item.project.categorySections?.find((s) =>
-              s._key.startsWith(coreKey)
-            )
-            if (sec) {
-              categories.push([
-                sec.category.slug,
-                {
-                  id: sec.category.slug,
-                  title: sec.category.title,
-                  titleImageUrl: sec.category.titleImage?.asset?.url,
-                },
-              ])
-            }
-          }
-
-          if (isPersonalKind(item.project) && item.project.categories) {
-            item.project.categories.forEach((cat) => {
-              categories.push([
-                cat.slug.current,
-                {
-                  id: cat.slug.current,
-                  title: cat.title,
-                  titleImageUrl: cat.titleImage?.asset?.url,
-                },
-              ])
-            })
-          }
-
-          return categories
-        })
-        .filter(Boolean) as [string, any][]
-    ).values()
-  )
-
-  const filteredProjects = selectedCategory
-    ? featuredProjects.filter((item) => {
-        if (!item?.project) return false
-
-        if (isPersonalKind(item.project)) {
-          return item.project.categories?.some(
-            (cat) => cat.slug.current === selectedCategory
-          )
-        }
-
-        if (item.categorySectionKey && item.project.categorySections) {
+        if (item.categorySectionKey && isProfessionalKind(item.project)) {
           const coreKey = normalizeCategoryKey(item.categorySectionKey)
-          const sec = item.project.categorySections.find((s) =>
+          const sec = item.project.categorySections?.find((s) =>
             s._key.startsWith(coreKey)
           )
-          return sec?.category?.slug === selectedCategory
+          if (sec) {
+            categories.push([
+              sec.category.slug.current,
+              {
+                id: sec.category.slug.current,
+                title: sec.category.title,
+                titleImageUrl: sec.category.titleImage?.asset?.url,
+              },
+            ])
+          }
         }
 
-        return false
+        if (isPersonalKind(item.project) && item.project.categories) {
+          item.project.categories.forEach((cat) => {
+            categories.push([
+              cat.slug.current,
+              {
+                id: cat.slug.current,
+                title: cat.title,
+                titleImageUrl: cat.titleImage?.asset?.url,
+              },
+            ])
+          })
+        }
+
+        return categories
       })
-    : featuredProjects
+      .filter(Boolean) as [string, any][]
+
+    return Array.from(new Map(pairs).values())
+  }, [featuredProjects])
+
+  const filteredProjects = useMemo(() => {
+    if (!selectedCategory) return featuredProjects
+
+    return featuredProjects.filter((item) => {
+      if (!item?.project) return false
+
+      if (isPersonalKind(item.project)) {
+        return item.project.categories?.some(
+          (cat) => cat.slug.current === selectedCategory
+        )
+      }
+
+      if (item.categorySectionKey && item.project.categorySections) {
+        const coreKey = normalizeCategoryKey(item.categorySectionKey)
+        const sec = item.project.categorySections.find((s) =>
+          s._key.startsWith(coreKey)
+        )
+        return sec?.category?.slug?.current === selectedCategory
+      }
+
+      return false
+    })
+  }, [featuredProjects, selectedCategory])
 
   const handleSelectCategory = (id: string | null) => {
     try {
@@ -228,7 +257,6 @@ export default function CreativeProjectsList({
       else url.searchParams.delete('category')
       window.history.replaceState({}, '', url.toString())
     } catch {}
-
     setSelectedCategory(selectedCategory === id ? null : id)
   }
 
@@ -244,6 +272,138 @@ export default function CreativeProjectsList({
     )
   }
 
+  const portableTextToPlain = (content: any): string => {
+    if (!content) return ''
+    if (typeof content === 'string') return content
+    if (!Array.isArray(content)) return ''
+    return content
+      .map((block: any) =>
+        Array.isArray(block?.children)
+          ? block.children.map((child: any) => child?.text || '').join('')
+          : block?.text || ''
+      )
+      .join('\n')
+      .replace(/\s+\n/g, '\n')
+      .trim()
+  }
+
+  const getSectionTextExtract = (section: any, index?: number) => {
+    if (!section?.content) return undefined
+    // Look for both textBlock and textWithImage
+    const textBlocks = section.content.filter(
+      (block: any) =>
+        block?._type === 'textBlock' || block?._type === 'textWithImage'
+    )
+    if (!textBlocks.length) return undefined
+    const idx = Math.max(0, (index ?? 1) - 1)
+    const target = textBlocks[idx] || textBlocks[textBlocks.length - 1]
+    // textBlock uses 'content', textWithImage uses 'text'
+    const content = target.content || target.text
+    const plain = portableTextToPlain(content)
+    return plain || undefined
+  }
+
+  const coverOrPreviewForItem = (item: FeaturedProject): PreviewResult => {
+    const p = item.project
+    if (!p) return { type: 'image', image: undefined }
+
+    console.debug('coverOrPreviewForItem start', {
+      key: item._key,
+      title: p.title,
+      kind: p.projectKind,
+      size: p.projectSize,
+      categorySectionKey: item.categorySectionKey,
+      previewFromProject: {
+        previewType: p.previewType,
+        textExtractIndex: p.textExtractIndex,
+      },
+    })
+
+    // Small personal writing projects
+    if (isPersonalKind(p) && p.projectSubtype === 'writing') {
+      if (p.previewType === 'text' && p.writingContent && p.textExtractIndex) {
+        const textBlocks = p.writingContent.filter(
+          (block) => block._type === 'writingTextBlock'
+        )
+        const selectedBlock = textBlocks[p.textExtractIndex - 1]
+        if (selectedBlock?.content) {
+          return { type: 'text', content: selectedBlock.content }
+        }
+      }
+      if (p.coverImage) return { type: 'image', image: p.coverImage }
+      return { type: 'text', content: 'No preview available' }
+    }
+
+    // Small personal artwork projects
+    if (isPersonalKind(p) && p.projectSize !== 'large') {
+      return { type: 'image', image: p.coverImage }
+    }
+
+    // Professional or Large Personal projects (using Category Sections)
+    if (
+      (isProfessionalKind(p) || p.projectSize === 'large') &&
+      item.categorySectionKey &&
+      p.categorySections?.length
+    ) {
+      const coreKey = normalizeCategoryKey(item.categorySectionKey)
+      const sec = p.categorySections.find((s) => s._key.startsWith(coreKey))
+
+      if (!sec) return { type: 'image', image: p.coverImage }
+
+      console.debug('section data', {
+        sectionKey: sec?._key,
+        preview: sec?.preview,
+        content: sec?.content?.slice(0, 2), // First 2 blocks
+      })
+
+      const previewMode =
+        stripInvisible(sec.preview?.mode) ||
+        stripInvisible(sec.preview?._type) ||
+        (sec.preview?.textOverride ||
+        sec.preview?.text ||
+        sec.preview?.textExtractIndex
+          ? 'text'
+          : 'image')
+
+      if (previewMode === 'text') {
+        const manual = stripInvisible(
+          sec.preview?.textOverride || sec.preview?.text
+        )
+        if (manual) return { type: 'text', content: manual }
+
+        const extracted = getSectionTextExtract(
+          sec,
+          sec.preview?.textExtractIndex
+        )
+        if (extracted) return { type: 'text', content: extracted }
+      }
+
+      if (sec.preview?.image) {
+        return { type: 'image', image: sec.preview.image }
+      }
+
+      // Fallback: find first image in section content
+      if (sec?.content) {
+        for (const block of sec.content) {
+          if (
+            (block?._type === 'imageBlock' ||
+              block?._type === 'imageGallery') &&
+            block?.images?.length
+          ) {
+            const firstImage = block.images.find((img: SanityImageSource) =>
+              hasImageAsset(img)
+            )
+            if (firstImage) return { type: 'image', image: firstImage }
+          }
+        }
+      }
+
+      return { type: 'image', image: p.coverImage }
+    }
+
+    return { type: 'image', image: p.coverImage }
+  }
+
   return (
     <>
       {allCategories.length > 0 && (
@@ -257,7 +417,7 @@ export default function CreativeProjectsList({
         />
       )}
 
-      <div className='px-4 lg:px-0 lg:mb-8 fixed -rotate-3 lg:rotate-0 left-0 lg:left-22 top-23 lg:top-16 z-20 w-full lg:w-[40vw]'>
+      <div className='px-4 lg:px-0 lg:mb-8 absolute -rotate-3 lg:rotate-0 left-1/2 -translate-x-1/2 lg:left-22 top-30 lg:top-16 z-20 w-[85vw] lg:w-[40vw] lg:translate-x-0'>
         <AnimatePresence mode='wait'>
           {currentCategory?.titleImageUrl ? (
             <motion.div
@@ -270,8 +430,8 @@ export default function CreativeProjectsList({
               <Image
                 src={currentCategory.titleImageUrl}
                 alt={currentCategory.title}
-                width={600}
-                height={200}
+                width={1000}
+                height={1000}
                 className='object-contain h-auto'
               />
             </motion.div>
@@ -295,71 +455,80 @@ export default function CreativeProjectsList({
         </AnimatePresence>
       </div>
 
-      <div className='columns-[180px] lg:columns-[400px] gap-2 py-40 lg:py-64'>
+      <div className='mt-0 px-2 lg:mt-0 grid grid-cols-2 lg:grid-cols-4 gap-2 py-40 lg:pt-0 lg:pb-64 pt-0'>
         <AnimatePresence mode='popLayout'>
           {filteredProjects.map((item, idx) => {
             if (!item?.project) return null
-            const img = coverForItem(item)
-            if (!img) return null
+
+            const preview = coverOrPreviewForItem(item)
+            if (preview.type === 'image' && !hasImageAsset(preview.image))
+              return null
 
             const isPersonal = isPersonalKind(item.project)
+            const isLargePersonal =
+              isPersonal && item.project.projectSize === 'large'
             const onClick = (e: React.MouseEvent) => {
-              if (isPersonal) {
+              if (isPersonal && !isLargePersonal) {
                 e.preventDefault()
                 setModalProject({
                   title: item.project.title,
                   titleImageUrl: item.project.titleImage?.asset?.url,
-                  coverImageUrl: img,
+                  coverImageUrl:
+                    preview.type === 'image'
+                      ? buildImageUrl(preview.image)
+                      : undefined,
+                  coverImage: item.project.coverImage,
                   description: item.project.description,
                   content: item.project.content,
+                  writingContent: item.project.writingContent,
+                  writingLayout: item.project.writingLayout,
+                  images: item.project.images,
+                  year: item.project.year,
+                  projectSubtype: item.project.projectSubtype,
                 })
               }
             }
 
-            // Debug transform
-            console.log(`Item ${item._key} offsets:`, {
-              offsetX: item.offsetX,
-              offsetY: item.offsetY,
-              rotation: item.rotation,
-              scale: item.scale,
-            })
+            const offsetFactor = isMobile ? 0.55 : 1
+            const rotationFactor = isMobile ? 0.7 : 1
 
-            const transformValue = `translate(${Number(item.offsetX ?? 0)}px, ${Number(item.offsetY ?? 0)}px) rotate(${Number(item.rotation ?? 0)}deg) scale(${Number(item.scale ?? 1)})`
-            console.log(`Transform for ${item._key}:`, transformValue)
+            const responsiveX = (item.offsetX ?? 0) * offsetFactor
+            const responsiveY = (item.offsetY ?? 0) * offsetFactor
+            const responsiveRotation = (item.rotation ?? 0) * rotationFactor
+            const responsiveScale = isMobile
+              ? 1 - (1 - (item.scale ?? 1)) * 0.6
+              : (item.scale ?? 1)
 
             return (
               <motion.div
-                key={item._key}
+                key={`${item._key}-${idx}`}
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{
                   opacity: 1,
-                  x: item.offsetX ?? 0,
-                  y: item.offsetY ?? 0,
-                  rotate: item.rotation ?? 0,
-                  scale: item.scale ?? 1,
+                  x: responsiveX,
+                  y: responsiveY,
+                  rotate: responsiveRotation,
+                  scale: responsiveScale,
                 }}
                 exit={{ opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.25, delay: idx * 0.02 }}
                 className='relative mb-2 break-inside-avoid cursor-pointer'
-                style={{
-                  zIndex: item.zIndex || 0,
-                }}
+                style={{ zIndex: item.zIndex || 0 }}
                 onClick={onClick}
               >
                 <Link href={hrefFor(item)} className='block relative'>
-                  <Image
-                    src={img}
-                    alt={cleanAlt(
-                      item.project.coverImage?.alt,
-                      item.project.title
-                    )}
-                    width={300}
-                    height={400}
-                    className='w-full h-auto object-cover'
-                  />
+                  {preview.type === 'image' ? (
+                    <CoverImage image={preview.image} />
+                  ) : (
+                    <div className='w-full flex items-center justify-center p-2 my-16 bg-gray-50'>
+                      <p className='text-sm lg:text-base leading-tight whitespace-pre-wrap'>
+                        {preview.content}
+                      </p>
+                    </div>
+                  )}
 
                   {item.project.titleImage?.asset?.url && (
-                    <div className='absolute top-4 left-4 z-10'>
+                    <div className='absolute top-4 right-4 z-10'>
                       <div className='relative'>
                         <PaintBrush
                           className='absolute inset-0 w-full h-full -z-10'
@@ -377,6 +546,11 @@ export default function CreativeProjectsList({
                       </div>
                     </div>
                   )}
+
+                  <div className='absolute -bottom-8 right-0 z-10 text-black text-xs px-2 py-1 rounded'>
+                    {item.project.title}
+                    {item.project.year ? `, ${item.project.year}` : ''}
+                  </div>
                 </Link>
               </motion.div>
             )

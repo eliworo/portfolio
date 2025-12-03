@@ -3,25 +3,31 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import CoverImage from './CoverImage'
 
 type FeaturedProject = {
   project?: {
     _id: string
-    title?: string
+    title?: string | null
     slug?: {
-      current?: string
-    }
+      current?: string | null
+    } | null
     coverImage?: {
       asset?: {
-        url?: string
-      }
-      alt?: string
-    }
+        url?: string | null
+      } | null
+      alt?: string | null
+    } | null
     projectType?: {
       slug?: {
-        current?: string
-      }
-    }
+        current?: string | null
+      } | null
+    } | null
+    titleImage?: {
+      asset?: {
+        url?: string | null
+      } | null
+    } | null
   } | null
   offsetY?: number | null
   offsetX?: number | null
@@ -61,13 +67,14 @@ export default function FeaturedProjectCard({
         onMouseLeave={() => setIsHovered(false)}
       >
         {item.project.coverImage?.asset?.url && (
-          <Image
-            src={item.project.coverImage.asset.url}
-            alt={item.project.coverImage.alt || item.project.title || ''}
-            width={400}
-            height={600}
-            className='w-full h-auto object-cover transition-shadow duration-150'
-          />
+          <CoverImage image={item.project.coverImage} />
+          // <Image
+          //   src={item.project.coverImage.asset.url}
+          //   alt={item.project.coverImage.alt || item.project.title || ''}
+          //   width={400}
+          //   height={600}
+          //   className='w-full h-auto object-cover transition-shadow duration-150'
+          // />
         )}
       </Link>
     </div>

@@ -3,6 +3,28 @@ import { sanityFetch } from '@/sanity/lib/live'
 import { commissionsPageQuery } from '@/sanity/lib/queries'
 import type { CommissionsPageQueryResult } from '@/sanity.types'
 import ToolCard from '@/app/components/ToolCard'
+import { Metadata, ResolvingMetadata } from 'next'
+import { resolveOpenGraphImage } from '@/sanity/lib/utils'
+
+export async function generateMetadata(
+  _props: any,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { data: commissionsPage } = await sanityFetch({
+    query: commissionsPageQuery,
+    stega: false,
+  })
+  const previousImages = (await parent).openGraph?.images || []
+  const ogImage = resolveOpenGraphImage(commissionsPage?.titleImage)
+
+  return {
+    title: 'Commissions',
+    description: commissionsPage?.quote,
+    openGraph: {
+      images: ogImage ? [ogImage, ...previousImages] : previousImages,
+    },
+  } satisfies Metadata
+}
 
 export default async function CommissionsPage() {
   const { data } = await sanityFetch({
