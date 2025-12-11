@@ -201,6 +201,25 @@ export default function CreativeProjectsList({
   const brushColor = (projectId: string) =>
     brushColors[hashString(projectId) % brushColors.length]
 
+  // Add this new function for rotation
+  const brushRotation = (itemKey: string) => {
+    const hash = hashString(itemKey + 'rotation')
+    return (hash % 7) - 6 // Range: -3 to +3 degrees
+  }
+
+  const brushPosition = (itemKey: string) => {
+    const hash = hashString(itemKey + 'position')
+    const positions = [
+      'top-4 -left-8',
+      'top-4 -right-8',
+      'top-1/2 -translate-y-1/2 -left-8',
+      'top-1/2 -translate-y-1/2 -right-8',
+      'bottom-4 -left-8',
+      'bottom-4 -right-8',
+    ]
+    return positions[hash % positions.length]
+  }
+
   const allCategories = useMemo(() => {
     const pairs: [string, any][] = featuredProjects
       .filter((item) => item?.project)
@@ -568,21 +587,28 @@ export default function CreativeProjectsList({
                   )}
 
                   {item.project.titleImage?.asset?.url && (
-                    <div className='absolute top-4 right-4 z-10'>
-                      <div className='relative'>
+                    <div
+                      className={`absolute ${brushPosition(item._key)} z-10`}
+                    >
+                      <div
+                        className='relative'
+                        style={{
+                          rotate: `${brushRotation(item._key)}deg`,
+                        }}
+                      >
                         <PaintBrush
-                          className='absolute inset-0 w-full h-full -z-10'
+                          className='absolute top-1/2 -translate-y-[45%] -translate-x-[2%] w-[125%] h-[90%] -z-10'
                           theme={{
                             fill: brushColor(item.project._id || item._key),
                           }}
                         />
-                        <div className='px-3 py-2'>
+                        <div className='py-2'>
                           <Image
                             src={item.project.titleImage.asset.url}
                             alt={item.project.title}
                             width={100}
                             height={30}
-                            className='object-contain h-6 w-auto'
+                            className='object-contain h-9 w-auto'
                           />
                         </div>
                       </div>

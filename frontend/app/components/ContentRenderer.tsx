@@ -113,7 +113,7 @@ interface VideoBlock {
 export function ContentRenderer({ content }: { content: ContentBlock[] }) {
   const cleanContent = (content || []).map(cleanBlock)
   return (
-    <div className='space-y-16'>
+    <div className='space-y-8'>
       {cleanContent.map((block, index) => {
         return (
           <div key={index}>

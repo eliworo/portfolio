@@ -19,13 +19,6 @@ export default async function Page() {
     controls: false,
   }
 
-  console.log('Homepage', homepage)
-  console.log(
-    'Icons',
-    homepage?.muteIcon?.asset?.url,
-    homepage?.unmuteIcon?.asset?.url
-  )
-
   return (
     <>
       <div className='relative'>
