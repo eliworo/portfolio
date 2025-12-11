@@ -51,7 +51,7 @@ export const studioWorks = defineType({
       title: 'Projects to Display',
       type: 'array',
       description:
-        'Curate personal projects or specific category sections from professional projects. Position each item freely.',
+        'Curate personal projects or specific category sections from professional/large personal projects. Position each item freely.',
       of: [
         {
           type: 'object',
@@ -69,10 +69,10 @@ export const studioWorks = defineType({
             }),
             defineField({
               name: 'categorySectionKey',
-              title: 'Category Section (professional only)',
+              title: 'Category Section',
               type: 'string',
               description:
-                'When a professional project is selected, choose which section to feature.',
+                'For professional projects or large personal projects: choose which category section to feature.',
               components: {input: CategorySectionSelect},
             }),
             defineField({

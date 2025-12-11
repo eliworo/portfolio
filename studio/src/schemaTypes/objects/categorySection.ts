@@ -83,6 +83,7 @@ export const categorySection = defineType({
         {type: 'imageGallery'},
         {type: 'textWithImage'},
         {type: 'videoBlock'},
+        {type: 'mediaWithMedia'},
       ],
       // validation: (rule) => rule.required(),
     }),

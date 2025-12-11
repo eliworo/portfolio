@@ -27,6 +27,7 @@ export default function CategorySectionSelect({value, onChange, path, elementPro
 
   const [loading, setLoading] = React.useState(false)
   const [projectKind, setProjectKind] = React.useState<'professional' | 'personal' | null>(null)
+  const [projectSize, setProjectSize] = React.useState<'small' | 'large' | null>(null)
   const [sections, setSections] = React.useState<{title: string; key: string}[]>([])
   const [error, setError] = React.useState<string | null>(null)
 
@@ -35,6 +36,7 @@ export default function CategorySectionSelect({value, onChange, path, elementPro
     async function load() {
       if (!projectId) {
         setProjectKind(null)
+        setProjectSize(null)
         setSections([])
         return
       }
@@ -44,6 +46,7 @@ export default function CategorySectionSelect({value, onChange, path, elementPro
         const data = await client.fetch(
           `*[_type == "project" && _id in [$id, "drafts." + $id]] | order(_id desc)[0]{
             projectKind,
+            projectSize,
             categorySections[]{
               _key,
               category->{title}
@@ -53,7 +56,13 @@ export default function CategorySectionSelect({value, onChange, path, elementPro
         )
         if (cancelled) return
         setProjectKind(data?.projectKind ?? null)
-        if (data?.projectKind === 'professional') {
+        setProjectSize(data?.projectSize ?? null)
+
+        // Show sections for professional projects OR large personal projects
+        if (
+          data?.projectKind === 'professional' ||
+          (data?.projectKind === 'personal' && data?.projectSize === 'large')
+        ) {
           const list =
             data?.categorySections?.filter(Boolean)?.map((s: any) => ({
               title: s?.category?.title || 'Untitled section',
@@ -78,11 +87,24 @@ export default function CategorySectionSelect({value, onChange, path, elementPro
   if (!projectId) return <InfoBox text="Select a project first." />
   if (loading) return <InfoBox text="Loading sections…" />
   if (error) return <InfoBox tone="warn" text={error} />
-  if (projectKind !== 'professional') {
-    return <InfoBox text="Personal project selected — leave empty to feature whole project." />
+
+  // Small personal projects don't have sections
+  if (projectKind === 'personal' && projectSize === 'small') {
+    return (
+      <InfoBox text="Small personal project — no category sections needed (displays in modal)." />
+    )
   }
+
+  // Large personal or professional projects need sections
+  if (projectKind !== 'professional' && !(projectKind === 'personal' && projectSize === 'large')) {
+    return <InfoBox text="Select a project first." />
+  }
+
   if (sections.length === 0) {
-    return <InfoBox tone="warn" text="This professional project has no category sections yet." />
+    const projectType = projectKind === 'professional' ? 'professional' : 'large personal'
+    return (
+      <InfoBox tone="warn" text={`This ${projectType} project has no category sections yet.`} />
+    )
   }
 
   return (

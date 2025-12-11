@@ -17,6 +17,7 @@ import {about} from './singletons/about'
 import {
   imageBlock,
   imageGallery,
+  mediaWithMedia,
   textBlock,
   textWithImage,
   videoBlock,
@@ -56,4 +57,5 @@ export const schemaTypes = [
   imageGallery,
   textWithImage,
   videoBlock,
+  mediaWithMedia,
 ]
