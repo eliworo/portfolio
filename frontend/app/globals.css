@@ -60,3 +60,34 @@ img {
   user-select: none;
   pointer-events: none;
 }
+
+/* Fix spacing for Agrandir Bold font */
+strong,
+b {
+  font-family: var(--font-agrandir-bold), sans-serif;
+  font-weight: normal;
+  letter-spacing: 0.02em;
+  padding-right: 0.05em;
+}
+
+/* Fix spacing for Agrandir Italic font */
+em,
+i {
+  font-family: var(--font-agrandir-italic), sans-serif;
+  font-style: normal;
+  letter-spacing: 0.02em;
+  padding-right: 0.05em;
+  padding-left: 0.05em;
+}
+
+/* Force space after bold/italic elements */
+strong::after,
+b::after,
+em::after,
+i::after,
+i::before,
+em::before {
+  content: '';
+  display: inline-block;
+  width: 0.15em;
+}

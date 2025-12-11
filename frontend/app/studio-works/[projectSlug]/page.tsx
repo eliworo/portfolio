@@ -6,6 +6,7 @@ import { projectQuery } from '@/sanity/lib/queries'
 import { ContentRenderer } from '@/app/components/ContentRenderer'
 import CategoryNav from '@/app/components/CategoryNav'
 import { ProjectCredits } from '@/app/components/ProjectCredits'
+import ScrollToHash from '@/app/components/ScrollToHash'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
 
@@ -90,10 +91,13 @@ export default async function StudioWorksProjectPage(props: Props) {
 
   return (
     <main className='min-h-screen xl:pl-64'>
+      <ScrollToHash />
+
       {categoryNavItems.length > 0 && (
         <CategoryNav
           categories={categoryNavItems}
           title='woronoff by category'
+          projectTitleImageUrl={project.titleImage?.asset?.url ?? undefined}
           isProjectPage={true}
         />
       )}
@@ -125,22 +129,22 @@ export default async function StudioWorksProjectPage(props: Props) {
       )}
 
       {project.categorySections && project.categorySections.length > 0 && (
-        <div className='space-y-24'>
+        <div className='space-y-24 px-6'>
           {project.categorySections.map((section) => (
             <section
               key={section.category._id}
               id={section.category.slug.current}
               className='scroll-mt-24'
             >
-              <div className='container mx-auto'>
+              <div className=''>
                 {section.category.titleImage?.asset?.url ? (
-                  <div className='flex justify-start items-center mb-8 mt-16 xl:mt-32'>
+                  <div className='flex justify-start items-center mb-2 lg:mb-8 mt-16 xl:mt-32'>
                     <Image
                       src={section.category.titleImage.asset.url}
                       alt={section.category.title}
                       width={1000}
                       height={700}
-                      className='h-35 w-auto object-contain'
+                      className='h-16 lg:h-36 w-auto object-contain'
                     />
                   </div>
                 ) : (
@@ -155,7 +159,7 @@ export default async function StudioWorksProjectPage(props: Props) {
         </div>
       )}
 
-      <div className='container mx-auto'>
+      <div className='px-6'>
         <ProjectCredits
           credits={project.credits}
           press={project.press}
@@ -163,7 +167,7 @@ export default async function StudioWorksProjectPage(props: Props) {
         />
       </div>
 
-      <div className='container mx-auto my-16'>
+      <div className='px-6 my-16'>
         <Link
           href='/studio-works'
           className='inline-flex items-center text-gray-600 hover:text-black transition-colors'

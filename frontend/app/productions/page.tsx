@@ -59,14 +59,14 @@ export default async function ProductionsPage() {
   return (
     <main className='w-full lg:pl-60 lg:pr-8'>
       {/* Category Nav for Projects */}
-      {navItems.length > 0 && (
+      {/* {navItems.length > 0 && (
         <CategoryNav
           items={navItems}
           title='projects by woronoff'
           isProductionsPage={true}
           groupSlug='productions'
         />
-      )}
+      )} */}
       {productionsPage.titleImage?.asset?.url && (
         <div className='mb-8 absolute left-1/2 -translate-x-1/2 top-30 lg:left-22 lg:top-16 -rotate-3 z-10 w-[85vw] lg:w-[40vw] lg:translate-x-0'>
           <Image
@@ -91,7 +91,7 @@ export default async function ProductionsPage() {
       {/* Featured Projects with Creative Layout */}
       {productionsPage?.featuredProjects &&
         productionsPage.featuredProjects.length > 0 && (
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-24 relative overflow-visible pb-16 lg:pb-32 lg:pr-32 lg:pl-16'>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-24 gap-y-44 relative overflow-visible pb-16 lg:pb-32 lg:pr-32 lg:pl-16'>
             {productionsPage.featuredProjects.map((item, index) => (
               <ProductionsProjectCard key={index} item={item} />
             ))}

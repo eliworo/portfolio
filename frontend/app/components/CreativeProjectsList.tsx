@@ -174,14 +174,32 @@ export default function CreativeProjectsList({
     }
 
     if (isPersonalKind(p) && p.projectSize === 'large' && p.slug?.current) {
-      return `/studio-works/${p.slug.current}`
+      let url = `/studio-works/${p.slug.current}`
+      // Add hash for category sections in large personal projects
+      if (item.categorySectionKey && p.categorySections) {
+        const coreKey = normalizeCategoryKey(item.categorySectionKey)
+        const sec = p.categorySections.find((s) => s._key.startsWith(coreKey))
+        if (sec?.category?.slug?.current) url += `#${sec.category.slug.current}`
+      }
+      return url
     }
 
     return '#'
   }
 
-  const brushColor = (i: number) =>
-    ['#FFB6C1', '#98D8C8', '#F7DC6F', '#BB8FCE', '#F8B88B'][i % 5]
+  const brushColors = ['#FFB6C1', '#98D8C8', '#F7DC6F', '#BB8FCE', '#F8B88B']
+
+  function hashString(str: string) {
+    let hash = 0
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i)
+      hash |= 0 // Convert to 32bit integer
+    }
+    return Math.abs(hash)
+  }
+
+  const brushColor = (projectId: string) =>
+    brushColors[hashString(projectId) % brushColors.length]
 
   const allCategories = useMemo(() => {
     const pairs: [string, any][] = featuredProjects
@@ -189,7 +207,13 @@ export default function CreativeProjectsList({
       .flatMap((item) => {
         const categories: [string, any][] = []
 
-        if (item.categorySectionKey && isProfessionalKind(item.project)) {
+        // Professional projects OR large personal projects with category sections
+        if (
+          item.categorySectionKey &&
+          (isProfessionalKind(item.project) ||
+            (isPersonalKind(item.project) &&
+              item.project.projectSize === 'large'))
+        ) {
           const coreKey = normalizeCategoryKey(item.categorySectionKey)
           const sec = item.project.categorySections?.find((s) =>
             s._key.startsWith(coreKey)
@@ -206,7 +230,12 @@ export default function CreativeProjectsList({
           }
         }
 
-        if (isPersonalKind(item.project) && item.project.categories) {
+        // Small personal projects with categories
+        if (
+          isPersonalKind(item.project) &&
+          item.project.projectSize !== 'large' &&
+          item.project.categories
+        ) {
           item.project.categories.forEach((cat) => {
             categories.push([
               cat.slug.current,
@@ -232,13 +261,24 @@ export default function CreativeProjectsList({
     return featuredProjects.filter((item) => {
       if (!item?.project) return false
 
-      if (isPersonalKind(item.project)) {
+      // Small personal projects with categories
+      if (
+        isPersonalKind(item.project) &&
+        item.project.projectSize !== 'large'
+      ) {
         return item.project.categories?.some(
           (cat) => cat.slug.current === selectedCategory
         )
       }
 
-      if (item.categorySectionKey && item.project.categorySections) {
+      // Professional projects OR large personal projects with category sections
+      if (
+        item.categorySectionKey &&
+        item.project.categorySections &&
+        (isProfessionalKind(item.project) ||
+          (isPersonalKind(item.project) &&
+            item.project.projectSize === 'large'))
+      ) {
         const coreKey = normalizeCategoryKey(item.categorySectionKey)
         const sec = item.project.categorySections.find((s) =>
           s._key.startsWith(coreKey)
@@ -512,7 +552,7 @@ export default function CreativeProjectsList({
                 }}
                 exit={{ opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.25, delay: idx * 0.02 }}
-                className='relative mb-2 break-inside-avoid cursor-pointer'
+                className='relative mb-10 break-inside-avoid cursor-pointer'
                 style={{ zIndex: item.zIndex || 0 }}
                 onClick={onClick}
               >
@@ -532,7 +572,9 @@ export default function CreativeProjectsList({
                       <div className='relative'>
                         <PaintBrush
                           className='absolute inset-0 w-full h-full -z-10'
-                          theme={{ fill: brushColor(idx) }}
+                          theme={{
+                            fill: brushColor(item.project._id || item._key),
+                          }}
                         />
                         <div className='px-3 py-2'>
                           <Image

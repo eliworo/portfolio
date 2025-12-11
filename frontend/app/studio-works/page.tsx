@@ -48,20 +48,28 @@ export default async function StudioWorksPage({
     const allCategories = new Set<string>()
 
     featured.forEach((item: any) => {
+      // Professional projects OR large personal projects with category sections
       if (
         item.categorySectionKey &&
-        item.project.projectKind === 'professional'
+        (item.project.projectKind === 'professional' ||
+          (item.project.projectKind === 'personal' &&
+            item.project.projectSize === 'large'))
       ) {
         const coreKey = item.categorySectionKey.substring(0, 12)
         const sec = item.project.categorySections?.find((s: any) =>
           s._key.startsWith(coreKey)
         )
-        if (sec?.category?.slug) {
-          allCategories.add(sec.category.slug)
+        if (sec?.category?.slug?.current) {
+          allCategories.add(sec.category.slug.current)
         }
       }
 
-      if (item.project.projectKind === 'personal' && item.project.categories) {
+      // Small personal projects with categories
+      if (
+        item.project.projectKind === 'personal' &&
+        item.project.projectSize !== 'large' &&
+        item.project.categories
+      ) {
         item.project.categories.forEach((cat: any) => {
           allCategories.add(cat.slug.current)
         })

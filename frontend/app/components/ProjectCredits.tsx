@@ -11,6 +11,26 @@ interface ProjectCreditsProps {
 }
 
 const components: PortableTextComponents = {
+  block: {
+    normal: ({ children }) => (
+      <p className='mb-4 last:mb-0 whitespace-pre-wrap'>{children}</p>
+    ),
+    h2: ({ children }) => (
+      <h2 className='text-2xl font-bold mb-4 whitespace-pre-wrap'>
+        {children}
+      </h2>
+    ),
+    h3: ({ children }) => (
+      <h3 className='text-xl font-semibold mb-4 whitespace-pre-wrap'>
+        {children}
+      </h3>
+    ),
+    h4: ({ children }) => (
+      <h4 className='text-lg font-semibold mb-4 whitespace-pre-wrap'>
+        {children}
+      </h4>
+    ),
+  },
   marks: {
     strong: ({ children }) => (
       <strong className='font-agrandir-bold'>{children}</strong>
@@ -67,7 +87,7 @@ export function ProjectCredits({
             // This ensures the "tap" works reliably on mobile.
             <div className='group relative focus:outline-none' tabIndex={0}>
               <h3 className='font-agrandir-bold uppercase text-xl mb-4'>
-                Crédits
+                Credits
               </h3>
 
               {/* 1. max-h-[400px]: Default clamped height (mobile & desktop).
@@ -99,7 +119,7 @@ export function ProjectCredits({
           {tournee && (
             <>
               <h3 className='font-agrandir-bold uppercase text-xl mb-4 mt-8'>
-                Tournée
+                Dates
               </h3>
               <div className='text-sm lg:text-lg'>
                 <PortableText value={tournee} components={components} />

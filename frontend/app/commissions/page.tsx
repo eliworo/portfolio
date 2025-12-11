@@ -1,10 +1,11 @@
 import Image from 'next/image'
 import { sanityFetch } from '@/sanity/lib/live'
-import { commissionsPageQuery } from '@/sanity/lib/queries'
+import { aboutPageQuery, commissionsPageQuery } from '@/sanity/lib/queries'
 import type { CommissionsPageQueryResult } from '@/sanity.types'
 import ToolCard from '@/app/components/ToolCard'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
+import ContactNav from '../components/ContactNav'
 
 export async function generateMetadata(
   _props: any,
@@ -27,11 +28,10 @@ export async function generateMetadata(
 }
 
 export default async function CommissionsPage() {
-  const { data } = await sanityFetch({
-    query: commissionsPageQuery,
-  })
-
-  const commissionsPage = data as CommissionsPageQueryResult
+  const [{ data: commissionsPage }, { data: aboutPage }] = await Promise.all([
+    sanityFetch({ query: commissionsPageQuery }),
+    sanityFetch({ query: aboutPageQuery }),
+  ])
 
   if (!commissionsPage) {
     return null
@@ -54,7 +54,10 @@ export default async function CommissionsPage() {
       {/* Quote */}
       {commissionsPage.quote && (
         <div className='text-base xl:text-2xl leading-tight xl:max-w-[60vw] xl:ml-180 mt-62 mb-8 xl:mb-0 px-8 xl:mt-32'>
-          <p>{commissionsPage.quote}</p>
+          {/* ADDED: whitespace-pre-line 
+             This respects the "Enter" keys (newlines) from the Sanity text field.
+          */}
+          <p className='whitespace-pre-line'>{commissionsPage.quote}</p>
         </div>
       )}
 
@@ -66,6 +69,11 @@ export default async function CommissionsPage() {
           ))}
         </div>
       </div>
+      <ContactNav
+        contact={aboutPage?.contact ?? null}
+        cv={aboutPage?.cv}
+        contactImageUrl={aboutPage?.contactImage?.asset?.url}
+      />
     </main>
   )
 }

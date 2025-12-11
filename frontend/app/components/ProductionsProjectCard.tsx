@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -50,19 +50,37 @@ type ProductionsProjectCardProps = {
   }
 }
 
+const brushColors = [
+  '#FFB6C1',
+  '#98D8C8',
+  '#F7DC6F',
+  '#BB8FCE',
+  '#F8B88B',
+  '#ccc',
+]
+
+function hashString(str: string) {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i)
+    hash |= 0 // Convert to 32bit integer
+  }
+  return Math.abs(hash)
+}
+
 const getPositionClasses = (position?: string | null) => {
   // Clean the position string by removing non-word characters except hyphens
   const cleanPosition = position?.replace(/[^\w-]/g, '')
 
   switch (cleanPosition) {
     case 'top-left':
-      return 'top-4 left-4'
+      return 'top-4 -left-8 lg:-left-1/4'
     case 'top-right':
-      return 'top-4 right-4'
+      return 'top-4 -right-8 lg:-right-1/4'
     case 'middle-left':
       return 'top-1/2 -translate-y-1/2 -left-8 lg:-left-1/4'
     case 'middle-right':
-      return 'top-1/2 -translate-y-1/2 -right-8lg:-right-1/4'
+      return 'top-1/2 -translate-y-1/2 -right-8 lg:-right-1/4'
     case 'bottom-left':
       return 'bottom-4 -left-8 lg:-left-1/4'
     case 'bottom-right':
@@ -77,6 +95,21 @@ export default function ProductionsProjectCard({
 }: ProductionsProjectCardProps) {
   const [isHovered, setIsHovered] = useState(false)
 
+  // Move hooks BEFORE the early return
+  // Use project ID to get consistent color and rotation
+  const brushColor = useMemo(() => {
+    if (!item.project) return brushColors[0]
+    return brushColors[hashString(item.project._id) % brushColors.length]
+  }, [item.project])
+
+  // Generate subtle random rotation (-3 to +3 degrees)
+  const brushRotation = useMemo(() => {
+    if (!item.project) return 0
+    const hash = hashString(item.project._id + 'rotation')
+    return (hash % 7) - 3 // Range: -3 to +3
+  }, [item.project])
+
+  // NOW the early return
   if (!item.project || !item.project.slug?.current) {
     return null
   }
@@ -109,26 +142,23 @@ export default function ProductionsProjectCard({
         <Link href={href} className='block'>
           <div className='relative overflow-visible w-auto h-auto aspect-video'>
             <CoverImage image={item.project.coverImage} />
-            {/* <Image
-              src={item.project.coverImage.asset.url}
-              alt={item.project.coverImage.alt || item.project.title}
-              fill
-              className='object-contain h-auto w-full'
-            /> */}
 
             {/* Title Image Overlay */}
             {item.project.titleImage?.asset?.url && (
-              <div className={`absolute ${positionClasses} z-10`}>
+              <div
+                className={`absolute ${positionClasses} z-10`}
+                style={{ rotate: `${brushRotation}deg` }}
+              >
                 <Image
                   src={item.project.titleImage.asset.url}
                   alt={item.project.title || 'Project'}
                   width={500}
                   height={500}
-                  className='object-contain h-12 lg:h-28 w-auto'
+                  className='object-contain h-12 lg:h-18 w-auto'
                 />
                 <PaintBrush
-                  className='absolute top-1/2 -translate-y-[45%] -rotate-1 w-[110%] h-[80%] -z-10'
-                  theme={{ fill: '#eee' }}
+                  className='absolute top-1/2 -translate-y-[45%] -translate-x-[2%] w-[125%] h-[90%] -z-10'
+                  theme={{ fill: brushColor }}
                 />
               </div>
             )}

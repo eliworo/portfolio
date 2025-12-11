@@ -119,7 +119,34 @@ export const homepageQuery = `
   logo{
     asset->{url}
   },
-  showLogo
+  showLogo,
+  muteIcon {
+    asset->{
+      url
+    }
+  },
+  unmuteIcon {
+    asset->{
+      url
+    }
+  },
+  newsPostIts[]{
+    title,
+    date,
+    description,
+    linkUrl,
+    linkText,
+    postItImage {
+      asset->{
+        url
+      }
+    },
+    titleImage {
+      asset->{
+        url
+      }
+    }
+  }
 }
 `
 
@@ -332,19 +359,62 @@ export const projectGroupQuery =
           _type == "imageBlock" => {
             _type,
             _key,
-            images[]{asset->{url}, alt}
+            images[]{asset->{_id, url}, alt, crop, hotspot}
           },
           _type == "imageGallery" => {
             _type,
             _key,
-            images[]{asset->{url}, alt}
+            images[]{asset->{_id, url}, alt}
           },
           _type == "videoBlock" => { _type, _key, url, caption, aspectRatio },
+          _type == "mediaWithMedia" => {
+          _type,
+          _key,
+          leftMedia {
+            mediaType,
+            url,
+            caption,
+            aspectRatio,
+            image {
+              asset-> {
+                _id,
+                url
+              },
+              crop,
+              hotspot,
+              alt,
+              caption,
+              material,
+              dimensions,
+              year
+            }
+          },
+          rightMedia {
+            mediaType,
+            url,
+            caption,
+            aspectRatio,
+            image {
+              asset-> {
+                _id,
+                url
+              },
+              crop,
+              hotspot,
+              alt,
+              caption,
+              material,
+              dimensions,
+              year
+            }
+          },
+          layout
+        },
           _type == "textBlock" => { _type, _key, content, columns, alignment },
           _type == "textWithImage" => {
             _type, _key,
-            image{asset->{url}, alt, caption},
-            text, imagePosition, imageSize
+            image{asset->{_id, url}, alt, caption, hotspot, crop},
+            text, imagePosition, imageSize, verticalAlignment
           }
         },
         "categorySections": categorySections[]{
@@ -358,8 +428,8 @@ export const projectGroupQuery =
           content[]{
             _type,
             _key,
-            _type == "imageBlock" => { _type, _key, images[]{asset->{url}, alt} },
-            _type == "imageGallery" => { _type, _key, images[]{asset->{url}, alt} }
+            _type == "imageBlock" => { _type, _key, images[]{asset->{_id, url}, alt, crop, hotspot} },
+            _type == "imageGallery" => { _type, _key, images[]{asset->{_id, url}, alt, crop, hotspot} }
           }
         }
       }
@@ -453,22 +523,70 @@ export const projectQuery = defineQuery(`
       _type == "textWithImage" => {
         image {
           asset-> {
+            _id,
             url
           },
           alt,
-          caption
+          caption,
+          hotspot,
+          crop
         },
         text,
         imagePosition,
-        imageSize
+        imageSize,
+        verticalAlignment
       },
       // Video Block
       _type == "videoBlock" => {
         url,
         caption,
         aspectRatio
-      }
+      },
+      _type == "mediaWithMedia" => {
+      _type,
+      _key,
+      leftMedia {
+        mediaType,
+        url,
+        caption,
+        aspectRatio,
+        image {
+          asset-> {
+            _id,
+            url
+          },
+          crop,
+          hotspot,
+          alt,
+          caption,
+          material,
+          dimensions,
+          year
+        }
+      },
+      rightMedia {
+        mediaType,
+        url,
+        caption,
+        aspectRatio,
+        image {
+          asset-> {
+            _id,
+            url
+          },
+          crop,
+          hotspot,
+          alt,
+          caption,
+          material,
+          dimensions,
+          year
+        }
+      },
+      layout
+    }
     },
+
     categorySections[] {
       _key,
       category-> {
@@ -494,8 +612,11 @@ export const projectQuery = defineQuery(`
         _type == "imageBlock" => {
           images[] {
             asset-> {
+              _id,
               url
             },
+            crop,
+            hotspot,
             alt,
             caption,
             material,
@@ -528,20 +649,67 @@ export const projectQuery = defineQuery(`
         _type == "textWithImage" => {
           image {
             asset-> {
+              _id,
               url
             },
             alt,
+            crop,
+            hotspot,
             caption
           },
           text,
           imagePosition,
-          imageSize
+          imageSize,
+          verticalAlignment
         },
         // Video Block
         _type == "videoBlock" => {
           url,
           caption,
           aspectRatio
+        },
+        _type == "mediaWithMedia" => {
+          _type,
+          _key,
+          leftMedia {
+            mediaType,
+            url,
+            caption,
+            aspectRatio,
+            image {
+              asset-> {
+                _id,
+                url
+              },
+              crop,
+              hotspot,
+              alt,
+              caption,
+              material,
+              dimensions,
+              year
+            }
+          },
+          rightMedia {
+            mediaType,
+            url,
+            caption,
+            aspectRatio,
+            image {
+              asset-> {
+                _id,
+                url
+              },
+              crop,
+              hotspot,
+              alt,
+              caption,
+              material,
+              dimensions,
+              year
+            }
+          },
+          layout
         }
       }
     },
@@ -945,10 +1113,13 @@ const projectFields = /* groq */ `
         image {
           asset->{ _id, url },
           alt,
-          caption
+          caption,
+          crop,
+          hotspot
         },
         imagePosition,
-        imageSize
+        imageSize,
+        verticalAlignment
       }
     }
   },

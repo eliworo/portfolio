@@ -42,6 +42,46 @@ export default async function AboutPage() {
     return null
   }
 
+  // 1. SPLIT THE BIO LOGIC
+  const bioBlocks = Array.isArray(aboutPage.bio) ? aboutPage.bio : []
+  const bioPart1 = bioBlocks.slice(0, 4)
+  const bioPart2 = bioBlocks.slice(4)
+
+  // 2. DEFINE SHARED STYLING
+  const portableTextComponents = {
+    block: {
+      normal: ({ children }: any) => (
+        <p className='mb-4 lg:mb-8 whitespace-pre-line'>{children}</p>
+      ),
+    },
+  }
+
+  // 3. DEFINE ARTEOS CONTENT (To avoid code duplication)
+  const ArteosContent = () => (
+    <>
+      {/* Logo */}
+      {aboutPage.arteosLogo?.asset?.url && (
+        <div className='absolute -left-2 -top-14 lg:left-auto lg:top-auto lg:relative z-10'>
+          <Image
+            src={aboutPage.arteosLogo.asset.url}
+            alt='Arteos Logo'
+            width={100}
+            height={1000}
+            className='w-auto h-44 lg:h-64 object-contain'
+          />
+        </div>
+      )}
+      {/* Description Box */}
+      <div className='bg-black rounded-[2px] px-6 lg:px-6 py-6 lg:py-8 relative lg:absolute lg:left-44 lg:top-16 w-[65vw] lg:max-w-[17vw] ml-28 lg:ml-0 mt-40 lg:mt-0'>
+        <div className='max-w-full lg:max-w-74 bg-white text-black rounded-lg -rotate-6 p-4'>
+          <p className='text-sm lg:text-base leading-tight'>
+            {aboutPage.arteosDescription}
+          </p>
+        </div>
+      </div>
+    </>
+  )
+
   return (
     <main className='w-full min-h-screen relative overflow-hidden'>
       {aboutPage.quote && (
@@ -62,10 +102,12 @@ export default async function AboutPage() {
       )}
 
       <div className='lg:container mx-auto lg:px-8 lg:py-24 relative'>
+        {/* TOP SECTION: 2 COLUMNS */}
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-16 items-start'>
+          {/* LEFT COL: IMAGE */}
           <div className='relative'>
             {aboutPage.profileImage?.asset?.url && (
-              <div className='relative -ml-24 lg:-mt-16 lg:ml-8'>
+              <div className='relative -ml-24 lg:-mt-16 lg:ml-8 group'>
                 <Image
                   src={aboutPage.profileImage.asset.url}
                   alt={aboutPage.profileImage.alt || 'Profile Image'}
@@ -74,7 +116,7 @@ export default async function AboutPage() {
                   className='w-[80vw] lg:w-full lg:max-w-lg h-auto object-cover'
                 />
                 {aboutPage.profileImage.credit && (
-                  <p className='text-xs text-gray-600 mt-2 text-left'>
+                  <p className='text-xs text-gray-600 mt-2 text-left opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
                     {aboutPage.profileImage.credit}
                   </p>
                 )}
@@ -82,38 +124,39 @@ export default async function AboutPage() {
             )}
           </div>
 
+          {/* RIGHT COL: BIO PART 1 */}
           <div className='space-y-12 -mt-124 px-4 lg:mt-0 lg:-ml-80 z-10 w-full lg:max-w-[30vw]'>
-            {aboutPage.bio && (
+            {bioPart1.length > 0 && (
               <div className='text-sm lg:text-xl max-w-none leading-tight pl-34 lg:px-0'>
-                <PortableText value={aboutPage.bio} />
+                <PortableText
+                  value={bioPart1}
+                  components={portableTextComponents}
+                />
               </div>
             )}
-            <div className='relative lg:absolute lg:right-60 lg:top-16 lg:mt-0 -mt-16'>
-              {/* Logo - Absolutely positioned on left on mobile */}
-              {aboutPage.arteosLogo?.asset?.url && (
-                <div className='absolute -left-2 -top-14 lg:left-auto lg:top-auto lg:relative z-10'>
-                  <Image
-                    src={aboutPage.arteosLogo.asset.url}
-                    alt='Arteos Logo'
-                    width={100}
-                    height={1000}
-                    className='w-auto h-44 lg:h-64 object-contain'
-                  />
-                </div>
-              )}
 
-              {/* Description Box */}
-              <div className='bg-black rounded-[2px] px-6 lg:px-6 py-6 lg:py-8 relative lg:absolute lg:left-44 lg:top-16 w-[65vw] lg:max-w-[17vw] ml-28 lg:ml-0 mt-40 lg:mt-0'>
-                <div className='max-w-full lg:max-w-74 bg-white text-black rounded-lg -rotate-6 p-4'>
-                  <p className='text-sm lg:text-base leading-tight'>
-                    {aboutPage.arteosDescription}
-                  </p>
-                </div>
-              </div>
+            {/* ARTEOS (DESKTOP ONLY) */}
+            {/* Added 'hidden lg:block' to hide this instance on mobile */}
+            <div className='hidden lg:block relative lg:absolute lg:right-60 lg:top-16 lg:mt-0 -mt-16'>
+              <ArteosContent />
             </div>
-
-            {/* Remove the old contact section */}
           </div>
+        </div>
+
+        {/* BIO PART 2 (Flows underneath image) */}
+        {bioPart2.length > 0 && (
+          <div className='mt-0 lg:mt-16 px-16 lg:px-64 lg:max-w-7xl max-w-none w-full text-sm lg:text-xl leading-tight'>
+            <PortableText
+              value={bioPart2}
+              components={portableTextComponents}
+            />
+          </div>
+        )}
+
+        {/* ARTEOS (MOBILE ONLY) */}
+        {/* Added this block: 'block lg:hidden' shows it only on mobile, placed after everything */}
+        <div className='block lg:hidden relative mt-16 mb-24 max-w-[90vw] mx-auto'>
+          <ArteosContent />
         </div>
       </div>
 

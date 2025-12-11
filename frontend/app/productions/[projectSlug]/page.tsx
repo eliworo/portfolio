@@ -134,13 +134,13 @@ export default async function ProductionsProjectPage({
             >
               <div className=''>
                 {section.category.titleImage?.asset?.url ? (
-                  <div className='flex justify-start items-center mb-2 lg:mb-8 mt-16 xl:mt-32'>
+                  <div className='flex justify-start items-center mb-2 lg:mb-8 mt-8'>
                     <Image
                       src={section.category.titleImage.asset.url}
                       alt={section.category.title}
                       width={1000}
                       height={700}
-                      className='h-16 lg:h-36 w-auto object-contain'
+                      className='h-16 lg:h-24 w-auto object-contain'
                     />
                   </div>
                 ) : (

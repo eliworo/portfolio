@@ -3,6 +3,8 @@ import { sanityFetch } from '@/sanity/lib/live'
 import Image from 'next/image'
 import { PostItNote } from './components/PostItNote'
 import Loading from './loading'
+import HeroVideo from './components/HeroVideo'
+import NewsPostIts from './components/NewsPostIts'
 
 export default async function Page() {
   const { data: homepage } = await sanityFetch({
@@ -17,6 +19,13 @@ export default async function Page() {
     controls: false,
   }
 
+  console.log('Homepage', homepage)
+  console.log(
+    'Icons',
+    homepage?.muteIcon?.asset?.url,
+    homepage?.unmuteIcon?.asset?.url
+  )
+
   return (
     <>
       <div className='relative'>
@@ -24,48 +33,35 @@ export default async function Page() {
           <PostItNote />
         </div> */}
 
-        {/* Uploaded video */}
+        {homepage?.newsPostIts && <NewsPostIts news={homepage.newsPostIts} />}
+
         {homepage?.heroType === 'video' && (
           <>
             {/* Mobile video */}
             {homepage?.heroVideoMobile?.asset?.url && (
-              <div className='block md:hidden h-svh w-auto sm:mx-0'>
-                <video
-                  className='h-full w-full transform rounded-none border-0 object-cover'
-                  autoPlay={videoSettings.autoplay}
+              <div className='block md:hidden'>
+                <HeroVideo
+                  videoUrl={homepage.heroVideoMobile.asset.url}
+                  posterUrl={homepage?.heroImage?.asset?.url}
+                  muteIconUrl={homepage?.muteIcon?.asset?.url}
+                  unmuteIconUrl={homepage?.unmuteIcon?.asset?.url}
+                  autoplay={videoSettings.autoplay}
                   loop={videoSettings.loop}
-                  muted={videoSettings.muted}
-                  playsInline
-                  controls={videoSettings.controls}
-                  poster={homepage?.heroImage?.asset?.url || undefined}
-                >
-                  <source
-                    src={homepage.heroVideoMobile.asset.url}
-                    type='video/mp4'
-                  />
-                  Your browser does not support the video tag.
-                </video>
+                />
               </div>
             )}
 
             {/* Desktop video */}
             {homepage?.heroVideoDesktop?.asset?.url && (
-              <div className='hidden md:block h-svh w-auto sm:mx-0'>
-                <video
-                  className='h-full w-full transform rounded-none border-0 object-cover'
-                  autoPlay={videoSettings.autoplay}
+              <div className='hidden md:block'>
+                <HeroVideo
+                  videoUrl={homepage.heroVideoDesktop.asset.url}
+                  posterUrl={homepage?.heroImage?.asset?.url}
+                  muteIconUrl={homepage?.muteIcon?.asset?.url}
+                  unmuteIconUrl={homepage?.unmuteIcon?.asset?.url}
+                  autoplay={videoSettings.autoplay}
                   loop={videoSettings.loop}
-                  muted={videoSettings.muted}
-                  playsInline
-                  controls={videoSettings.controls}
-                  poster={homepage?.heroImage?.asset?.url || undefined}
-                >
-                  <source
-                    src={homepage.heroVideoDesktop.asset.url}
-                    type='video/mp4'
-                  />
-                  Your browser does not support the video tag.
-                </video>
+                />
               </div>
             )}
           </>

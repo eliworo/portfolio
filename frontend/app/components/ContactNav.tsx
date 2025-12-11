@@ -116,7 +116,7 @@ export default function ContactNav({
             <div className='relative'>
               <PaintBrush
                 className='absolute top-1/2 -translate-y-[40%] -rotate-6 w-full h-[60%] -z-10'
-                theme={{ fill: 'white' }}
+                theme={{ fill: '#9AB1FF' }}
               />
               <Image
                 src={contactImageUrl}
