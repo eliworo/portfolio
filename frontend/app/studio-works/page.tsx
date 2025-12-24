@@ -5,6 +5,7 @@ import { PortableText } from '@portabletext/react'
 import CreativeProjectsList from '../components/CreativeProjectsList'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
+import Link from 'next/link'
 
 export async function generateMetadata(
   _props: any,
@@ -24,6 +25,43 @@ export async function generateMetadata(
       images: ogImage ? [ogImage, ...previousImages] : previousImages,
     },
   } satisfies Metadata
+}
+
+const portableTextComponents = {
+  marks: {
+    strong: ({ children }: { children: React.ReactNode }) => (
+      <strong className='font-rader-medium'>{children}</strong>
+    ),
+    link: ({
+      children,
+      value,
+    }: {
+      children: React.ReactNode
+      value?: { href?: string }
+    }) => {
+      const href = value?.href || '#'
+      // Check if it's a category link (format: ?category=fashion)
+      if (href.startsWith('?category=')) {
+        const category = href.replace('?category=', '')
+        return (
+          <Link
+            href={`/studio-works${href}`}
+            className='underline decoration-2 underline-offset-4 hover:bg-yellow-100 transition-colors'
+          >
+            {children}
+          </Link>
+        )
+      }
+      return (
+        <a
+          href={href}
+          className='underline decoration-2 underline-offset-4 hover:bg-yellow-100 transition-colors'
+        >
+          {children}
+        </a>
+      )
+    },
+  },
 }
 
 export default async function StudioWorksPage({
@@ -83,42 +121,14 @@ export default async function StudioWorksPage({
 
   return (
     <main className='w-full lg:pl-60 lg:pr-8'>
-      {/* <div className='flex w-full hidden'>
-        <div className='hidden lg:block w-full'></div>
-        {studioWorks?.description && (
-          <div className='text-black/85 text-lg mt-46 py-16 lg:mt-0 lg:text-2xl leading-tight font-agrandir-tight lg:mb-12 w-full columns-1 lg:py-32 lg:px-0 px-4'>
-            <PortableText
-              value={studioWorks.description}
-              components={{
-                block: {
-                  normal: ({ children }) => <p className='mb-4'>{children}</p>,
-                  h2: ({ children }) => (
-                    <h2 className='text-3xl font-bold mb-4'>{children}</h2>
-                  ),
-                  h3: ({ children }) => (
-                    <h3 className='text-2xl font-semibold mb-4'>{children}</h3>
-                  ),
-                  blockquote: ({ children }) => (
-                    <blockquote className='italic border-l-4 border-gray-300 pl-4 mb-4'>
-                      {children}
-                    </blockquote>
-                  ),
-                },
-                marks: {
-                  strong: ({ children }) => <strong>{children}</strong>,
-                  em: ({ children }) => <em>{children}</em>,
-                },
-              }}
-            />
-          </div>
-        )}
-      </div> */}
-
       <div className='flex w-full'>
         <div className='hidden lg:block w-[45%]'></div>
         {studioWorks.description && (
-          <div className='text-black/85 text-lg mt-46 py-16 lg:mt-0 lg:text-2xl leading-tight font-agrandir-tight lg:mb-12 w-full columns-1 lg:pt-32 lg:px-0 px-4 max-w-3xl'>
-            <PortableText value={studioWorks.description} />
+          <div className='text-black text-lg mt-46 py-16 lg:mt-0 lg:text-2xl leading-[1.15] font-rader-regular lg:mb-12 w-full columns-1 lg:pt-32 lg:px-0 px-4 max-w-3xl'>
+            <PortableText
+              value={studioWorks.description}
+              components={portableTextComponents}
+            />
           </div>
         )}
       </div>
@@ -129,6 +139,7 @@ export default async function StudioWorksPage({
           groupTitleImageUrl={studioWorks?.titleImage?.asset?.url}
           groupTitle={studioWorks?.title}
           initialCategory={category}
+          gridSpacing={studioWorks?.gridSpacing}
         />
       )}
     </main>

@@ -191,7 +191,7 @@ export default function CategoryNav({
         />
 
         <div
-          className='flex items-end xl:items-start'
+          className='flex items-end xl:items-start cursor-pointer'
           ref={contentRef}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}

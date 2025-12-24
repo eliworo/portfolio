@@ -476,6 +476,11 @@ export const projectQuery = defineQuery(`
     content[] {
       _type,
       _key,
+      _type == "headingBlock" => {
+        text,
+        level,
+        alignment
+      },
       // Text Block
       _type == "textBlock" => {
         content,
@@ -602,6 +607,11 @@ export const projectQuery = defineQuery(`
       content[] {
         _type,
         _key,
+          _type == "headingBlock" => {
+          text,
+          level,
+          alignment
+        },
         // Text Block
         _type == "textBlock" => {
           content,
@@ -1150,6 +1160,10 @@ export const studioWorksQuery = /* groq */ `
       rotation,
       scale,
       zIndex
-    }
+    },
+    gridSpacing {
+      columnGap,
+      rowGap
+      }
   }
 `

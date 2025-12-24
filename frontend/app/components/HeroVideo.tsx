@@ -75,7 +75,7 @@ export default function HeroVideo({
       {activeIconSrc && (
         <button
           onClick={toggleMute}
-          className='absolute bottom-2 right-2 lg:bottom-8 lg:right-8 z-50 p-3 rounded-full transition-transform hover:scale-110 cursor-pointer'
+          className='absolute bottom-0 -left-0 lg:bottom-8 lg:right-8 lg:left-auto z-20 p-3 transition-transform hover:scale-110 cursor-pointer'
           aria-label={isMuted ? 'Unmute' : 'Mute'}
         >
           {/* We ensure activeIconSrc is a string before passing to Image */}

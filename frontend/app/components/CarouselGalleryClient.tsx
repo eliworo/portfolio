@@ -61,7 +61,7 @@ export default function CarouselGalleryClient({
     <div className='relative group py-6'>
       {/* --- Navigation Arrows --- */}
       {/* Positioned absolute. We use 'translate' to make them slide in/out subtly */}
-      <div className='absolute right-2 -bottom-2 lg:-bottom-6 z-20 flex gap-2 pointer-events-none'>
+      <div className='absolute right-2 -bottom-2 lg:-bottom-6 z-10 flex gap-2 pointer-events-none'>
         {/* Left Arrow */}
         <button
           onClick={() => scroll('left')}

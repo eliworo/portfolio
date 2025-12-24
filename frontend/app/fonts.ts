@@ -1,5 +1,7 @@
 import localFont from 'next/font/local'
 
+/* ------------------------------ AGRANDIR ------------------------------ */
+
 // Regular styles
 export const agrandirRegular = localFont({
   src: '../public/fonts/Agrandir/PPAgrandir-Regular.woff2',
@@ -125,9 +127,61 @@ export const agrandir = {
   textBold: agrandirTextBold,
 }
 
-// Helper to combine all font variables into a single string
+/* -------------------------------- RADER -------------------------------- */
+
+export const raderRegular = localFont({
+  src: '../public/fonts/Rader/PPRader-Regular.woff2',
+  variable: '--font-rader-regular',
+  display: 'swap',
+  preload: true,
+})
+
+export const raderMedium = localFont({
+  src: '../public/fonts/Rader/PPRader-Medium.woff2',
+  variable: '--font-rader-medium',
+  display: 'swap',
+  preload: true,
+})
+
+export const raderBold = localFont({
+  src: '../public/fonts/Rader/PPRader-Bold.woff2',
+  variable: '--font-rader-bold',
+  display: 'swap',
+  preload: true,
+})
+
+export const raderItalic = localFont({
+  src: '../public/fonts/Rader/PPRader-Italic.woff2',
+  variable: '--font-rader-italic',
+  display: 'swap',
+})
+
+export const raderMediumItalic = localFont({
+  src: '../public/fonts/Rader/PPRader-MediumItalic.woff2',
+  variable: '--font-rader-medium-italic',
+  display: 'swap',
+})
+
+export const raderBoldItalic = localFont({
+  src: '../public/fonts/Rader/PPRader-BoldItalic.woff2',
+  variable: '--font-rader-bold-italic',
+  display: 'swap',
+})
+
+export const rader = {
+  regular: raderRegular,
+  medium: raderMedium,
+  bold: raderBold,
+  italic: raderItalic,
+  mediumItalic: raderMediumItalic,
+  boldItalic: raderBoldItalic,
+}
+
+/* ------------------------- Variables helper (all) ------------------------ */
+
 export function getFontVariables() {
   return [
+    // Agrandir
     agrandirRegular.variable,
     agrandirBold.variable,
     agrandirItalic.variable,
@@ -144,5 +198,13 @@ export function getFontVariables() {
     agrandirWideBlackItalic.variable,
     agrandirWideLight.variable,
     agrandirTextBold.variable,
+
+    // Rader
+    raderRegular.variable,
+    raderMedium.variable,
+    raderBold.variable,
+    raderItalic.variable,
+    raderMediumItalic.variable,
+    raderBoldItalic.variable,
   ].join(' ')
 }

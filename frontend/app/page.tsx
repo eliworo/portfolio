@@ -1,15 +1,17 @@
-import { homepageQuery } from '@/sanity/lib/queries'
+import { aboutPageQuery, homepageQuery } from '@/sanity/lib/queries'
 import { sanityFetch } from '@/sanity/lib/live'
 import Image from 'next/image'
 import { PostItNote } from './components/PostItNote'
 import Loading from './loading'
 import HeroVideo from './components/HeroVideo'
 import NewsPostIts from './components/NewsPostIts'
+import ContactNav from './components/ContactNav'
 
 export default async function Page() {
-  const { data: homepage } = await sanityFetch({
-    query: homepageQuery,
-  })
+  const [{ data: homepage }, { data: aboutPage }] = await Promise.all([
+    sanityFetch({ query: homepageQuery }),
+    sanityFetch({ query: aboutPageQuery }),
+  ])
 
   // Get video settings with defaults
   const videoSettings = homepage?.videoSettings || {
@@ -22,10 +24,6 @@ export default async function Page() {
   return (
     <>
       <div className='relative'>
-        {/* <div className='absolute bottom-20 right-10 z-50'>
-          <PostItNote />
-        </div> */}
-
         {homepage?.newsPostIts && <NewsPostIts news={homepage.newsPostIts} />}
 
         {homepage?.heroType === 'video' && (
@@ -131,6 +129,12 @@ export default async function Page() {
           </div>
         )}
       </div>
+
+      <ContactNav
+        contact={aboutPage?.contact ?? null}
+        cv={aboutPage?.cv}
+        contactImageUrl={aboutPage?.contactImage?.asset?.url}
+      />
     </>
   )
 }

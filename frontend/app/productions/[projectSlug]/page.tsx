@@ -2,13 +2,14 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { sanityFetch } from '@/sanity/lib/live'
-import { projectQuery } from '@/sanity/lib/queries'
+import { productionsPageQuery, projectQuery } from '@/sanity/lib/queries'
 import { ContentRenderer } from '@/app/components/ContentRenderer'
 import CategoryNav from '@/app/components/CategoryNav'
 import { ProjectCredits } from '@/app/components/ProjectCredits'
 import ScrollToHash from '@/app/components/ScrollToHash'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
+import { ProjectNavigation } from '@/app/components/ProjectNavigation'
 
 type Category = {
   _id: string
@@ -65,17 +66,51 @@ export default async function ProductionsProjectPage({
 }) {
   const { projectSlug } = await params
 
-  const { data } = await sanityFetch({
-    query: projectQuery,
-    params: { projectSlug },
-    stega: false,
-  })
+  // Fetch both project and productions list
+  const [projectResult, productionsResult] = await Promise.all([
+    sanityFetch({
+      query: projectQuery,
+      params: { projectSlug },
+      stega: false,
+    }),
+    sanityFetch({
+      query: productionsPageQuery,
+      stega: false,
+    }),
+  ])
 
-  const project = data as unknown as Project
+  const project = projectResult.data as unknown as Project
+  const productionsPage = productionsResult.data as any
 
   if (!project || project.projectKind !== 'professional') {
     notFound()
   }
+
+  // Calculate prev/next navigation
+  const featuredProjects = productionsPage?.featuredProjects || []
+  const currentIndex = featuredProjects.findIndex(
+    (item: any) => item.project.slug.current === projectSlug
+  )
+
+  const prevProject =
+    currentIndex > 0
+      ? {
+          title: featuredProjects[currentIndex - 1].project.title,
+          slug: featuredProjects[currentIndex - 1].project.slug.current,
+          titleImageUrl:
+            featuredProjects[currentIndex - 1].project.titleImage?.asset?.url,
+        }
+      : undefined
+
+  const nextProject =
+    currentIndex >= 0 && currentIndex < featuredProjects.length - 1
+      ? {
+          title: featuredProjects[currentIndex + 1].project.title,
+          slug: featuredProjects[currentIndex + 1].project.slug.current,
+          titleImageUrl:
+            featuredProjects[currentIndex + 1].project.titleImage?.asset?.url,
+        }
+      : undefined
 
   const categoryNavItems = (project.categorySections ?? [])
     .filter((section) => section.category && section.category._id)
@@ -112,7 +147,7 @@ export default async function ProductionsProjectPage({
 
       <div className='px-6 mb-8 xl:mb-16'>
         {project.description && (
-          <p className='text-xl leading-tight lg:text-4xl max-w-7xl mt-68 xl:mt-88'>
+          <p className='text-xl leading-[1] tracking-tight lg:text-5xl max-w-7xl mt-68 xl:mt-84 -ml-16'>
             {project.description}
           </p>
         )}
@@ -134,13 +169,13 @@ export default async function ProductionsProjectPage({
             >
               <div className=''>
                 {section.category.titleImage?.asset?.url ? (
-                  <div className='flex justify-start items-center mb-2 lg:mb-8 mt-8'>
+                  <div className='flex justify-start items-center mb-2 lg:mb-4 mt-8 -ml-16'>
                     <Image
                       src={section.category.titleImage.asset.url}
                       alt={section.category.title}
                       width={1000}
                       height={700}
-                      className='h-16 lg:h-24 w-auto object-contain'
+                      className='h-16 lg:h-24 w-auto object-contain -rotate-4'
                     />
                   </div>
                 ) : (
@@ -163,10 +198,13 @@ export default async function ProductionsProjectPage({
         />
       </div>
 
+      {/* Project Navigation */}
+      <ProjectNavigation prevProject={prevProject} nextProject={nextProject} />
+
       <div className='px-6 my-16'>
         <Link
           href='/productions'
-          className='inline-flex items-center text-gray-600 hover:text-black transition-colors'
+          className='inline-flex items-center text-gray-600 hover:text-black transition-transitions'
         >
           <span className='mr-2'>←</span>
           Back to Productions

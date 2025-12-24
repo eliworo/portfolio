@@ -1,22 +1,29 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useDragControls,
+} from 'framer-motion'
+
 import PaintBrush from './drawings/PaintBrush'
 import ProjectModal from './ProjectModal'
 import CategoryNav from './CategoryNav'
 import CoverImage from './CoverImage'
 import { urlForImage } from '@/sanity/lib/utils'
 
+import { RiDragMove2Fill } from 'react-icons/ri'
+
+/* =========================
+   helpers (keep as-is)
+========================= */
+
 const stripInvisible = (s?: string) =>
   (s || '').replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g, '').trim()
-
-const cleanAlt = (alt: string | undefined, fallback: string) => {
-  const cleaned = stripInvisible(alt)
-  return cleaned.length > 0 ? cleaned : fallback
-}
 
 const normalizeCategoryKey = (key: string) =>
   stripInvisible(key).substring(0, 12)
@@ -39,7 +46,7 @@ type SanityImageSource = {
 const hasImageAsset = (image?: SanityImageSource) =>
   Boolean(
     image?.asset &&
-      (image.asset._ref || image.asset._id || image.asset._type === 'reference')
+    (image.asset._ref || image.asset._id || image.asset._type === 'reference')
   )
 
 const normalizeImageSource = (image?: SanityImageSource) => {
@@ -125,9 +132,295 @@ type PreviewResult =
   | { type: 'image'; image?: SanityImageSource }
   | { type: 'text'; content: string }
 
+type Preview =
+  | { type: 'image'; image?: any }
+  | { type: 'text'; content: string }
+
 const kindOf = (p: any) => String(p?.projectKind ?? '').toLowerCase()
 const isPersonalKind = (p: any) => kindOf(p).includes('personal')
 const isProfessionalKind = (p: any) => kindOf(p).includes('professional')
+
+/* =========================
+   NEW: Action model
+========================= */
+
+type CardAction =
+  | { type: 'navigate'; href: string }
+  | { type: 'modal'; href: string } // real href for “open in new tab”, but normal click opens modal
+  | { type: 'none' }
+
+const isModifiedClick = (e: React.MouseEvent) =>
+  e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1
+
+/* =========================
+   DraggableProjectCard (UPDATED)
+========================= */
+
+function DraggableProjectCard({
+  item,
+  idx,
+  isMobile,
+  action,
+  preview,
+  brushPosition,
+  brushRotation,
+  brushColor,
+  onOpenModal,
+  childrenBrushAndTitle,
+}: {
+  item: any
+  idx: number
+  isMobile: boolean
+  action: CardAction
+  preview: Preview
+  brushPosition: (k: string) => string
+  brushRotation: (k: string) => number
+  brushColor: (id: string) => string
+  onOpenModal: () => void
+  childrenBrushAndTitle: React.ReactNode
+}) {
+  const offsetFactor = isMobile ? 0.55 : 1
+  const rotationFactor = isMobile ? 0.7 : 1
+
+  const responsiveX = (item.offsetX ?? 0) * offsetFactor
+  const responsiveY = (item.offsetY ?? 0) * offsetFactor
+  const responsiveRotation = (item.rotation ?? 0) * rotationFactor
+
+  // CMS scale should affect the image/preview only — NOT the brush or caption
+  const responsiveScale = isMobile
+    ? 1 - (1 - (item.scale ?? 1)) * 0.6
+    : (item.scale ?? 1)
+
+  const x = useMotionValue(responsiveX)
+  const y = useMotionValue(responsiveY)
+
+  useEffect(() => {
+    x.set(responsiveX)
+    y.set(responsiveY)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [responsiveX, responsiveY])
+
+  const dragControls = useDragControls()
+
+  // robust click-after-drag guard
+  const movedRef = useRef(false)
+  const pointerDownRef = useRef<{ x: number; y: number } | null>(null)
+  const DRAG_CLICK_THRESHOLD = 6
+
+  // hover caption
+  const [hovered, setHovered] = React.useState(false)
+  const hoverAreaRef = useRef<HTMLDivElement | null>(null)
+
+  const captionX = useMotionValue(0)
+  const captionY = useMotionValue(0)
+  const captionOpacity = useMotionValue(0)
+
+  const updateCaptionPos = (clientX: number, clientY: number) => {
+    const el = hoverAreaRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    captionX.set(clientX - rect.left)
+    captionY.set(clientY - rect.top)
+  }
+
+  const actionGlyph =
+    action.type === 'modal' ? '+' : action.type === 'navigate' ? '↗' : ''
+
+  const handleActivate = (e: React.MouseEvent) => {
+    // block activation if dragged
+    if (movedRef.current) {
+      e.preventDefault()
+      e.stopPropagation()
+      return
+    }
+
+    // modal cards: respect modified clicks (open new tab / etc)
+    if (action.type === 'modal' && !isModifiedClick(e)) {
+      e.preventDefault()
+      e.stopPropagation()
+      onOpenModal()
+    }
+    // navigate cards: default Link behavior
+  }
+
+  const CardInner = (
+    <div className='group relative mb-10 break-inside-avoid select-none'>
+      {/* Drag handle */}
+
+      {/* MAIN VISUAL: rotation + scale apply ONLY here */}
+      <motion.div
+        style={{ rotate: responsiveRotation, scale: responsiveScale }}
+        className='relative'
+        whileHover={{ opacity: 0.98 }}
+        transition={{ duration: 0.12, ease: 'easeOut' }}
+      >
+        <div className='absolute left-2 top-2 z-30 pointer-events-auto'>
+          <div
+            role='button'
+            className='opacity-0 group-hover:opacity-100 transition-opacity duration-150 cursor-grab select-none bg-white text-black p-1'
+            onPointerDown={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              // IMPORTANT: do NOT mark moved yet — only once threshold is crossed
+              pointerDownRef.current = { x: e.clientX, y: e.clientY }
+              dragControls.start(e)
+            }}
+            onClick={(e) => {
+              // never activate content from handle
+              e.preventDefault()
+              e.stopPropagation()
+            }}
+            aria-label='Move card'
+            tabIndex={-1}
+          >
+            <RiDragMove2Fill size={20} />
+          </div>
+        </div>
+
+        {preview.type === 'image' ? (
+          <CoverImage image={preview.image} />
+        ) : (
+          // Text preview with post-it background
+          <div className='relative w-full my-16 flex items-center justify-center'>
+            <div className='relative w-[280px] md:w-[320px]'>
+              {/* Post-it background image - fixed aspect ratio */}
+              <div className='relative aspect-[4/5]'>
+                <Image
+                  src='/images/postitLogo2.png'
+                  alt=''
+                  fill
+                  className='object-fill'
+                  sizes='(max-width: 768px) 280px, 320px'
+                  draggable={false}
+                />
+              </div>
+
+              {/* Text content overlay - absolutely positioned to match image bounds */}
+              <div className='absolute inset-0 flex items-center justify-center p-10 md:py-18 md:px-16'>
+                <div className='w-full h-full flex items-center justify-center overflow-hidden'>
+                  <p className='text-xs md:text-sm leading-[1.15] text-black whitespace-pre-line max-h-full overflow-y-auto scrollbar-hide'>
+                    {preview.content}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Brushed Title (no pointer events) */}
+      <motion.div
+        className='absolute inset-0 z-20 pointer-events-none'
+        style={{ rotate: responsiveRotation }}
+      >
+        {childrenBrushAndTitle}
+      </motion.div>
+
+      {/* Caption */}
+      <motion.div
+        className='pointer-events-none absolute left-0 top-0 z-40'
+        style={{
+          x: captionX,
+          y: captionY,
+          opacity: captionOpacity,
+        }}
+      >
+        <div
+          className='text-white text-base font-rader-bold px-1 py-0 whitespace-nowrap bg-black'
+          style={{
+            transform: 'translate(10px, 10px)',
+            rotate: `${-responsiveRotation}deg`,
+          }}
+        >
+          {item.project.title}
+          {item.project.year ? `, ${item.project.year}` : ''}
+          {actionGlyph ? (
+            <span className='ml-2 opacity-80'>{actionGlyph}</span>
+          ) : null}
+        </div>
+      </motion.div>
+    </div>
+  )
+
+  const ClickableWrap =
+    action.type === 'navigate' || action.type === 'modal' ? (
+      <Link
+        href={action.href}
+        className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+        onClick={handleActivate}
+        aria-label={item.project.title}
+      >
+        {CardInner}
+      </Link>
+    ) : (
+      <div aria-disabled className='block opacity-60'>
+        {CardInner}
+      </div>
+    )
+
+  return (
+    <motion.div
+      drag
+      dragControls={dragControls}
+      dragListener={false}
+      dragElastic={0.18}
+      dragMomentum={false}
+      whileDrag={{ cursor: 'grabbing', zIndex: 100 }}
+      whileHover={{ zIndex: 50 }}
+      className='relative cursor-default'
+      style={{
+        x,
+        y,
+        zIndex: Math.max(0, item.zIndex || 0),
+        touchAction: 'none',
+      }}
+      onPointerDown={(e) => {
+        pointerDownRef.current = { x: e.clientX, y: e.clientY }
+        movedRef.current = false
+      }}
+      onPointerMove={(e) => {
+        if (!pointerDownRef.current) return
+        const dx = e.clientX - pointerDownRef.current.x
+        const dy = e.clientY - pointerDownRef.current.y
+        if (Math.hypot(dx, dy) > DRAG_CLICK_THRESHOLD) movedRef.current = true
+      }}
+      onPointerUp={() => {
+        pointerDownRef.current = null
+      }}
+      onDragStart={() => {
+        movedRef.current = true
+      }}
+      onDragEnd={() => {
+        // avoid “click on drag end” in some pointer sequences
+        window.setTimeout(() => {
+          movedRef.current = false
+        }, 0)
+      }}
+    >
+      <div
+        ref={hoverAreaRef}
+        onPointerEnter={(e) => {
+          updateCaptionPos(e.clientX, e.clientY)
+          captionOpacity.set(1)
+          setHovered(true)
+        }}
+        onPointerLeave={() => {
+          captionOpacity.set(0)
+          setHovered(false)
+        }}
+        onPointerMove={(e) => {
+          if (hovered) updateCaptionPos(e.clientX, e.clientY)
+        }}
+      >
+        {ClickableWrap}
+      </div>
+    </motion.div>
+  )
+}
+
+/* =========================
+   CreativeProjectsList (UPDATED)
+========================= */
 
 export default function CreativeProjectsList({
   featuredProjects,
@@ -135,18 +428,23 @@ export default function CreativeProjectsList({
   groupTitleImageUrl,
   groupTitle,
   initialCategory,
+  gridSpacing,
 }: {
   featuredProjects: FeaturedProject[]
   groupSlug: string
   groupTitleImageUrl?: string
   groupTitle?: string
   initialCategory?: string
+  gridSpacing?: {
+    columnGap?: number
+    rowGap?: number
+  }
 }) {
-  const [modalProject, setModalProject] = useState<any>(null)
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(
+  const [modalProject, setModalProject] = React.useState<any>(null)
+  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(
     initialCategory || null
   )
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = React.useState(false)
 
   useEffect(() => {
     if (initialCategory) setSelectedCategory(initialCategory)
@@ -161,7 +459,7 @@ export default function CreativeProjectsList({
 
   const hrefFor = (item: FeaturedProject) => {
     const p = item.project
-    if (!p) return '#'
+    if (!p || !p.slug?.current) return '#'
 
     if (isProfessionalKind(p)) {
       let url = `/productions/${p.slug.current}`
@@ -175,7 +473,6 @@ export default function CreativeProjectsList({
 
     if (isPersonalKind(p) && p.projectSize === 'large' && p.slug?.current) {
       let url = `/studio-works/${p.slug.current}`
-      // Add hash for category sections in large personal projects
       if (item.categorySectionKey && p.categorySections) {
         const coreKey = normalizeCategoryKey(item.categorySectionKey)
         const sec = p.categorySections.find((s) => s._key.startsWith(coreKey))
@@ -186,6 +483,31 @@ export default function CreativeProjectsList({
 
     return '#'
   }
+  // canonical href for modal items (allows cmd/ctrl-click new tab)
+  const modalHrefFor = (p: any) => {
+    const slug = p?.slug?.current
+    if (!slug) return '#'
+    return `/studio-works?project=${encodeURIComponent(slug)}`
+  }
+
+  const getCardAction = (item: FeaturedProject): CardAction => {
+    const p = item.project
+    if (!p) return { type: 'none' }
+
+    const isPersonal = isPersonalKind(p)
+    const isLargePersonal = isPersonal && p.projectSize === 'large'
+
+    // modal: small personal
+    if (isPersonal && !isLargePersonal) {
+      return { type: 'modal', href: modalHrefFor(p) }
+    }
+
+    // navigate
+    const href = hrefFor(item)
+    if (href && href !== '#') return { type: 'navigate', href }
+
+    return { type: 'none' }
+  }
 
   const brushColors = ['#FFB6C1', '#98D8C8', '#F7DC6F', '#BB8FCE', '#F8B88B']
 
@@ -193,7 +515,7 @@ export default function CreativeProjectsList({
     let hash = 0
     for (let i = 0; i < str.length; i++) {
       hash = (hash << 5) - hash + str.charCodeAt(i)
-      hash |= 0 // Convert to 32bit integer
+      hash |= 0
     }
     return Math.abs(hash)
   }
@@ -201,10 +523,9 @@ export default function CreativeProjectsList({
   const brushColor = (projectId: string) =>
     brushColors[hashString(projectId) % brushColors.length]
 
-  // Add this new function for rotation
   const brushRotation = (itemKey: string) => {
     const hash = hashString(itemKey + 'rotation')
-    return (hash % 7) - 6 // Range: -3 to +3 degrees
+    return (hash % 7) - 6 // keep your range
   }
 
   const brushPosition = (itemKey: string) => {
@@ -226,7 +547,6 @@ export default function CreativeProjectsList({
       .flatMap((item) => {
         const categories: [string, any][] = []
 
-        // Professional projects OR large personal projects with category sections
         if (
           item.categorySectionKey &&
           (isProfessionalKind(item.project) ||
@@ -249,7 +569,6 @@ export default function CreativeProjectsList({
           }
         }
 
-        // Small personal projects with categories
         if (
           isPersonalKind(item.project) &&
           item.project.projectSize !== 'large' &&
@@ -280,7 +599,6 @@ export default function CreativeProjectsList({
     return featuredProjects.filter((item) => {
       if (!item?.project) return false
 
-      // Small personal projects with categories
       if (
         isPersonalKind(item.project) &&
         item.project.projectSize !== 'large'
@@ -290,7 +608,6 @@ export default function CreativeProjectsList({
         )
       }
 
-      // Professional projects OR large personal projects with category sections
       if (
         item.categorySectionKey &&
         item.project.categorySections &&
@@ -348,7 +665,6 @@ export default function CreativeProjectsList({
 
   const getSectionTextExtract = (section: any, index?: number) => {
     if (!section?.content) return undefined
-    // Look for both textBlock and textWithImage
     const textBlocks = section.content.filter(
       (block: any) =>
         block?._type === 'textBlock' || block?._type === 'textWithImage'
@@ -356,7 +672,6 @@ export default function CreativeProjectsList({
     if (!textBlocks.length) return undefined
     const idx = Math.max(0, (index ?? 1) - 1)
     const target = textBlocks[idx] || textBlocks[textBlocks.length - 1]
-    // textBlock uses 'content', textWithImage uses 'text'
     const content = target.content || target.text
     const plain = portableTextToPlain(content)
     return plain || undefined
@@ -366,19 +681,6 @@ export default function CreativeProjectsList({
     const p = item.project
     if (!p) return { type: 'image', image: undefined }
 
-    console.debug('coverOrPreviewForItem start', {
-      key: item._key,
-      title: p.title,
-      kind: p.projectKind,
-      size: p.projectSize,
-      categorySectionKey: item.categorySectionKey,
-      previewFromProject: {
-        previewType: p.previewType,
-        textExtractIndex: p.textExtractIndex,
-      },
-    })
-
-    // Small personal writing projects
     if (isPersonalKind(p) && p.projectSubtype === 'writing') {
       if (p.previewType === 'text' && p.writingContent && p.textExtractIndex) {
         const textBlocks = p.writingContent.filter(
@@ -393,12 +695,10 @@ export default function CreativeProjectsList({
       return { type: 'text', content: 'No preview available' }
     }
 
-    // Small personal artwork projects
     if (isPersonalKind(p) && p.projectSize !== 'large') {
       return { type: 'image', image: p.coverImage }
     }
 
-    // Professional or Large Personal projects (using Category Sections)
     if (
       (isProfessionalKind(p) || p.projectSize === 'large') &&
       item.categorySectionKey &&
@@ -408,12 +708,6 @@ export default function CreativeProjectsList({
       const sec = p.categorySections.find((s) => s._key.startsWith(coreKey))
 
       if (!sec) return { type: 'image', image: p.coverImage }
-
-      console.debug('section data', {
-        sectionKey: sec?._key,
-        preview: sec?.preview,
-        content: sec?.content?.slice(0, 2), // First 2 blocks
-      })
 
       const previewMode =
         stripInvisible(sec.preview?.mode) ||
@@ -441,7 +735,6 @@ export default function CreativeProjectsList({
         return { type: 'image', image: sec.preview.image }
       }
 
-      // Fallback: find first image in section content
       if (sec?.content) {
         for (const block of sec.content) {
           if (
@@ -462,6 +755,12 @@ export default function CreativeProjectsList({
 
     return { type: 'image', image: p.coverImage }
   }
+
+  const MOBILE_DIVISOR = 1.6
+  const desktopColGap = gridSpacing?.columnGap ?? 8
+  const desktopRowGap = gridSpacing?.rowGap ?? 8
+  const colGap = isMobile ? desktopColGap / MOBILE_DIVISOR : desktopColGap
+  const rowGap = isMobile ? desktopRowGap / MOBILE_DIVISOR : desktopRowGap
 
   return (
     <>
@@ -514,87 +813,75 @@ export default function CreativeProjectsList({
         </AnimatePresence>
       </div>
 
-      <div className='mt-0 px-2 lg:mt-0 grid grid-cols-2 lg:grid-cols-4 gap-2 py-40 lg:pt-0 lg:pb-64 pt-0'>
+      <div
+        className='mt-0 px-2 lg:mt-0 grid grid-cols-2 lg:grid-cols-4 py-40 lg:pt-0 lg:pb-64 pt-0'
+        style={{
+          columnGap: `${colGap}px`,
+          rowGap: `${rowGap}px`,
+        }}
+      >
         <AnimatePresence mode='popLayout'>
           {filteredProjects.map((item, idx) => {
             if (!item?.project) return null
 
-            const preview = coverOrPreviewForItem(item)
-            if (preview.type === 'image' && !hasImageAsset(preview.image))
-              return null
-
-            const isPersonal = isPersonalKind(item.project)
-            const isLargePersonal =
-              isPersonal && item.project.projectSize === 'large'
-            const onClick = (e: React.MouseEvent) => {
-              if (isPersonal && !isLargePersonal) {
-                e.preventDefault()
-                setModalProject({
-                  title: item.project.title,
-                  titleImageUrl: item.project.titleImage?.asset?.url,
-                  coverImageUrl:
-                    preview.type === 'image'
-                      ? buildImageUrl(preview.image)
-                      : undefined,
-                  coverImage: item.project.coverImage,
-                  description: item.project.description,
-                  content: item.project.content,
-                  writingContent: item.project.writingContent,
-                  writingLayout: item.project.writingLayout,
-                  images: item.project.images,
-                  year: item.project.year,
-                  projectSubtype: item.project.projectSubtype,
-                })
+            let preview = coverOrPreviewForItem(item)
+            if (preview.type === 'image' && !hasImageAsset(preview.image)) {
+              // Only skip if it's a personal small project (which MUST have an image)
+              if (
+                isPersonalKind(item.project) &&
+                item.project.projectSize !== 'large'
+              ) {
+                return null
+              }
+              // For professional/large projects without images, show title as fallback
+              preview = {
+                type: 'text',
+                content: item.project.title || 'Project',
               }
             }
 
-            const offsetFactor = isMobile ? 0.55 : 1
-            const rotationFactor = isMobile ? 0.7 : 1
+            const action = getCardAction(item)
 
-            const responsiveX = (item.offsetX ?? 0) * offsetFactor
-            const responsiveY = (item.offsetY ?? 0) * offsetFactor
-            const responsiveRotation = (item.rotation ?? 0) * rotationFactor
-            const responsiveScale = isMobile
-              ? 1 - (1 - (item.scale ?? 1)) * 0.6
-              : (item.scale ?? 1)
+            const openModal = () => {
+              // only modal items should call this, but it’s safe
+              setModalProject({
+                title: item.project.title,
+                titleImageUrl: item.project.titleImage?.asset?.url,
+                coverImageUrl:
+                  preview.type === 'image'
+                    ? buildImageUrl(preview.image)
+                    : undefined,
+                coverImage: item.project.coverImage,
+                description: item.project.description,
+                content: item.project.content,
+                writingContent: item.project.writingContent,
+                writingLayout: item.project.writingLayout,
+                images: item.project.images,
+                year: item.project.year,
+                projectSubtype: item.project.projectSubtype,
+              })
+            }
 
             return (
-              <motion.div
+              <DraggableProjectCard
                 key={`${item._key}-${idx}`}
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{
-                  opacity: 1,
-                  x: responsiveX,
-                  y: responsiveY,
-                  rotate: responsiveRotation,
-                  scale: responsiveScale,
-                }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.25, delay: idx * 0.02 }}
-                className='relative mb-10 break-inside-avoid cursor-pointer'
-                style={{ zIndex: item.zIndex || 0 }}
-                onClick={onClick}
-              >
-                <Link href={hrefFor(item)} className='block relative'>
-                  {preview.type === 'image' ? (
-                    <CoverImage image={preview.image} />
-                  ) : (
-                    <div className='w-full flex items-center justify-center p-2 my-16 bg-gray-50'>
-                      <p className='text-sm lg:text-base leading-tight whitespace-pre-wrap'>
-                        {preview.content}
-                      </p>
-                    </div>
-                  )}
-
-                  {item.project.titleImage?.asset?.url && (
+                item={item}
+                idx={idx}
+                isMobile={isMobile}
+                action={action}
+                preview={preview}
+                brushPosition={brushPosition}
+                brushRotation={brushRotation}
+                brushColor={brushColor}
+                onOpenModal={openModal}
+                childrenBrushAndTitle={
+                  item.project.titleImage?.asset?.url ? (
                     <div
                       className={`absolute ${brushPosition(item._key)} z-10`}
                     >
                       <div
                         className='relative'
-                        style={{
-                          rotate: `${brushRotation(item._key)}deg`,
-                        }}
+                        style={{ rotate: `${brushRotation(item._key)}deg` }}
                       >
                         <PaintBrush
                           className='absolute top-1/2 -translate-y-[45%] -translate-x-[2%] w-[125%] h-[90%] -z-10'
@@ -606,21 +893,17 @@ export default function CreativeProjectsList({
                           <Image
                             src={item.project.titleImage.asset.url}
                             alt={item.project.title}
-                            width={100}
-                            height={30}
-                            className='object-contain h-9 w-auto'
+                            width={500}
+                            height={500}
+                            className='object-contain h-12 w-auto'
+                            draggable={false}
                           />
                         </div>
                       </div>
                     </div>
-                  )}
-
-                  <div className='absolute -bottom-8 right-0 z-10 text-black text-xs px-2 py-1 rounded'>
-                    {item.project.title}
-                    {item.project.year ? `, ${item.project.year}` : ''}
-                  </div>
-                </Link>
-              </motion.div>
+                  ) : null
+                }
+              />
             )
           })}
         </AnimatePresence>

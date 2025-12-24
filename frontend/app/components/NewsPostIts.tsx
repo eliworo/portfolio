@@ -43,7 +43,7 @@ export default function NewsPostIts({ news }: { news: NewsPostIt[] }) {
   return (
     <div
       ref={containerRef}
-      className='absolute inset-0 z-40 pointer-events-none overflow-hidden'
+      className='absolute inset-0 z-20 pointer-events-none overflow-hidden'
     >
       {/* Container restricted to right half on desktop */}
       <div className='absolute top-0 right-0 w-full h-full lg:w-1/2 pointer-events-auto'>
@@ -83,7 +83,7 @@ export default function NewsPostIts({ news }: { news: NewsPostIt[] }) {
               >
                 {/* 1. CUSTOM BACKGROUND IMAGE */}
                 {item.postItImage?.asset?.url && (
-                  <div className='absolute inset-0 z-0 pointer-events-none'>
+                  <div className='absolute inset-0 z-0 pointer-events-none opacity-85'>
                     <Image
                       src={item.postItImage.asset.url}
                       alt=''

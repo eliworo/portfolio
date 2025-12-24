@@ -87,14 +87,7 @@ export default function ContactNav({
 
   return (
     <motion.div
-      className='fixed bottom-0 xl:top-8 right-4 z-40 flex items-start pointer-events-none'
-      onHoverStart={() => window.innerWidth >= 1280 && setIsHovered(true)}
-      onHoverEnd={() => window.innerWidth >= 1280 && setIsHovered(false)}
-      onClick={() => {
-        if (window.innerWidth < 1280) {
-          setIsHovered((prev) => !prev)
-        }
-      }}
+      className='fixed bottom-4 xl:top-8 right-4 z-40 flex items-start pointer-events-none'
       initial={{ x: hideOffset }}
       animate={{
         x: isHovered ? 0 : hideOffset,
@@ -104,9 +97,22 @@ export default function ContactNav({
         ease: [0.76, 0, 0.24, 1],
       }}
     >
+      {/* Invisible hover bridge for easier hover on desktop */}
+      <div
+        className='absolute -right-4 top-0 w-12 h-20 pointer-events-auto hidden xl:block'
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      />
       <div
         className='flex items-end xl:items-start pointer-events-auto'
         ref={contentRef}
+        onMouseEnter={() => window.innerWidth >= 1280 && setIsHovered(true)}
+        onMouseLeave={() => window.innerWidth >= 1280 && setIsHovered(false)}
+        onClick={() => {
+          if (window.innerWidth < 1280) {
+            setIsHovered((prev) => !prev)
+          }
+        }}
       >
         <div
           className='flex flex-shrink-0 -mr-1 pt-2 pl-0 relative'
@@ -115,19 +121,20 @@ export default function ContactNav({
           {contactImageUrl && (
             <div className='relative'>
               <PaintBrush
-                className='absolute top-1/2 -translate-y-[40%] -rotate-6 w-full h-[60%] -z-10'
-                theme={{ fill: '#9AB1FF' }}
+                className='absolute top-1/2 -translate-y-[40%] -rotate-6 w-full h-[80%] -z-10'
+                theme={{ fill: '#fff' }}
               />
               <Image
                 src={contactImageUrl}
                 alt='Contact'
                 width={1000}
                 height={1000}
-                className='object-contain h-12 xl:h-18 w-auto select-none pointer-events-none relative z-10'
+                className='object-contain h-10 xl:h-12 w-auto select-none pointer-events-none relative z-10' // smaller on desktop
               />
             </div>
           )}
-          <HorizontalLine className='w-10' theme={{ fill: 'black' }} />
+          <HorizontalLine className='w-8 xl:w-10' theme={{ fill: 'black' }} />{' '}
+          {/* slightly smaller */}
         </div>
 
         <ul className='-space-y-1 relative ml-1 bg-white/95'>
@@ -140,7 +147,7 @@ export default function ContactNav({
                 href={item.href}
                 target={item.id !== 'email' ? '_blank' : undefined}
                 rel={item.id !== 'email' ? 'noopener noreferrer' : undefined}
-                className='block w-fit px-2 py-1 text-sm transition-colors cursor-pointer whitespace-nowrap hover:opacity-70'
+                className='block w-fit px-2 py-1 text-xs xl:text-sm transition-colors cursor-pointer whitespace-nowrap hover:opacity-70' // smaller text
               >
                 {item.id === 'instagram' && (
                   <FiInstagram className='inline w-4 h-4 mr-2' />

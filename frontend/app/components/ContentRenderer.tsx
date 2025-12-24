@@ -11,11 +11,19 @@ import ImageGalleryGrid from './ImageGalleryGrid'
 
 type ContentBlock =
   | TextBlock
+  | HeadingBlock
   | ImageBlock
   | ImageGallery
   | TextWithImage
   | VideoBlock
   | MediaWithMedia
+
+interface HeadingBlock {
+  _type: 'headingBlock'
+  text: string
+  level: 'h2' | 'h3' | 'h4'
+  alignment: 'left' | 'center' | 'right'
+}
 
 interface MediaWithMedia {
   _type: 'mediaWithMedia'
@@ -111,13 +119,16 @@ interface VideoBlock {
 }
 
 export function ContentRenderer({ content }: { content: ContentBlock[] }) {
-  const cleanContent = (content || []).map(cleanBlock)
   return (
-    <div className='space-y-8'>
-      {cleanContent.map((block, index) => {
+    <div className='space-y-16'>
+      {(content || []).map((block, index) => {
         return (
           <div key={index}>
             {block._type === 'textBlock' && <TextBlockRenderer block={block} />}
+            {block._type === 'headingBlock' && (
+              <HeadingBlockRenderer block={block} />
+            )}
+
             {block._type === 'imageBlock' && (
               <ImageBlockRenderer block={block} />
             )}
@@ -170,7 +181,7 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
 
   return (
     <div
-      className={`grid grid-cols-1 ${layoutClasses[block.layout]} gap-4 lg:gap-32 w-full`}
+      className={`grid grid-cols-1 ${layoutClasses[block.layout]} gap-4 lg:gap-8 w-full`}
     >
       {/* Left Media */}
       <div className='w-full'>
@@ -270,7 +281,7 @@ function TextBlockRenderer({ block }: { block: TextBlock }) {
 
   return (
     <div
-      className={`text-sm xl:text-lg leading-snug ${columnClasses[block.columns]} ${
+      className={`text-sm xl:text-xl leading-snug ${columnClasses[block.columns]} ${
         alignmentClasses[block.alignment]
       }`}
     >
@@ -322,10 +333,10 @@ function TextBlockRenderer({ block }: { block: TextBlock }) {
           },
           marks: {
             strong: ({ children }) => (
-              <strong className='font-agrandir-bold'>{children}</strong>
+              <strong className='font-rader-bold'>{children}</strong>
             ),
             em: ({ children }) => (
-              <em className='font-agrandir-italic'>{children}</em>
+              <em className='font-rader-italic'>{children}</em>
             ),
             underline: ({ children }) => (
               <span className='underline'>{children}</span>
@@ -621,5 +632,30 @@ function VideoBlockRenderer({ block }: { block: VideoBlock }) {
         </figcaption>
       )}
     </figure>
+  )
+}
+
+function HeadingBlockRenderer({ block }: { block: HeadingBlock }) {
+  // Only allow h2, h3, h4
+  const allowed = ['h2', 'h3', 'h4'] as const
+  const Tag = allowed.includes(block.level) ? block.level : 'h2'
+  const alignmentClasses = {
+    left: 'text-left',
+    center: 'text-center mx-auto',
+    right: 'text-right ml-auto',
+  }
+  const sizeClasses = {
+    h2: 'text-2xl lg:text-4xl',
+    h3: 'text-xl lg:text-3xl',
+    h4: 'text-lg lg:text-2xl',
+  }
+  return (
+    <div className={`w-full ${alignmentClasses[block.alignment]}`}>
+      <Tag
+        className={`font-rader-medium w-fit p-2 pb-3 px-4 bg-black text-white ${sizeClasses[Tag]}`}
+      >
+        {block.text}
+      </Tag>
+    </div>
   )
 }

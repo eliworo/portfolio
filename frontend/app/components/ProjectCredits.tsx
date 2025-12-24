@@ -21,7 +21,7 @@ const components: PortableTextComponents = {
       </h2>
     ),
     h3: ({ children }) => (
-      <h3 className='text-xl font-semibold mb-4 whitespace-pre-wrap'>
+      <h3 className='text-lg font-semibold mb-4 whitespace-pre-wrap'>
         {children}
       </h3>
     ),
@@ -33,7 +33,7 @@ const components: PortableTextComponents = {
   },
   marks: {
     strong: ({ children }) => (
-      <strong className='font-agrandir-bold'>{children}</strong>
+      <strong className='font-rader-bold'>{children}</strong>
     ),
     em: ({ children }) => <em className='font-agrandir-italic'>{children}</em>,
     underline: ({ children }) => <span className='underline'>{children}</span>,
@@ -86,7 +86,7 @@ export function ProjectCredits({
             // tabIndex={0} makes this div focusable (like a button).
             // This ensures the "tap" works reliably on mobile.
             <div className='group relative focus:outline-none' tabIndex={0}>
-              <h3 className='font-agrandir-bold uppercase text-xl mb-4'>
+              <h3 className='font-rader-medium uppercase text-base mb-8 mt-8 text-white bg-black w-fit  px-1.5 py-0 pb-0.5'>
                 Credits
               </h3>
 
@@ -94,7 +94,7 @@ export function ProjectCredits({
                   2. group-hover & group-focus: Expands when hovered OR clicked (focused).
                   3. transition-all: Smooth animation.
               */}
-              <div className='leading-[1.5] overflow-hidden transition-all duration-500 ease-in-out max-h-[400px] group-hover:max-h-[2000px] group-focus:max-h-[2000px] text-sm lg:text-lg'>
+              <div className='leading-[1.15] overflow-hidden transition-all duration-500 ease-in-out max-h-[400px] group-hover:max-h-[2000px] group-focus:max-h-[2000px] text-sm lg:text-lg ml-0'>
                 <PortableText value={credits} components={components} />
                 <div className='h-4' />
               </div>
@@ -107,7 +107,7 @@ export function ProjectCredits({
         <div>
           {press && (
             <>
-              <h3 className='font-agrandir-bold uppercase text-xl mb-4'>
+              <h3 className='font-rader-medium uppercase text-lg mb-4 bg-black text-white p-1 py-0'>
                 Press
               </h3>
               <div className='text-sm lg:text-lg'>
@@ -118,7 +118,7 @@ export function ProjectCredits({
 
           {tournee && (
             <>
-              <h3 className='font-agrandir-bold uppercase text-xl mb-4 mt-8'>
+              <h3 className='font-rader-medium uppercase text-lg mb-4 mt-8 border-b border-black text-black p-1 px-0 py-0'>
                 Dates
               </h3>
               <div className='text-sm lg:text-lg'>

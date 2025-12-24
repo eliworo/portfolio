@@ -136,7 +136,7 @@ export default async function StudioWorksProjectPage(props: Props) {
               id={section.category.slug.current}
               className='scroll-mt-24'
             >
-              <div className=''>
+              <div className='border-4'>
                 {section.category.titleImage?.asset?.url ? (
                   <div className='flex justify-start items-center mb-2 lg:mb-8 mt-16 xl:mt-32'>
                     <Image
