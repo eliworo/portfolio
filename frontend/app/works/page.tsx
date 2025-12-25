@@ -113,7 +113,7 @@ export default async function WorksPage() {
                       src={productionsPage.titleImage.asset.url}
                       alt='Productions'
                       width={500}
-                      height={200}
+                      height={500}
                       className='object-contain w-full h-auto'
                     />
                   </div>

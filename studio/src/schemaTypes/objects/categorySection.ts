@@ -79,6 +79,7 @@ export const categorySection = defineType({
       description: 'Content blocks for this category section',
       of: [
         {type: 'textBlock'},
+        {type: 'headingBlock'},
         {type: 'imageBlock'},
         {type: 'imageGallery'},
         {type: 'textWithImage'},

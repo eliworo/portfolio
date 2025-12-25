@@ -51,7 +51,7 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
             alt='E'
             width={200}
             height={200}
-            className='object-contain w-14 h-auto'
+            className='object-contain w-13 h-auto'
           />
         ) : (
           <div className='text-3xl font-bold'>E</div>

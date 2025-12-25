@@ -5,16 +5,12 @@ import Image from 'next/image'
 
 type Tool = {
   titleImage?: {
-    asset?: {
-      url?: string | null
-    } | null
+    asset?: { url?: string | null } | null
   } | null
   subtitle?: string | null
   description?: string | null
   image?: {
-    asset?: {
-      url?: string | null
-    } | null
+    asset?: { url?: string | null } | null
     alt?: string | null
   } | null
   offsetY?: number | null
@@ -26,69 +22,71 @@ type Tool = {
 export default function ToolCard({ tool }: { tool: Tool }) {
   const [isHovered, setIsHovered] = useState(false)
 
-  return (
-    <div className='space-y-4'>
-      {/* Tool Title Image */}
-      <div
-        className=''
-        style={{
-          transform:
-            typeof window !== 'undefined' && window.innerWidth >= 1024
-              ? `translate(${tool.offsetX || 0}px, ${tool.offsetY || 0}px) rotate(${tool.rotation || 0}deg) scale(${tool.scale || 1})`
-              : 'none',
-          transition: 'transform 0.3s ease',
-        }}
-      >
-        {' '}
-        {tool.titleImage?.asset?.url && (
-          <div className='-ml-4 -mb-0.5 -rotate-2'>
-            <Image
-              src={tool.titleImage.asset.url}
-              alt={tool.subtitle || ''}
-              width={300}
-              height={100}
-              className='w-full h-auto object-contain object-left max-h-16'
-            />
-          </div>
-        )}
-        {/* Subtitle */}
-        {tool.subtitle && (
-          <h3 className='text-2xl uppercase'>{tool.subtitle}</h3>
-        )}
-        {/* Image with Description Overlay */}
-        {tool.image?.asset?.url && (
-          <div
-            className='relative aspect-video rounded-lg cursor-pointer'
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            <Image
-              src={tool.image.asset.url}
-              alt={tool.image.alt || tool.subtitle || ''}
-              fill
-              className={`object-cover transition-all duration-150 border-4  ${
-                isHovered ? 'blur-none' : 'blur-md'
-              }`}
-            />
+  const tx = tool.offsetX ?? 0
+  const ty = tool.offsetY ?? 0
+  const rot = tool.rotation ?? 0
+  const s = tool.scale ?? 1
 
-            {/* Description Overlay */}
-            <div className='relative h-full'>
-              <div
-                className={`absolute inset-0 flex items-center justify-center p-6 transition-opacity duration-150 bg-black/50 blur-md ${
-                  isHovered ? 'opacity-0' : 'opacity-100'
-                }`}
-              ></div>
-              <p
-                className={`text-white text-sm leading-tight drop-shadow-lg h-full p-6 ${
-                  isHovered ? 'opacity-0' : 'opacity-100'
-                }`}
-              >
-                {tool.description}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
+  return (
+    <div
+      style={
+        {
+          '--tx': `${tx}px`,
+          '--ty': `${ty}px`,
+          '--rot': `${rot}deg`,
+          '--s': String(s),
+        } as React.CSSProperties
+      }
+      className='
+        transition-transform duration-300 ease-out
+        lg:[transform:translate(var(--tx),var(--ty))_rotate(var(--rot))_scale(var(--s))]
+      '
+    >
+      {/* Image */}
+      {tool.image?.asset?.url && (
+        <div
+          className='relative aspect-video rounded-lg cursor-pointer'
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <Image
+            src={tool.image.asset.url}
+            alt={tool.image.alt || tool.subtitle || ''}
+            fill
+            className='object-cover border-4'
+          />
+
+          {/* Inner white haze frame */}
+          <div className='absolute inset-0 shadow-[inset_0_0_8px_12px_white] pointer-events-none' />
+        </div>
+      )}
+
+      {/* Title image (the handwritten TOOL label image) */}
+      {tool.titleImage?.asset?.url && (
+        <div className='-ml-2 -mt-24 mb-14 -rotate-2'>
+          <Image
+            src={tool.titleImage.asset.url}
+            alt={tool.subtitle || ''}
+            width={320}
+            height={120}
+            className='w-full h-auto object-contain object-left max-h-16'
+          />
+        </div>
+      )}
+
+      {/* Subtitle */}
+      {tool.subtitle && (
+        <h3 className='text-2xl uppercase font-rader-bold mt-8'>
+          {tool.subtitle}
+        </h3>
+      )}
+
+      {/* Description */}
+      {tool.description && (
+        <p className='text-black text-lg leading-tight drop-shadow-xs mt-4'>
+          {tool.description}
+        </p>
+      )}
     </div>
   )
 }

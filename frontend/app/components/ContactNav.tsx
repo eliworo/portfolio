@@ -1,5 +1,6 @@
 'use client'
 
+import ReactDOM from 'react-dom'
 import { useEffect, useState, useRef } from 'react'
 import { motion } from 'motion/react'
 import Image from 'next/image'
@@ -103,6 +104,7 @@ export default function ContactNav({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       />
+      <BlurryBackdrop show={isHovered} />
       <div
         className='flex items-end xl:items-start pointer-events-auto'
         ref={contentRef}
@@ -122,7 +124,7 @@ export default function ContactNav({
             <div className='relative'>
               <PaintBrush
                 className='absolute top-1/2 -translate-y-[40%] -rotate-6 w-full h-[80%] -z-10'
-                theme={{ fill: '#fff' }}
+                theme={{ fill: 'transparent' }}
               />
               <Image
                 src={contactImageUrl}
@@ -137,7 +139,7 @@ export default function ContactNav({
           {/* slightly smaller */}
         </div>
 
-        <ul className='-space-y-1 relative ml-1 bg-white/95'>
+        <ul className='-space-y-1 relative ml-1'>
           <div className='absolute left-0 top-0 h-full'>
             <VerticalLine className='h-full' theme={{ fill: 'black' }} />
           </div>
@@ -162,5 +164,13 @@ export default function ContactNav({
         </ul>
       </div>
     </motion.div>
+  )
+}
+
+function BlurryBackdrop({ show }: { show: boolean }) {
+  if (!show) return null
+  return ReactDOM.createPortal(
+    <div className='fixed inset-0 bg-white/30 backdrop-blur-md z-30 pointer-events-none' />,
+    document.body
   )
 }

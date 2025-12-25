@@ -33,42 +33,60 @@ export default async function CommissionsPage() {
     sanityFetch({ query: aboutPageQuery }),
   ])
 
-  if (!commissionsPage) {
-    return null
-  }
+  if (!commissionsPage) return null
 
   return (
-    <main className='w-full min-h-screen relative overflow-hidden'>
-      {commissionsPage.titleImage?.asset?.url && (
-        <div className='xl:mb-8 absolute left-12 top-28 sm:top-20 md:top-14 lg:top-8 xl:top-12 -rotate-0 z-20'>
-          <Image
-            src={commissionsPage.titleImage.asset.url}
-            alt='Commissions'
-            width={1000}
-            height={1000}
-            className='object-contain w-[80vw] h-auto xl:w-auto xl:h-[180px]'
-          />
-        </div>
-      )}
+    <main className='w-full min-h-screen overflow-hidden'>
+      {/* HEADER (12-col grid, keeps the original poster-like composition) */}
+      <header className='px-8 pt-24 sm:pt-20 md:pt-16 xl:pt-10'>
+        <div className='xl:grid xl:grid-cols-12 xl:gap-x-16'>
+          {/* Title image: anchored top-left, in flow */}
+          {commissionsPage.titleImage?.asset?.url && (
+            <div className='xl:col-span-6 xl:row-start-1'>
+              <Image
+                src={commissionsPage.titleImage.asset.url}
+                alt='Commissions'
+                width={1000}
+                height={500}
+                priority
+                className='
+                          object-contain mx-auto -mt-18 mb-8 xl:my-0
+                          w-[50vw] max-w-[980px]
+                          xl:w-full xl:max-w-none
+                          h-auto
+                        '
+              />
+            </div>
+          )}
 
-      {/* Quote */}
-      {commissionsPage.quote && (
-        <div className='text-base xl:text-2xl leading-tight xl:max-w-[60vw] xl:ml-180 mt-62 mb-8 xl:mb-0 px-8 xl:mt-32'>
-          {/* ADDED: whitespace-pre-line 
-             This respects the "Enter" keys (newlines) from the Sanity text field.
-          */}
-          <p className='whitespace-pre-line'>{commissionsPage.quote}</p>
+          {/* Quote: sits UNDER the title, but starts later (shift right) */}
+          {commissionsPage.quote && (
+            <div
+              className='
+                mt-10
+                xl:mt-8
+                xl:col-start-7 xl:col-span-6
+                xl:row-start-1
+                xl:max-w-[70ch]
+              '
+            >
+              <p className='whitespace-pre-line text-xl xl:text-2xl leading-[1.15]'>
+                {commissionsPage.quote}
+              </p>
+            </div>
+          )}
         </div>
-      )}
+      </header>
 
-      {/* Tools Grid */}
-      <div className='xl:pl-60 3xl:pl-88 mt-8 xl:mt-12 px-8 pb-32'>
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 xl:gap-16 3xl:gap-32'>
+      {/* TOOLS GRID */}
+      <section className='px-8 pb-48 mt-14 xl:mt-20 xl:pl-60 3xl:pl-88'>
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 xl:gap-16 xl:gap-y-24 3xl:gap-32'>
           {commissionsPage.tools?.map((tool, index) => (
             <ToolCard key={index} tool={tool} />
           ))}
         </div>
-      </div>
+      </section>
+
       <ContactNav
         contact={aboutPage?.contact ?? null}
         cv={aboutPage?.cv}

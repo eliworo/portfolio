@@ -169,6 +169,27 @@ export const studioWorks = defineType({
         },
       ],
     }),
+    defineField({
+      name: 'gridSpacing',
+      title: 'Grid Spacing (Desktop)',
+      type: 'object',
+      fields: [
+        defineField({
+          name: 'columnGap',
+          title: 'Column Gap (px)',
+          type: 'number',
+          initialValue: 8,
+          validation: (rule) => rule.min(0),
+        }),
+        defineField({
+          name: 'rowGap',
+          title: 'Row Gap (px)',
+          type: 'number',
+          initialValue: 8,
+          validation: (rule) => rule.min(0),
+        }),
+      ],
+    }),
   ],
   preview: {
     prepare() {

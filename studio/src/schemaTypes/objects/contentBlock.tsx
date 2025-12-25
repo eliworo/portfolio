@@ -1,5 +1,68 @@
 import {defineType, defineField} from 'sanity'
-import {ImageIcon, ImagesIcon, DocumentTextIcon, ComposeIcon, PlayIcon} from '@sanity/icons'
+import {
+  ImageIcon,
+  ImagesIcon,
+  DocumentTextIcon,
+  ComposeIcon,
+  PlayIcon,
+  BlockElementIcon,
+} from '@sanity/icons'
+
+export const headingBlock = defineType({
+  name: 'headingBlock',
+  title: 'Heading',
+  type: 'object',
+  icon: BlockElementIcon,
+  fields: [
+    defineField({
+      name: 'text',
+      title: 'Heading Text',
+      type: 'string',
+      validation: (Rule) => Rule.required().max(120),
+    }),
+    defineField({
+      name: 'level',
+      title: 'Heading Level',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'H2 (Large)', value: 'h2'},
+          {title: 'H3 (Medium)', value: 'h3'},
+          {title: 'H4 (Small)', value: 'h4'},
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'h2',
+    }),
+    defineField({
+      name: 'alignment',
+      title: 'Alignment',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Left', value: 'left'},
+          {title: 'Center', value: 'center'},
+          {title: 'Right', value: 'right'},
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'left',
+    }),
+  ],
+  preview: {
+    select: {
+      text: 'text',
+      level: 'level',
+    },
+    prepare({text, level}) {
+      return {
+        title: text || 'Empty heading',
+        subtitle: level?.toUpperCase() || 'H2',
+        media: BlockElementIcon,
+      }
+    },
+  },
+})
 
 // Rich text block with column options
 export const textBlock = defineType({

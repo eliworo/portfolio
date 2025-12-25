@@ -48,29 +48,14 @@ export default function Navigation({ navImages }: NavigationProps) {
     null
   )
 
-  // refs/timers for hover delay
-  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const HIDE_DELAY = 150
-
-  function clearHoverTimeout() {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current)
-      hoverTimeoutRef.current = null
-    }
-  }
-
-  function handleMouseEnter() {
-    clearHoverTimeout()
+  function handleLogoHover() {
     setShowMenu(true)
   }
 
-  function handleMouseLeave() {
-    clearHoverTimeout()
-    hoverTimeoutRef.current = setTimeout(() => {
-      setShowMenu(false)
-      setActiveCategory(null)
-      setActiveSubCategory(null)
-    }, HIDE_DELAY)
+  function handleCloseMenu() {
+    setShowMenu(false)
+    setActiveCategory(null)
+    setActiveSubCategory(null)
   }
 
   const menuVariants = {
@@ -92,25 +77,26 @@ export default function Navigation({ navImages }: NavigationProps) {
 
   return (
     <>
-      {/* Blurry backdrop */}
+      {/* Blurry backdrop - now clickable to close */}
       <AnimatePresence>
         {showMenu && (
           <motion.div
-            className='fixed inset-0 bg-white/30 backdrop-blur-md z-40 pointer-events-none'
+            className='fixed inset-0 bg-white/30 backdrop-blur-md z-40 cursor-pointer'
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={handleCloseMenu}
           />
         )}
       </AnimatePresence>
 
-      <nav
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        className='fixed left-10 top-1/2 -translate-y-1/2 z-50 flex items-center'
-      >
+      <nav className='fixed left-10 top-1/2 -translate-y-1/2 z-50 flex items-center'>
         <>
-          <Link href='/' className='cursor-pointer relative z-10'>
+          <Link
+            href='/'
+            className='cursor-pointer relative z-10'
+            onMouseEnter={handleLogoHover}
+          >
             {navImages?.homepage?.logo?.asset?.url ? (
               <Image
                 src={navImages.homepage.logo.asset.url}
@@ -175,7 +161,7 @@ export default function Navigation({ navImages }: NavigationProps) {
                           >
                             <Link
                               href={category.slug}
-                              onClick={() => setShowMenu(false)}
+                              onClick={handleCloseMenu}
                             >
                               {imageUrl ? (
                                 <Image
@@ -248,9 +234,7 @@ export default function Navigation({ navImages }: NavigationProps) {
                                               >
                                                 <Link
                                                   href={subCategory.slug}
-                                                  onClick={() =>
-                                                    setShowMenu(false)
-                                                  }
+                                                  onClick={handleCloseMenu}
                                                 >
                                                   {hasImage ? (
                                                     <Image
