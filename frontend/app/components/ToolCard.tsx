@@ -53,7 +53,7 @@ export default function ToolCard({ tool }: { tool: Tool }) {
             src={tool.image.asset.url}
             alt={tool.image.alt || tool.subtitle || ''}
             fill
-            className='object-cover border-4'
+            className='object-cover'
           />
 
           {/* Inner white haze frame */}
@@ -62,7 +62,7 @@ export default function ToolCard({ tool }: { tool: Tool }) {
       )}
 
       {/* Title image (the handwritten TOOL label image) */}
-      {tool.titleImage?.asset?.url && (
+      {/* {tool.titleImage?.asset?.url && (
         <div className='-ml-2 -mt-24 mb-14 -rotate-2'>
           <Image
             src={tool.titleImage.asset.url}
@@ -72,12 +72,12 @@ export default function ToolCard({ tool }: { tool: Tool }) {
             className='w-full h-auto object-contain object-left max-h-16'
           />
         </div>
-      )}
+      )} */}
 
       {/* Subtitle */}
       {tool.subtitle && (
-        <h3 className='text-2xl uppercase font-rader-bold mt-8'>
-          {tool.subtitle}
+        <h3 className='text-lg uppercase font-rader-bold mt-8 bg-black text-white w-fit px-2'>
+          Tool: {tool.subtitle}
         </h3>
       )}
 

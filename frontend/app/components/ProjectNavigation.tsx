@@ -17,9 +17,9 @@ export function ProjectNavigation({
   nextProject?: NavigationProject
 }) {
   return (
-    <div className='fixed bottom-8 left-16'>
+    <div className='xl:fixed xl:bottom-8 xl:left-16 justify-between mt-8 w-full flex xl:flex-col gap-4'>
       {/* Previous Project */}
-      <div className=''>
+      <div>
         {prevProject ? (
           <Link
             href={`/productions/${prevProject.slug}`}
@@ -30,7 +30,7 @@ export function ProjectNavigation({
               alt='Previous Project'
               width={600}
               height={600}
-              className='object-contain h-auto w-16  select-none pointer-events-none'
+              className='object-contain h-auto w-16 select-none pointer-events-none'
             />
             {prevProject.titleImageUrl && (
               <Image
@@ -49,11 +49,10 @@ export function ProjectNavigation({
       </div>
 
       {/* Next Project */}
-
       {nextProject ? (
         <Link
           href={`/productions/${nextProject.slug}`}
-          className='group items-center hover:opacity-70 transition-opacity'
+          className='group items-start hover:opacity-70 transition-opacity'
         >
           {nextProject.titleImageUrl && (
             <Image
@@ -70,7 +69,7 @@ export function ProjectNavigation({
             alt='Next'
             width={600}
             height={600}
-            className='object-contain h-auto w-16  select-none pointer-events-none'
+            className='object-contain h-auto w-16 select-none pointer-events-none'
           />
         </Link>
       ) : (

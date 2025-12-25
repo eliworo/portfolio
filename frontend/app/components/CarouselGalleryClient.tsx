@@ -8,6 +8,8 @@ interface CarouselImage {
   url: string
   alt: string
   caption?: string
+  width?: number
+  height?: number
 }
 
 export default function CarouselGalleryClient({
@@ -21,22 +23,10 @@ export default function CarouselGalleryClient({
   const [showLeft, setShowLeft] = useState(false)
   const [showRight, setShowRight] = useState(true)
 
-  // Aspect Ratio logic
-  const aspectClass =
-    aspectRatio === 'square'
-      ? 'aspect-square'
-      : aspectRatio === 'landscape'
-        ? 'aspect-[16/9]'
-        : aspectRatio === 'portrait'
-          ? 'aspect-[3/4]'
-          : 'aspect-[16/9]'
-
   const checkScroll = () => {
     if (scrollRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
-      // Show left arrow if we have scrolled > 10px
       setShowLeft(scrollLeft > 10)
-      // Show right arrow if we are not at the very end
       setShowRight(Math.ceil(scrollLeft + clientWidth) < scrollWidth - 10)
     }
   }
@@ -57,96 +47,118 @@ export default function CarouselGalleryClient({
     return () => window.removeEventListener('resize', checkScroll)
   }, [])
 
+  // fallback aspect if metadata missing
+  const fallbackAspect =
+    aspectRatio === 'square' ? 1 : aspectRatio === 'portrait' ? 3 / 4 : 16 / 9
+
+  const clamp = (v: number, min: number, max: number) =>
+    Math.max(min, Math.min(max, v))
+
+  // Generate consistent random Y offsets for each image
+  const getYOffset = (index: number) => {
+    // Use index as seed for consistent randomness
+    const seed = index * 12345
+    const random = Math.abs(Math.sin(seed)) * 100
+    // Alternate between positive and negative, with values between -8vh and 8vh
+    const offset =
+      index % 2 === 0
+        ? (random % 8) - 4 // -4 to 4vh
+        : ((random % 8) - 4) * -1 // inverted for alternating pattern
+
+    // Round to 2 decimals to avoid hydration mismatch
+    return Math.round(offset * 100) / 100
+  }
+
   return (
-    <div className='relative group py-6'>
-      {/* --- Navigation Arrows --- */}
-      {/* Positioned absolute. We use 'translate' to make them slide in/out subtly */}
+    <div className='relative group py-12 overflow-hidden'>
+      {/* Arrows - closer spacing */}
       <div className='absolute right-2 -bottom-2 lg:-bottom-6 z-10 flex gap-2 pointer-events-none'>
-        {/* Left Arrow */}
         <button
           onClick={() => scroll('left')}
-          className={`
-            transition-all duration-500 ease-out transform
-            ${
-              showLeft
-                ? 'opacity-100 translate-x-0 pointer-events-auto cursor-pointer'
-                : 'opacity-0 translate-x-4 pointer-events-none'
-            }
-          `}
-          aria-label='Scroll Left'
+          className={`transition-all duration-500 ${
+            showLeft
+              ? 'opacity-100 pointer-events-auto'
+              : 'opacity-0 pointer-events-none'
+          }`}
         >
-          <div className='hover:scale-105 transition-transform duration-200'>
-            <Image
-              src='/images/arrowRightLogo.png'
-              alt='Previous'
-              width={150}
-              height={150}
-              className='object-contain h-8 lg:h-10 w-auto select-none rotate-180'
-            />
-          </div>
+          <Image
+            src='/images/arrowRightLogo.png'
+            alt='Previous'
+            width={150}
+            height={150}
+            className='h-8 lg:h-10 w-auto rotate-180'
+          />
         </button>
 
-        {/* Right Arrow */}
         <button
           onClick={() => scroll('right')}
-          className={`
-            transition-all duration-500 ease-out transform
-            ${
-              showRight
-                ? 'opacity-100 translate-x-0 pointer-events-auto cursor-pointer'
-                : 'opacity-0 -translate-x-4 pointer-events-none'
-            }
-          `}
-          aria-label='Scroll Right'
+          className={`transition-all duration-500 ${
+            showRight
+              ? 'opacity-100 pointer-events-auto'
+              : 'opacity-0 pointer-events-none'
+          }`}
         >
-          <div className='hover:scale-105 transition-transform duration-200'>
-            <Image
-              src='/images/arrowRightLogo.png'
-              alt='Next'
-              width={150}
-              height={150}
-              className='object-contain h-8 lg:h-10 w-auto select-none'
-            />
-          </div>
+          <Image
+            src='/images/arrowRightLogo.png'
+            alt='Next'
+            width={150}
+            height={150}
+            className='h-8 lg:h-10 w-auto'
+          />
         </button>
       </div>
 
-      {/* --- Scroll Container --- */}
-      {/* pb-10 added to ensure absolute captions (-bottom-8) are not cut off */}
+      {/* Scroll container */}
       <div
-        className='overflow-x-auto no-scrollbar scroll-smooth pb-10'
         ref={scrollRef}
         onScroll={checkScroll}
+        className='overflow-x-auto overflow-y-hidden no-scrollbar scroll-smooth pb-10'
       >
-        <div className='flex gap-0 w-max'>
-          {images.map((image, idx) => (
-            <figure
-              key={idx}
-              className={`flex-shrink-0 w-[80vw] max-w-4xl relative ${aspectClass} m-0 leading-none`}
-            >
-              <div className='relative w-full h-full'>
-                <Image
-                  src={image.url}
-                  alt={image.alt || `Image ${idx + 1}`}
-                  fill
-                  className='object-cover w-full h-full'
-                  draggable={false}
-                />
+        <div className='flex w-max items-center'>
+          {images.map((image, idx) => {
+            const w = image.width ?? 1600
+            const h = image.height ?? Math.round(1600 / fallbackAspect)
+            const ratio = w / h
 
-                {/* Caption / Credit */}
-                {/* This is positioned below the image. 
-                    The parent 'pb-10' ensures this area is visible. */}
-                {image.caption && (
-                  <figcaption
-                    className='absolute -bottom-8 left-0 w-full text-black text-xs lg:text-sm font-medium
-                                       opacity-0 group-hover:opacity-100 transition-opacity duration-300'
-                  >
-                    {image.caption}
-                  </figcaption>
-                )}
-              </div>
-            </figure>
-          ))}
+            // Increased overlap for collage effect
+            const baseOverlap = -80
+            const ratioAdjustment = (ratio - 1.6) * -15
+            const overlap = clamp(baseOverlap + ratioAdjustment, -120, -40)
+
+            // Round to 2 decimals to avoid hydration mismatch
+            const roundedOverlap = Math.round(overlap * 100) / 100
+
+            // Get Y offset for this image
+            const yOffset = getYOffset(idx)
+
+            return (
+              <figure
+                key={image.id ?? idx}
+                className='flex-shrink-0 relative m-0 leading-none h-[52vh] sm:h-[56vh] lg:h-[62vh] max-h-[680px] w-[80vw] max-w-4xl'
+                style={{
+                  marginLeft: idx === 0 ? 0 : roundedOverlap,
+                  transform: `translateY(${yOffset}vh)`,
+                }}
+              >
+                <div className='relative w-full h-full'>
+                  <Image
+                    src={image.url}
+                    alt={image.alt || `Image ${idx + 1}`}
+                    fill
+                    draggable={false}
+                    sizes='(min-width: 1024px) 800px, 80vw'
+                    className='object-contain object-left'
+                  />
+
+                  {image.caption && (
+                    <figcaption className='absolute bottom-0 left-0 text-xs lg:text-sm opacity-0 group-hover:opacity-100 transition-opacity'>
+                      {image.caption}
+                    </figcaption>
+                  )}
+                </div>
+              </figure>
+            )
+          })}
         </div>
       </div>
     </div>

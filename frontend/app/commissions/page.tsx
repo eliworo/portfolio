@@ -38,7 +38,7 @@ export default async function CommissionsPage() {
   return (
     <main className='w-full min-h-screen overflow-hidden'>
       {/* HEADER (12-col grid, keeps the original poster-like composition) */}
-      <header className='px-8 pt-24 sm:pt-20 md:pt-16 xl:pt-10'>
+      <header className='px-4 pt-16 sm:pt-20 md:pt-16 xl:pt-10'>
         <div className='xl:grid xl:grid-cols-12 xl:gap-x-16'>
           {/* Title image: anchored top-left, in flow */}
           {commissionsPage.titleImage?.asset?.url && (
@@ -50,8 +50,8 @@ export default async function CommissionsPage() {
                 height={500}
                 priority
                 className='
-                          object-contain mx-auto -mt-18 mb-8 xl:my-0
-                          w-[50vw] max-w-[980px]
+                          object-contain mx-auto mt-18 mb-8 xl:my-0
+                          w-[80vw] max-w-[980px]
                           xl:w-full xl:max-w-none
                           h-auto
                         '
@@ -79,7 +79,7 @@ export default async function CommissionsPage() {
       </header>
 
       {/* TOOLS GRID */}
-      <section className='px-8 pb-48 mt-14 xl:mt-20 xl:pl-60 3xl:pl-88'>
+      <section className='px-4 pb-48 mt-14 xl:mt-20 xl:pl-60 3xl:pl-88'>
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 xl:gap-16 xl:gap-y-24 3xl:gap-32'>
           {commissionsPage.tools?.map((tool, index) => (
             <ToolCard key={index} tool={tool} />

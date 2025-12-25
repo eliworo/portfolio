@@ -120,7 +120,7 @@ interface VideoBlock {
 
 export function ContentRenderer({ content }: { content: ContentBlock[] }) {
   return (
-    <div className='space-y-16'>
+    <div className='space-y-8 xl:space-y-16'>
       {(content || []).map((block, index) => {
         return (
           <div key={index}>
@@ -464,9 +464,12 @@ function ImageGalleryRenderer({ block }: { block: ImageGallery }) {
 
   // Prepare images for the grid
   const preparedImages = block.images.map((img, idx) => ({
+    id: img.asset?._id || `img-${idx}`,
     url: urlFor(img).url(),
-    alt: img.alt || `Image ${idx + 1}`,
+    alt: img.alt || '',
     caption: img.caption,
+    width: img.asset?.metadata?.dimensions?.width,
+    height: img.asset?.metadata?.dimensions?.height,
   }))
 
   return <ImageGalleryGrid images={preparedImages} />
@@ -645,14 +648,14 @@ function HeadingBlockRenderer({ block }: { block: HeadingBlock }) {
     right: 'text-right ml-auto',
   }
   const sizeClasses = {
-    h2: 'text-2xl lg:text-4xl',
+    h2: 'text-2xl lg:text-4xl p-2 pb-3 px-4',
     h3: 'text-xl lg:text-3xl',
-    h4: 'text-lg lg:text-2xl',
+    h4: 'text-lg lg:text-2xl px-2 pt-0 pb-0.5',
   }
   return (
     <div className={`w-full ${alignmentClasses[block.alignment]}`}>
       <Tag
-        className={`font-rader-medium w-fit p-2 pb-3 px-4 bg-black text-white ${sizeClasses[Tag]}`}
+        className={`font-rader-medium w-fit  bg-black text-white ${sizeClasses[Tag]}`}
       >
         {block.text}
       </Tag>

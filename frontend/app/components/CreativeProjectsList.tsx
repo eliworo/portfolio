@@ -372,7 +372,7 @@ function DraggableProjectCard({
         x,
         y,
         zIndex: Math.max(0, item.zIndex || 0),
-        touchAction: 'none',
+        touchAction: isMobile ? 'pan-y' : 'none',
       }}
       onPointerDown={(e) => {
         pointerDownRef.current = { x: e.clientX, y: e.clientY }

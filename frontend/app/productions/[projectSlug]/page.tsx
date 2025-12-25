@@ -34,6 +34,7 @@ type Project = {
   press?: any
   tournee?: any
   content?: any
+  coverImage?: any
 }
 
 export async function generateMetadata(
@@ -66,7 +67,6 @@ export default async function ProductionsProjectPage({
 }) {
   const { projectSlug } = await params
 
-  // Fetch both project and productions list
   const [projectResult, productionsResult] = await Promise.all([
     sanityFetch({
       query: projectQuery,
@@ -86,7 +86,6 @@ export default async function ProductionsProjectPage({
     notFound()
   }
 
-  // Calculate prev/next navigation
   const featuredProjects = productionsPage?.featuredProjects || []
   const currentIndex = featuredProjects.findIndex(
     (item: any) => item.project.slug.current === projectSlug
@@ -133,49 +132,74 @@ export default async function ProductionsProjectPage({
         />
       )}
 
-      {project?.titleImage?.asset?.url && (
-        <div className='mb-8 absolute left-1/2 -translate-x-1/2 top-24 lg:left-22 lg:top-16 -rotate-3 z-10 w-[85vw] lg:w-[40vw] lg:translate-x-0'>
-          <Image
-            src={project.titleImage.asset.url}
-            alt={project.title}
-            width={1000}
-            height={500}
-            className='object-contain h-auto'
-          />
-        </div>
-      )}
+      {/* Content wrapper: one place controls page padding & rhythm */}
+      <div className='px-4 pt-32 sm:pt-20 lg:pt-16'>
+        {/* HEADER: title image + description in FLOW */}
+        <header className='mb-10 lg:mb-16'>
+          <div className='lg:grid lg:grid-cols-12 lg:gap-x-10 lg:items-start'>
+            {/* Title image */}
+            {project?.titleImage?.asset?.url && (
+              <div className='lg:col-span-6 xl:-ml-64'>
+                <Image
+                  src={project.titleImage.asset.url}
+                  alt={project.title}
+                  width={1200}
+                  height={600}
+                  priority
+                  className='
+                    object-contain
+                    w-[85vw] max-w-[980px]
+                    lg:w-full lg:max-w-none
+                    h-auto
+                    -rotate-3
+                    mx-auto
+                    lg:mx-0
+                  '
+                />
+                <div className='-mt-4'>
+                  <ProjectNavigation
+                    prevProject={prevProject}
+                    nextProject={nextProject}
+                  />
+                </div>
+              </div>
+            )}
 
-      <div className='px-6 mb-8 xl:mb-16'>
-        {project.description && (
-          <p className='text-xl leading-[1] tracking-tight lg:text-5xl max-w-7xl mt-68 xl:mt-84 -ml-16'>
-            {project.description}
-          </p>
+            {/* Description */}
+            {project.description && (
+              <div className='mt-8 lg:mt-6 lg:col-start-1 lg:col-span-9'>
+                <p className='text-xl leading-[1] tracking-tight lg:text-5xl max-w-7xl'>
+                  {project.description}
+                </p>
+              </div>
+            )}
+          </div>
+        </header>
+
+        {/* Main content */}
+        {project.content && (
+          <section className='mb-16 lg:mb-24'>
+            <ContentRenderer content={project.content} />
+          </section>
         )}
-      </div>
 
-      {project.content && (
-        <div className='px-6'>
-          <ContentRenderer content={project.content} />
-        </div>
-      )}
-
-      {project.categorySections && project.categorySections.length > 0 && (
-        <div className='space-y-24 px-6'>
-          {project.categorySections.map((section) => (
-            <section
-              key={section.category._id}
-              id={section.category.slug.current}
-              className='scroll-mt-24'
-            >
-              <div className=''>
+        {/* Category sections */}
+        {project.categorySections && project.categorySections.length > 0 && (
+          <section className='space-y-20 lg:space-y-24'>
+            {project.categorySections.map((section) => (
+              <section
+                key={section.category._id}
+                id={section.category.slug.current}
+                className='scroll-mt-24'
+              >
                 {section.category.titleImage?.asset?.url ? (
-                  <div className='flex justify-start items-center mb-2 lg:mb-4 mt-8 -ml-16'>
+                  <div className='flex justify-start items-center mb-0 lg:mb-5 mt-18'>
                     <Image
                       src={section.category.titleImage.asset.url}
                       alt={section.category.title}
                       width={1000}
                       height={700}
-                      className='h-16 lg:h-24 w-auto object-contain -rotate-4'
+                      className='h-12 lg:h-24 w-auto object-contain -rotate-0'
                     />
                   </div>
                 ) : (
@@ -183,32 +207,34 @@ export default async function ProductionsProjectPage({
                     {section.category.title}
                   </h2>
                 )}
+
                 <ContentRenderer content={section.content} />
-              </div>
-            </section>
-          ))}
+              </section>
+            ))}
+          </section>
+        )}
+
+        {/* Credits */}
+        <section className='mt-16 lg:mt-24'>
+          <ProjectCredits
+            credits={project.credits}
+            press={project.press}
+            tournee={project.tournee}
+          />
+        </section>
+
+        {/* Project Navigation */}
+
+        {/* Back link */}
+        <div className='my-16'>
+          <Link
+            href='/productions'
+            className='inline-flex items-center text-gray-600 hover:text-black transition-transitions'
+          >
+            <span className='mr-2'>←</span>
+            Back to Productions
+          </Link>
         </div>
-      )}
-
-      <div className='px-6'>
-        <ProjectCredits
-          credits={project.credits}
-          press={project.press}
-          tournee={project.tournee}
-        />
-      </div>
-
-      {/* Project Navigation */}
-      <ProjectNavigation prevProject={prevProject} nextProject={nextProject} />
-
-      <div className='px-6 my-16'>
-        <Link
-          href='/productions'
-          className='inline-flex items-center text-gray-600 hover:text-black transition-transitions'
-        >
-          <span className='mr-2'>←</span>
-          Back to Productions
-        </Link>
       </div>
     </main>
   )
