@@ -43,7 +43,8 @@ export default function CoverImage({
         height={height}
         className='w-full h-auto object-cover'
         priority={priority}
-        sizes='(min-width: 1024px) 25vw, 45vw'
+        // sizes='(min-width: 1024px) 25vw, 45vw'
+        sizes='(min-width: 1280px) 1200px, 100vw'
       />
     </div>
   )

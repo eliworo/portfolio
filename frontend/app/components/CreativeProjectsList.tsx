@@ -17,6 +17,8 @@ import CoverImage from './CoverImage'
 import { urlForImage } from '@/sanity/lib/utils'
 
 import { RiDragMove2Fill } from 'react-icons/ri'
+import StackedCategoryTitles from './StackedCategoryTitles'
+import RealBrush from './drawings/RealBrush'
 
 /* =========================
    helpers (keep as-is)
@@ -71,13 +73,18 @@ const buildImageUrl = (image?: SanityImageSource, width = 1400) => {
 
 type FeaturedProject = {
   _key: string
+  kind?: 'project' | 'blank'
+  blankLabel?: string
+  blankSize?: 'sm' | 'md' | 'lg'
+
   offsetY?: number
   offsetX?: number
   rotation?: number
   scale?: number
   zIndex?: number
   categorySectionKey?: string
-  project: {
+
+  project?: {
     _id: string
     title: string
     slug: { current: string }
@@ -254,10 +261,10 @@ function DraggableProjectCard({
         whileHover={{ opacity: 0.98 }}
         transition={{ duration: 0.12, ease: 'easeOut' }}
       >
-        <div className='absolute left-2 top-2 z-30 pointer-events-auto'>
+        <div className='absolute left-1/2 -translate-y-1/2 -translate-x-1/2 top-1/2 z-30 pointer-events-auto'>
           <div
             role='button'
-            className='opacity-0 group-hover:opacity-100 transition-opacity duration-150 cursor-grab select-none bg-white text-black p-1'
+            className='opacity-0 group-hover:opacity-100 transition-opacity duration-150 cursor-grab select-none text-red-500 p-1 mix-blend-difference relative'
             onPointerDown={(e) => {
               e.preventDefault()
               e.stopPropagation()
@@ -326,7 +333,7 @@ function DraggableProjectCard({
         }}
       >
         <div
-          className='text-white text-base font-rader-bold px-1 py-0 whitespace-nowrap bg-black'
+          className='text-black text-base font-rader-bold px-1 py-0 whitespace-nowrap bg-white'
           style={{
             transform: 'translate(10px, 10px)',
             rotate: `${-responsiveRotation}deg`,
@@ -418,6 +425,53 @@ function DraggableProjectCard({
   )
 }
 
+function BlankSpacer({
+  item,
+  isMobile,
+}: {
+  item: FeaturedProject
+  isMobile: boolean
+}) {
+  const offsetFactor = isMobile ? 0.55 : 1
+  const rotationFactor = isMobile ? 0.7 : 1
+
+  const responsiveX = (item.offsetX ?? 0) * offsetFactor
+  const responsiveY = (item.offsetY ?? 0) * offsetFactor
+  const responsiveRotation = (item.rotation ?? 0) * rotationFactor
+
+  const responsiveScale = isMobile
+    ? 1 - (1 - (item.scale ?? 1)) * 0.6
+    : (item.scale ?? 1)
+
+  const x = useMotionValue(responsiveX)
+  const y = useMotionValue(responsiveY)
+
+  useEffect(() => {
+    x.set(responsiveX)
+    y.set(responsiveY)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [responsiveX, responsiveY])
+
+  const base =
+    item.blankSize === 'lg' ? 520 : item.blankSize === 'sm' ? 260 : 380
+
+  return (
+    <motion.div
+      aria-hidden='true'
+      className='pointer-events-none select-none'
+      style={{
+        x,
+        y,
+        rotate: responsiveRotation,
+        scale: responsiveScale,
+        zIndex: Math.max(0, item.zIndex || 0),
+      }}
+    >
+      <div style={{ width: base, height: base }} />
+    </motion.div>
+  )
+}
+
 /* =========================
    CreativeProjectsList (UPDATED)
 ========================= */
@@ -429,6 +483,9 @@ export default function CreativeProjectsList({
   groupTitle,
   initialCategory,
   gridSpacing,
+  useStackedTitles = false,
+  stackedTitleStudioUrl,
+  stackedTitleWorksUrl,
 }: {
   featuredProjects: FeaturedProject[]
   groupSlug: string
@@ -439,6 +496,9 @@ export default function CreativeProjectsList({
     columnGap?: number
     rowGap?: number
   }
+  useStackedTitles?: boolean
+  stackedTitleStudioUrl?: string
+  stackedTitleWorksUrl?: string
 }) {
   const [modalProject, setModalProject] = React.useState<any>(null)
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(
@@ -764,7 +824,83 @@ export default function CreativeProjectsList({
 
   return (
     <>
-      {allCategories.length > 0 && (
+      {useStackedTitles ? (
+        // NEW: Stacked titles version
+        allCategories.length > 0 && (
+          <StackedCategoryTitles
+            groupTitle={groupTitle}
+            groupTitleImages={{
+              horizontal: groupTitleImageUrl,
+              studio: stackedTitleStudioUrl,
+              works: stackedTitleWorksUrl,
+            }}
+            titleVariant='stacked'
+            categories={allCategories}
+            selectedCategory={selectedCategory}
+            onSelectCategory={handleSelectCategory}
+          />
+        )
+      ) : (
+        // EXISTING: Category nav + animated title image
+        <>
+          {allCategories.length > 0 && (
+            <CategoryNav
+              items={allCategories}
+              title='woronoff by category'
+              isStudioWorks={true}
+              groupSlug={groupSlug}
+              onSelectCategory={handleSelectCategory}
+              selectedCategory={selectedCategory}
+            />
+          )}
+
+          <div className='px-4 lg:px-0 lg:mb-8 absolute -rotate-3 lg:rotate-0 left-1/2 -translate-x-1/2 lg:left-22 top-30 lg:top-16 z-20 w-[85vw] lg:w-[40vw] lg:translate-x-0'>
+            <AnimatePresence mode='wait'>
+              {currentCategory?.titleImageUrl ? (
+                <motion.div
+                  key={`category-${currentCategory.id}`}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.3 }}
+                  className='w-full max-w-[600px] mx-auto lg:mx-0'
+                >
+                  <Image
+                    src={currentCategory.titleImageUrl}
+                    alt={currentCategory.title}
+                    width={600}
+                    height={300}
+                    className='object-contain h-auto max-h-[120px] lg:max-h-[150px] w-auto mx-auto lg:mx-0'
+                    priority
+                    sizes='(max-width: 1024px) 85vw, 40vw'
+                  />
+                </motion.div>
+              ) : groupTitleImageUrl ? (
+                <motion.div
+                  key='group-title'
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.3 }}
+                  className='w-full'
+                >
+                  <Image
+                    src={groupTitleImageUrl}
+                    alt={groupTitle || 'Project Group Title'}
+                    width={1000}
+                    height={300}
+                    className='object-contain h-auto max-h-[180px] lg:max-h-[150px] w-auto mx-auto lg:mx-0'
+                    priority
+                    sizes='(max-width: 1024px) 85vw, 40vw'
+                  />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </div>
+        </>
+      )}
+
+      {/* {allCategories.length > 0 && (
         <CategoryNav
           items={allCategories}
           title='woronoff by category'
@@ -784,13 +920,14 @@ export default function CreativeProjectsList({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.3 }}
+              className='w-full max-w-[600px] mx-auto lg:mx-0'
             >
               <Image
                 src={currentCategory.titleImageUrl}
                 alt={currentCategory.title}
-                width={1000}
-                height={1000}
-                className='object-contain h-auto'
+                width={600}
+                height={300}
+                className='object-contain h-auto max-h-[120px] lg:max-h-[180px] w-auto mx-auto lg:mx-0'
               />
             </motion.div>
           ) : groupTitleImageUrl ? (
@@ -800,19 +937,19 @@ export default function CreativeProjectsList({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.3 }}
+              className='w-full'
             >
               <Image
                 src={groupTitleImageUrl}
                 alt={groupTitle || 'Project Group Title'}
-                width={600}
-                height={200}
-                className='object-contain h-auto'
+                width={1000}
+                height={300}
+                className='object-contain h-auto max-h-[180px] lg:max-h-[150px] w-auto mx-auto lg:mx-0'
               />
             </motion.div>
           ) : null}
         </AnimatePresence>
-      </div>
-
+      </div> */}
       <div
         className='mt-0 px-2 lg:mt-0 grid grid-cols-2 lg:grid-cols-4 py-40 lg:pt-0 lg:pb-64 pt-0'
         style={{
@@ -822,7 +959,18 @@ export default function CreativeProjectsList({
       >
         <AnimatePresence mode='popLayout'>
           {filteredProjects.map((item, idx) => {
+            const itemKind = (item as any).kind ?? 'project'
+
+            // If this is a blank/spacer, render it here
+            if (itemKind === 'blank') {
+              return (
+                <BlankSpacer key={item._key} item={item} isMobile={isMobile} />
+              )
+            }
+
+            // From here down, it's a normal project item
             if (!item?.project) return null
+            const p = item.project
 
             let preview = coverOrPreviewForItem(item)
             if (preview.type === 'image' && !hasImageAsset(preview.image)) {
@@ -843,22 +991,22 @@ export default function CreativeProjectsList({
             const action = getCardAction(item)
 
             const openModal = () => {
-              // only modal items should call this, but it’s safe
+              // For modal items only, but safe
               setModalProject({
-                title: item.project.title,
-                titleImageUrl: item.project.titleImage?.asset?.url,
+                title: p.title,
+                titleImageUrl: p.titleImage?.asset?.url,
                 coverImageUrl:
                   preview.type === 'image'
                     ? buildImageUrl(preview.image)
                     : undefined,
-                coverImage: item.project.coverImage,
-                description: item.project.description,
-                content: item.project.content,
-                writingContent: item.project.writingContent,
-                writingLayout: item.project.writingLayout,
-                images: item.project.images,
-                year: item.project.year,
-                projectSubtype: item.project.projectSubtype,
+                coverImage: p.coverImage,
+                description: p.description,
+                content: p.content,
+                writingContent: p.writingContent,
+                writingLayout: p.writingLayout,
+                images: p.images,
+                year: p.year,
+                projectSubtype: p.projectSubtype,
               })
             }
 
@@ -883,11 +1031,17 @@ export default function CreativeProjectsList({
                         className='relative'
                         style={{ rotate: `${brushRotation(item._key)}deg` }}
                       >
-                        <PaintBrush
+                        {/* <PaintBrush
                           className='absolute top-1/2 -translate-y-[45%] -translate-x-[2%] w-[125%] h-[90%] -z-10'
                           theme={{
                             fill: brushColor(item.project._id || item._key),
                           }}
+                        /> */}
+
+                        <RealBrush
+                          seed={`category:${item.project._id}`}
+                          color={brushColor(item.project._id || item._key)}
+                          className='absolute -inset-x-2 bottom-0 h-14 inset-y-1 -z-10'
                         />
                         <div className='py-2'>
                           <Image

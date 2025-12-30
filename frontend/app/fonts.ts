@@ -177,6 +177,24 @@ export const rader = {
   boldItalic: raderBoldItalic,
 }
 
+export const garabosseParangon = localFont({
+  src: '../public/fonts/Garabosse/Garabosse-Parangon.woff',
+  variable: '--font-garabosse-parangon',
+  display: 'swap',
+})
+
+export const garabosseGaillarde = localFont({
+  src: '../public/fonts/Garabosse/Garabosse-Gaillarde.woff',
+  variable: '--font-garabosse-gaillarde',
+  display: 'swap',
+})
+
+export const garabossePerle = localFont({
+  src: '../public/fonts/Garabosse/Garabosse-Perle.woff',
+  variable: '--font-garabosse-perle',
+  display: 'swap',
+})
+
 /* ------------------------- Variables helper (all) ------------------------ */
 
 export function getFontVariables() {
@@ -206,5 +224,10 @@ export function getFontVariables() {
     raderItalic.variable,
     raderMediumItalic.variable,
     raderBoldItalic.variable,
+
+    // Garabosse
+    garabosseParangon.variable,
+    garabosseGaillarde.variable,
+    garabossePerle.variable,
   ].join(' ')
 }

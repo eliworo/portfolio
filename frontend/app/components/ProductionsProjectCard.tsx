@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import CoverImage from './CoverImage'
 import PaintBrush from './drawings/PaintBrush'
+import RealBrush from './drawings/RealBrush'
 
 type ProductionsProjectCardProps = {
   item: {
@@ -54,8 +55,9 @@ const brushColors = [
   '#FFB6C1',
   '#98D8C8',
   '#F7DC6F',
-  '#BB8FCE',
+  '#BEBBDA',
   '#F8B88B',
+  '#347980',
   '#ccc',
 ]
 
@@ -156,9 +158,14 @@ export default function ProductionsProjectCard({
                   height={500}
                   className='object-contain h-12 lg:h-18 w-auto'
                 />
-                <PaintBrush
+                {/* <PaintBrush
                   className='absolute top-1/2 -translate-y-[45%] -translate-x-[2%] w-[125%] h-[90%] -z-10'
                   theme={{ fill: brushColor }}
+                /> */}
+                <RealBrush
+                  seed={`category:${item.project._id}`}
+                  color={brushColor}
+                  className='absolute -inset-x-4 bottom-0 h-18 inset-y-0.5 -z-10'
                 />
               </div>
             )}

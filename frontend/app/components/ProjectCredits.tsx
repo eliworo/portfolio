@@ -10,10 +10,30 @@ interface ProjectCreditsProps {
   tournee?: PortableTextBlock[] | null
 }
 
+// Hand-drawn arrow for external links
+function HandArrowIcon() {
+  return (
+    <svg
+      className='inline-block w-3.5 h-3.5 ml-0.5 -translate-y-px opacity-70'
+      viewBox='0 0 16 16'
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+    >
+      <path
+        d='M3 13C4 12 7 9 11 5M11 5V10M11 5H6'
+        stroke='currentColor'
+        strokeWidth='1.4'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+    </svg>
+  )
+}
+
 const components: PortableTextComponents = {
   block: {
     normal: ({ children }) => (
-      <p className='mb-4 last:mb-0 whitespace-pre-wrap'>{children}</p>
+      <p className='mb-8 last:mb-0 whitespace-pre-wrap'>{children}</p>
     ),
     h2: ({ children }) => (
       <h2 className='text-2xl font-bold mb-4 whitespace-pre-wrap'>
@@ -26,16 +46,14 @@ const components: PortableTextComponents = {
       </h3>
     ),
     h4: ({ children }) => (
-      <h4 className='text-lg font-semibold mb-4 whitespace-pre-wrap'>
-        {children}
-      </h4>
+      <h4 className='text-lg font-semibold whitespace-pre-wrap'>{children}</h4>
     ),
   },
   marks: {
     strong: ({ children }) => (
       <strong className='font-rader-bold'>{children}</strong>
     ),
-    em: ({ children }) => <em className='font-agrandir-italic'>{children}</em>,
+    em: ({ children }) => <em>{children}</em>,
     underline: ({ children }) => <span className='underline'>{children}</span>,
     link: ({ value, children }) => {
       const isInternal = value?.linkType === 'internal'
@@ -44,9 +62,12 @@ const components: PortableTextComponents = {
 
       if (!href) return <span>{children}</span>
 
+      const baseClasses =
+        'text-black no-underline border-b border-black border-dashed hover:opacity-70 transition-opacity'
+
       if (isInternal) {
         return (
-          <Link href={href} className='text-black underline'>
+          <Link href={href} className={baseClasses}>
             {children}
           </Link>
         )
@@ -55,11 +76,12 @@ const components: PortableTextComponents = {
       return (
         <a
           href={href}
-          className='text-black underline'
+          className={baseClasses}
           target={openInNewTab ? '_blank' : undefined}
           rel={openInNewTab ? 'noopener noreferrer' : undefined}
         >
           {children}
+          {openInNewTab && <HandArrowIcon />}
         </a>
       )
     },
@@ -68,6 +90,59 @@ const components: PortableTextComponents = {
     bullet: ({ children }) => <ul className='list-disc ml-6'>{children}</ul>,
     number: ({ children }) => <ol className='list-decimal ml-6'>{children}</ol>,
   },
+}
+
+const tourneeComponents: PortableTextComponents = {
+  block: {
+    normal: ({ children }) => {
+      // Check if children contains any React elements (like links)
+      const hasComplexChildren =
+        Array.isArray(children) &&
+        children.some((child) => typeof child === 'object' && child !== null)
+
+      // If there are complex children (links, etc.), render them directly
+      if (hasComplexChildren) {
+        return (
+          <p className='mb-5 last:mb-0 whitespace-pre-wrap leading-relaxed text-base lg:text-lg'>
+            {children}
+          </p>
+        )
+      }
+
+      // Otherwise, try to parse the text format
+      const text = String(children)
+
+      const match = text.match(
+        /^([\d\-\s]+(?:to[\d\-\s]+)?)\s+(.+?)\s+\(([A-Z]{2,})\)$/i
+      )
+
+      if (match) {
+        const [, dates, venue, country] = match
+        return (
+          <p className='mb-5 last:mb-0 whitespace-pre-wrap leading-relaxed'>
+            <span className='font-rader-bold text-base lg:text-lg'>
+              {dates}
+            </span>
+            <span className='ml-3'>{venue}</span>
+            <span className='ml-2 font-agrandir-italic'>({country})</span>
+          </p>
+        )
+      }
+
+      return (
+        <p className='mb-5 last:mb-0 whitespace-pre-wrap text-base lg:text-lg'>
+          {children}
+        </p>
+      )
+    },
+  },
+  marks: {
+    ...components.marks,
+    strong: ({ children }) => (
+      <span className='font-rader-bold'>{children}</span>
+    ),
+  },
+  list: components.list,
 }
 
 export function ProjectCredits({
@@ -83,18 +158,12 @@ export function ProjectCredits({
         {/* LEFT COLUMN: CREDITS */}
         <div>
           {credits && (
-            // tabIndex={0} makes this div focusable (like a button).
-            // This ensures the "tap" works reliably on mobile.
             <div className='group relative focus:outline-none' tabIndex={0}>
-              <h3 className='font-rader-medium uppercase text-base mb-8 mt-8 text-white bg-black w-fit  px-1.5 py-0 pb-0.5'>
+              <h3 className='font-rader-bold text-3xl mb-4 text-black'>
                 Credits
               </h3>
 
-              {/* 1. max-h-[400px]: Default clamped height (mobile & desktop).
-                  2. group-hover & group-focus: Expands when hovered OR clicked (focused).
-                  3. transition-all: Smooth animation.
-              */}
-              <div className='leading-[1.15] overflow-hidden transition-all duration-500 ease-in-out max-h-[400px] group-hover:max-h-[2000px] group-focus:max-h-[2000px] text-sm lg:text-lg ml-0'>
+              <div className='leading-tight overflow-hidden transition-all duration-500 ease-in-out max-h-[400px] group-hover:max-h-[2000px] group-focus:max-h-[2000px] text-sm lg:text-lg ml-0'>
                 <PortableText value={credits} components={components} />
                 <div className='h-4' />
               </div>
@@ -104,10 +173,10 @@ export function ProjectCredits({
           )}
         </div>
 
-        <div>
+        <div className='space-y-24'>
           {press && (
             <>
-              <h3 className='font-rader-medium uppercase text-lg mb-4 bg-black text-white p-1 py-0'>
+              <h3 className='font-rader-bold text-3xl mb-4 text-black py-0'>
                 Press
               </h3>
               <div className='text-sm lg:text-lg'>
@@ -118,11 +187,11 @@ export function ProjectCredits({
 
           {tournee && (
             <>
-              <h3 className='font-rader-medium uppercase text-lg mb-4 mt-8 border-b border-black text-black p-1 px-0 py-0'>
+              <h3 className='font-rader-bold text-3xl mb-4 text-black py-0 mt-8'>
                 Dates
               </h3>
               <div className='text-sm lg:text-lg'>
-                <PortableText value={tournee} components={components} />
+                <PortableText value={tournee} components={tourneeComponents} />
               </div>
             </>
           )}

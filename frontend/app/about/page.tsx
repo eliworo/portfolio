@@ -73,8 +73,8 @@ export default async function AboutPage() {
       )}
       {/* Description Box */}
       <div className='bg-black rounded-[2px] px-6 lg:px-6 py-6 lg:py-8 relative lg:absolute lg:left-44 lg:top-16 w-[65vw] lg:max-w-[17vw] ml-28 lg:ml-0 mt-40 lg:mt-0'>
-        <div className='max-w-full lg:max-w-74 bg-white text-black rounded-lg -rotate-6 p-4'>
-          <p className='text-sm lg:text-base leading-tight'>
+        <div className='max-w-full lg:max-w-74 bg-white text-black rounded-[2px] -rotate-6 p-4'>
+          <p className='text-sm lg:text-base leading-[1.15]'>
             {aboutPage.arteosDescription}
           </p>
         </div>

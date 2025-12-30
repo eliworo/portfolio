@@ -30,7 +30,7 @@ export async function generateMetadata(
 const portableTextComponents = {
   marks: {
     strong: ({ children }: { children: React.ReactNode }) => (
-      <strong className='font-rader-medium'>{children}</strong>
+      <strong className='font-rader-bold text-[26px]'>{children}</strong>
     ),
     link: ({
       children,
@@ -73,6 +73,7 @@ export default async function StudioWorksPage({
 
   const { data } = await sanityFetch({
     query: studioWorksQuery,
+    stega: false,
   })
   const studioWorks = data as any
 
@@ -120,28 +121,45 @@ export default async function StudioWorksPage({
   }
 
   return (
-    <main className='w-full lg:pl-60 lg:pr-8'>
-      <div className='flex w-full'>
-        <div className='hidden lg:block w-[45%]'></div>
-        {studioWorks.description && (
-          <div className='text-black text-lg mt-46 py-16 lg:mt-0 lg:text-2xl leading-[1.15] font-rader-regular lg:mb-12 w-full columns-1 lg:pt-32 lg:px-0 px-4 max-w-3xl'>
-            <PortableText
-              value={studioWorks.description}
-              components={portableTextComponents}
-            />
+    <main className='w-full min-h-screen overflow-hidden'>
+      {/* HEADER - only description text, no title image */}
+      {studioWorks.description && (
+        <header className='px-4 pt-16 sm:pt-20 md:pt-16 xl:py-28 xl:pt-32'>
+          <div className='xl:grid xl:grid-cols-12 xl:gap-x-16'>
+            <div
+              className='
+                xl:col-start-5 xl:col-span-6
+                xl:row-start-1
+                xl:max-w-[80ch]
+              '
+            >
+              <div className='text-lg xl:text-2xl leading-[1.15] font-garabosse-gaillarde'>
+                <PortableText
+                  value={studioWorks.description}
+                  components={portableTextComponents}
+                />
+              </div>
+            </div>
           </div>
-        )}
-      </div>
-      {featured.length > 0 && (
-        <CreativeProjectsList
-          featuredProjects={featured}
-          groupSlug='studio-works'
-          groupTitleImageUrl={studioWorks?.titleImage?.asset?.url}
-          groupTitle={studioWorks?.title}
-          initialCategory={category}
-          gridSpacing={studioWorks?.gridSpacing}
-        />
+        </header>
       )}
+
+      {/* Projects Grid - title/category image handled here */}
+      <section className='mt-14 xl:mt-24 xl:px-44 xl:pr-68'>
+        {featured.length > 0 && (
+          <CreativeProjectsList
+            featuredProjects={featured}
+            groupSlug='studio-works'
+            groupTitleImageUrl={studioWorks?.titleImage?.asset?.url}
+            groupTitle={studioWorks?.title}
+            initialCategory={category}
+            gridSpacing={studioWorks?.gridSpacing}
+            useStackedTitles={true}
+            stackedTitleStudioUrl={studioWorks?.titleImageStudio?.asset?.url}
+            stackedTitleWorksUrl={studioWorks?.titleImageWorks?.asset?.url}
+          />
+        )}
+      </section>
     </main>
   )
 }

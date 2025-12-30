@@ -7,6 +7,7 @@ import ProductionsProjectCard from '../components/ProductionsProjectCard'
 import CategoryNav from '@/app/components/CategoryNav'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
+import Link from 'next/link'
 
 export async function generateMetadata(
   _props: any,
@@ -37,6 +38,43 @@ export async function generateMetadata(
       images: ogImage ? [ogImage, ...previousImages] : previousImages,
     },
   } satisfies Metadata
+}
+
+const portableTextComponents = {
+  marks: {
+    strong: ({ children }: { children: React.ReactNode }) => (
+      <strong className='font-rader-bold text-[26px]'>{children}</strong>
+    ),
+    link: ({
+      children,
+      value,
+    }: {
+      children: React.ReactNode
+      value?: { href?: string }
+    }) => {
+      const href = value?.href || '#'
+      // Check if it's a category link (format: ?category=fashion)
+      if (href.startsWith('?category=')) {
+        const category = href.replace('?category=', '')
+        return (
+          <Link
+            href={`/studio-works${href}`}
+            className='underline decoration-2 underline-offset-4 hover:bg-yellow-100 transition-colors'
+          >
+            {children}
+          </Link>
+        )
+      }
+      return (
+        <a
+          href={href}
+          className='underline decoration-2 underline-offset-4 hover:bg-yellow-100 transition-colors'
+        >
+          {children}
+        </a>
+      )
+    },
+  },
 }
 
 export default async function ProductionsPage() {
@@ -82,8 +120,11 @@ export default async function ProductionsPage() {
       <div className='flex w-full'>
         <div className='hidden lg:block w-[45%]'></div>
         {productionsPage.description && (
-          <div className='text-black/85 text-lg mt-46 py-16 lg:mt-0 lg:text-2xl leading-tight font-agrandir-tight lg:mb-12 w-full columns-1 lg:pt-32 lg:px-0 px-4 max-w-3xl'>
-            <PortableText value={productionsPage.description} />
+          <div className='t-46 py-16 lg:mt-0 lg:text-2xl leading-tight lg:mb-12 w-full columns-1 lg:pt-32 lg:px-0 px-4 max-w-3xl'>
+            <PortableText
+              value={productionsPage.description}
+              components={portableTextComponents}
+            />
           </div>
         )}
       </div>

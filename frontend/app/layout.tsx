@@ -70,7 +70,7 @@ export default async function RootLayout({
 
   return (
     <html lang='en' className={`${fontVariables}`}>
-      <body className='font-rader'>
+      <body className='font-garabosse-gaillarde'>
         <section className='min-h-screen'>
           {/* The <Toaster> component is responsible for rendering toast notifications used in /app/client-utils.ts and /app/components/DraftModeToast.tsx */}
           <div suppressHydrationWarning>

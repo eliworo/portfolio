@@ -234,27 +234,82 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
     setCurrentIndex((prev) => (prev - 1 + totalSlides) % totalSlides)
   }
 
-  const renderTextBlock = (text?: string) => (
-    <p className='text-base lg:text-lg leading-relaxed whitespace-pre-wrap'>
-      {text}
-    </p>
+  const PostItFrame = ({ children }: { children: React.ReactNode }) => {
+    return (
+      <div className='relative w-[300px] sm:w-[360px] md:w-[420px]'>
+        {/* Frame image */}
+        <div className='relative aspect-[4/5]'>
+          <Image
+            src='/images/postitLogo2.png'
+            alt=''
+            fill
+            className='object-fill'
+            draggable={false}
+            priority
+          />
+        </div>
+
+        {/* Content overlay */}
+        <div className='absolute inset-0 flex items-center justify-center p-10 sm:p-12 md:p-14'>
+          <div className='w-full h-full overflow-hidden flex items-center justify-center'>
+            {children}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const renderWritingTextSlide = (text?: string) => (
+    <PostItFrame>
+      <p className='text-xs sm:text-sm md:text-base leading-[1.15] text-black whitespace-pre-wrap max-h-full overflow-y-auto scrollbar-hide'>
+        {text}
+      </p>
+    </PostItFrame>
   )
 
-  const renderImageBlock = (slide: WritingSlide) => (
-    <div className='relative w-full min-h-[260px] h-full'>
-      <Image
-        src={slide.imageUrl!}
-        alt={slide.alt || project.title}
-        fill
-        className='object-contain'
-      />
-      {slide.caption && (
-        <div className='absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded text-sm'>
-          {slide.caption}
-        </div>
-      )}
-    </div>
+  const renderWritingImageSlide = (slide: WritingSlide) => (
+    <PostItFrame>
+      <div className='relative w-full h-full'>
+        <Image
+          src={slide.imageUrl!}
+          alt={slide.alt || project.title}
+          fill
+          className='object-contain'
+        />
+        {slide.caption && (
+          <div className='absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded text-xs'>
+            {slide.caption}
+          </div>
+        )}
+      </div>
+    </PostItFrame>
   )
+
+  // const renderTextBlock = (text?: string) => (
+  //   <p className='text-base lg:text-lg leading-relaxed whitespace-pre-wrap'>
+  //     {text}
+  //   </p>
+  // )
+
+  // const renderImageBlock = (slide: WritingSlide) => (
+  //   <div className='relative w-full min-h-[260px] h-full'>
+  //     <Image
+  //       src={slide.imageUrl!}
+  //       alt={slide.alt || project.title}
+  //       fill
+  //       className='object-contain'
+  //     />
+  //     {slide.caption && (
+  //       <div className='absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded text-sm'>
+  //         {slide.caption}
+  //       </div>
+  //     )}
+  //   </div>
+  // )
+
+  const renderTextBlock = (text?: string) => renderWritingTextSlide(text)
+  const renderImageBlock = (slide: WritingSlide) =>
+    renderWritingImageSlide(slide)
 
   const renderPageBlock = (slide?: WritingSlide) => {
     if (!slide) {
@@ -299,14 +354,14 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
           />
         </button>
         <motion.div
-          className='relative bg-white/75 backdrop-blur-md rounded-lg w-full h-full p-2 lg:p-8 overflow-hidden'
+          className='relative bg-white/75 backdrop-blur-md rounded-lg w-full h-full p-2 lg:p-0 overflow-hidden'
           initial={{ scale: 0.9, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.9, y: 20 }}
           onClick={(e) => e.stopPropagation()}
         >
           <div className='flex flex-col h-full max-h-[100vh] overflow-hidden'>
-            <div className='flex-1 overflow-y-auto flex flex-col pb-8 items-center justify-center'>
+            <div className='flex-1 overflow-y-auto flex flex-col pb-0 items-center justify-center'>
               {isWriting && paginationItems.length > 0 && (
                 <div
                   className={`relative w-full ${
@@ -350,7 +405,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               )}
 
               {!isWriting && allMedia.length > 0 && currentMedia && (
-                <div className='relative w-full max-h-[55vh] h-[55vh] rounded-lg overflow-hidden flex flex-col items-center justify-center'>
+                <div className='relative w-full max-h-[75vh] h-[75vh] rounded-lg overflow-hidden flex flex-col items-center justify-center'>
                   <AnimatePresence mode='wait'>
                     <motion.div
                       key={currentIndex}
@@ -431,16 +486,16 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                 </div>
               )}
 
-              <div className='flex justify-center items-center w-full my-8 mb-2'>
-                <h1 className='text-2xl font-bold text-center'>
+              <div className='flex justify-center items-center w-full my-8 mb-4'>
+                <h1 className='text-3xl font-rader-bold text-center'>
                   {project.title}
                   {project.year && (
-                    <span className='text-gray-600'>, {project.year}</span>
+                    <span className='opacity-50'>, {project.year}</span>
                   )}
                 </h1>
               </div>
               {project.description && (
-                <p className='text-sm xl:text-lg text-gray-700 leading-tight px-2 max-w-3xl'>
+                <p className='text-sm xl:text-2xl leading-tight px-2 max-w-3xl font-normal'>
                   {project.description}
                 </p>
               )}

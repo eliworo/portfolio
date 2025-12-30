@@ -53,14 +53,14 @@ export default function ImageLightbox({ image, onClose }: ImageLightboxProps) {
       >
         <button
           onClick={onClose}
-          className='fixed right-5 top-5 text-black hover:text-black text-3xl w-8 h-8 flex items-center justify-center z-50'
+          className='fixed right-5 top-5 text-black hover:text-black text-3xl flex items-center justify-center z-50 bg-white/50 rounded-full border-2 p-2 cursor-pointer'
         >
           <Image
             src='/images/close.png'
             alt='Close'
             width={400}
             height={400}
-            className='object-contain w-auto h-12'
+            className='object-contain w-auto h-8'
           />
         </button>
 

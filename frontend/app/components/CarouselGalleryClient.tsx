@@ -72,7 +72,7 @@ export default function CarouselGalleryClient({
   return (
     <div className='relative group py-12 overflow-hidden'>
       {/* Arrows - closer spacing */}
-      <div className='absolute right-2 -bottom-2 lg:-bottom-6 z-10 flex gap-2 pointer-events-none'>
+      <div className='absolute right-0 top-1/2 -translate-y-1/2 z-50 flex gap-2 pointer-events-none'>
         <button
           onClick={() => scroll('left')}
           className={`transition-all duration-500 ${
@@ -88,6 +88,7 @@ export default function CarouselGalleryClient({
             height={150}
             className='h-8 lg:h-10 w-auto rotate-180'
           />
+          {/* <span className='text-6xl font-garabosse-gaillarde'>←</span> */}
         </button>
 
         <button
@@ -105,6 +106,7 @@ export default function CarouselGalleryClient({
             height={150}
             className='h-8 lg:h-10 w-auto'
           />
+          {/* <span className='text-6xl font-garabosse-gaillarde'>→</span> */}
         </button>
       </div>
 
@@ -151,7 +153,7 @@ export default function CarouselGalleryClient({
                   />
 
                   {image.caption && (
-                    <figcaption className='absolute bottom-0 left-0 text-xs lg:text-sm opacity-0 group-hover:opacity-100 transition-opacity'>
+                    <figcaption className='absolute bottom-0 left-1 text-xs lg:text-sm opacity-0 group-hover:opacity-100 transition-opacity'>
                       {image.caption}
                     </figcaption>
                   )}

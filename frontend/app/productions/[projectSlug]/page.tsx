@@ -10,6 +10,7 @@ import ScrollToHash from '@/app/components/ScrollToHash'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
 import { ProjectNavigation } from '@/app/components/ProjectNavigation'
+import ProjectSectionsStackedNavClient from '@/app/components/ProjectSectionsStackedNavClient'
 
 type Category = {
   _id: string
@@ -119,18 +120,30 @@ export default async function ProductionsProjectPage({
       titleImageUrl: section.category.titleImage?.asset?.url ?? undefined,
     }))
 
+  const useStackedTitles = true
+
   return (
-    <main className='min-h-screen xl:pl-64'>
+    <main className='min-h-screen xl:pl-54 xl:px-68'>
       <ScrollToHash />
 
-      {categoryNavItems.length > 0 && (
-        <CategoryNav
-          categories={categoryNavItems}
-          title='woronoff by category'
-          projectTitleImageUrl={project.titleImage?.asset?.url ?? undefined}
-          isProjectPage={true}
-        />
-      )}
+      {categoryNavItems.length > 0 &&
+        (useStackedTitles ? (
+          <ProjectSectionsStackedNavClient
+            categories={categoryNavItems}
+            // You can pass images if you want, but group title is hidden anyway.
+            groupTitleImages={{
+              horizontal: project.titleImage?.asset?.url ?? undefined,
+            }}
+            titleVariant='stacked'
+          />
+        ) : (
+          <CategoryNav
+            categories={categoryNavItems}
+            title='woronoff by category'
+            projectTitleImageUrl={project.titleImage?.asset?.url ?? undefined}
+            isProjectPage={true}
+          />
+        ))}
 
       {/* Content wrapper: one place controls page padding & rhythm */}
       <div className='px-4 pt-32 sm:pt-20 lg:pt-16'>
@@ -139,7 +152,7 @@ export default async function ProductionsProjectPage({
           <div className='lg:grid lg:grid-cols-12 lg:gap-x-10 lg:items-start'>
             {/* Title image */}
             {project?.titleImage?.asset?.url && (
-              <div className='lg:col-span-6 xl:-ml-64'>
+              <div className='lg:col-span-8 xl:-ml-44'>
                 <Image
                   src={project.titleImage.asset.url}
                   alt={project.title}
@@ -167,8 +180,8 @@ export default async function ProductionsProjectPage({
 
             {/* Description */}
             {project.description && (
-              <div className='mt-8 lg:mt-6 lg:col-start-1 lg:col-span-9'>
-                <p className='text-xl leading-[1] tracking-tight lg:text-5xl max-w-7xl'>
+              <div className='mt-8 lg:mt-16 lg:col-start-1 lg:col-span-9'>
+                <p className='text-xl leading-[1.15] tracking-tight lg:text-4xl max-w-7xl'>
                   {project.description}
                 </p>
               </div>
@@ -192,7 +205,7 @@ export default async function ProductionsProjectPage({
                 id={section.category.slug.current}
                 className='scroll-mt-24'
               >
-                {section.category.titleImage?.asset?.url ? (
+                {/* {section.category.titleImage?.asset?.url ? (
                   <div className='flex justify-start items-center mb-0 lg:mb-5 mt-18'>
                     <Image
                       src={section.category.titleImage.asset.url}
@@ -206,7 +219,7 @@ export default async function ProductionsProjectPage({
                   <h2 className='text-3xl font-bold mb-8'>
                     {section.category.title}
                   </h2>
-                )}
+                )} */}
 
                 <ContentRenderer content={section.content} />
               </section>
@@ -215,7 +228,7 @@ export default async function ProductionsProjectPage({
         )}
 
         {/* Credits */}
-        <section className='mt-16 lg:mt-24'>
+        <section className='mt-16 lg:my-32'>
           <ProjectCredits
             credits={project.credits}
             press={project.press}
@@ -226,7 +239,7 @@ export default async function ProductionsProjectPage({
         {/* Project Navigation */}
 
         {/* Back link */}
-        <div className='my-16'>
+        {/* <div className='my-16'>
           <Link
             href='/productions'
             className='inline-flex items-center text-gray-600 hover:text-black transition-transitions'
@@ -234,7 +247,7 @@ export default async function ProductionsProjectPage({
             <span className='mr-2'>←</span>
             Back to Productions
           </Link>
-        </div>
+        </div> */}
       </div>
     </main>
   )

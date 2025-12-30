@@ -8,6 +8,8 @@ import NextImage from 'next/image'
 import Link from 'next/link'
 import CarouselGalleryClient from './CarouselGalleryClient'
 import ImageGalleryGrid from './ImageGalleryGrid'
+import BrushFrame from './drawings/BrushFrame'
+import BrushFrameRaster from './drawings/BrushFrameRaster'
 
 type ContentBlock =
   | TextBlock
@@ -179,12 +181,38 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
     '9:16': 'aspect-[9/16]',
   }
 
+  const isCollage = (block as any).collageMode === true
+
+  // Same idea as your ImageBlockRenderer: deterministic offsets
+  const getYOffset = (seed: number) => {
+    const random = Math.abs(Math.sin(seed)) * 100
+    const offset = (random % 6) - 3 // -3..3 vh
+    return Math.round(offset * 100) / 100
+  }
+
+  // two fixed seeds so it never changes on re-render (no hydration issues)
+  const leftYOffset = isCollage ? getYOffset(11111) : 0
+  const rightYOffset = isCollage ? getYOffset(22222) : 0
+
+  // Same overlap behavior as your collage rows
+  const overlapPx = isCollage ? -40 : 0
+
   return (
     <div
       className={`grid grid-cols-1 ${layoutClasses[block.layout]} gap-4 lg:gap-8 w-full`}
     >
       {/* Left Media */}
-      <div className='w-full'>
+      <div
+        className='w-full'
+        style={
+          isCollage
+            ? {
+                transform: `translateY(${leftYOffset}vh)`,
+                zIndex: 1,
+              }
+            : undefined
+        }
+      >
         {block.leftMedia?.mediaType === 'video' && block.leftMedia?.url ? (
           <figure className='w-full mx-auto'>
             <div
@@ -224,7 +252,18 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
       </div>
 
       {/* Right Media */}
-      <div className='w-full'>
+      <div
+        className='w-full'
+        style={
+          isCollage
+            ? {
+                marginLeft: overlapPx, // overlap the two columns
+                transform: `translateY(${rightYOffset}vh)`,
+                zIndex: 2,
+              }
+            : undefined
+        }
+      >
         {block.rightMedia?.mediaType === 'video' && block.rightMedia?.url ? (
           <figure className='w-full mx-auto'>
             <div
@@ -413,6 +452,71 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
       ? (block.position as Position)
       : 'center'
 
+  // Check if collage mode is enabled
+  const isCollage = (block as any).collageMode === true
+
+  // Generate consistent random Y offsets
+  const getYOffset = (index: number) => {
+    const seed = index * 54321
+    const random = Math.abs(Math.sin(seed)) * 100
+    const offset = index % 2 === 0 ? (random % 6) - 3 : ((random % 6) - 3) * -1
+    return Math.round(offset * 100) / 100
+  }
+
+  // Generate overlap for multi-image layouts
+  const getOverlap = (index: number) => {
+    if (index === 0 || !isCollage) return 0
+    return -40 // Overlap amount in pixels
+  }
+
+  if (isCollage && layout.includes('row')) {
+    // Collage mode for multi-image layouts
+    const imageCount = block.images?.length || 0
+
+    // Adjust width based on number of images
+    const widthClass =
+      imageCount === 2
+        ? 'w-[50%]' // 2 images take more space
+        : imageCount === 3
+          ? 'w-[33%]' // 3 images medium space
+          : 'w-[25%]' // 4+ images smaller
+
+    return (
+      <div
+        className={`flex flex-wrap items-center ${!layout.includes('row') ? positionClasses[position] : ''}`}
+      >
+        {(block.images ?? []).map((image, idx) => {
+          const yOffset = getYOffset(idx)
+          const overlap = getOverlap(idx)
+
+          return (
+            <figure
+              key={idx}
+              className={`flex-shrink-0 relative ${widthClass} leading-none h-fit group`}
+              style={{
+                marginLeft: overlap,
+                transform: `translateY(${yOffset}vh)`,
+                zIndex: idx,
+              }}
+            >
+              <CoverImage image={image} />
+              {(image.caption ||
+                image.material ||
+                image.dimensions ||
+                image.year) && (
+                <figcaption className='h-auto text-xs lg:text-sm text-gray-600 flex items-center leading-tight justify-start gap-1 mt-2 opacity-0 hidden lg:block group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto ml-1'>
+                  {image.caption && <p>{image.caption}</p>}{' '}
+                  {image.year && <span>({image.year})</span>}
+                </figcaption>
+              )}
+            </figure>
+          )
+        })}
+      </div>
+    )
+  }
+
+  // Default rigid layout
   return (
     <div
       className={`${layoutClasses[layout]} ${spacingClasses[spacing]} ${
@@ -421,14 +525,6 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
     >
       {(block.images ?? []).map((image, idx) => (
         <figure key={idx} className='w-full leading-none h-fit relative group'>
-          {/* <Image
-            src={urlFor(image).url()}
-            alt={image.alt || `Image ${idx + 1}`}
-            width={0}
-            height={0}
-            sizes='100vw'
-            className='w-full h-auto'
-          /> */}
           <CoverImage image={image} />
           {(image.caption ||
             image.material ||
@@ -595,14 +691,12 @@ function TextWithImageRenderer({ block }: { block: TextWithImage }) {
 
 function VideoBlockRenderer({ block }: { block: VideoBlock }) {
   const getEmbedUrl = (url: string) => {
-    // YouTube
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
       const videoId = url.includes('youtu.be')
         ? url.split('youtu.be/')[1]
         : new URL(url).searchParams.get('v')
       return `https://www.youtube.com/embed/${videoId}`
     }
-    // Vimeo
     if (url.includes('vimeo.com')) {
       const videoId = url.split('vimeo.com/')[1]
       return `https://player.vimeo.com/video/${videoId}`
@@ -628,7 +722,20 @@ function VideoBlockRenderer({ block }: { block: VideoBlock }) {
           allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
           allowFullScreen
         />
+
+        {/* <BrushFrameRaster
+          top={['/images/brush/top-1.png', '/images/brush/top-1.png']}
+          right={['/images/brush/top-1.png', '/images/brush/top-1.png']}
+          bottom={['/images/brush/top-1.png', '/images/brush/top-1.png']}
+          left={['/images/brush/top-1.png', '/images/brush/top-1.png']}
+          thicknessPx={54}
+          bleedPx={30}
+          opacity={1}
+          blendMode='multiply'
+          jitterPx={2}
+        /> */}
       </div>
+
       {block.caption && (
         <figcaption className='text-sm text-gray-600 mt-3 text-left'>
           {block.caption}
@@ -654,9 +761,7 @@ function HeadingBlockRenderer({ block }: { block: HeadingBlock }) {
   }
   return (
     <div className={`w-full ${alignmentClasses[block.alignment]}`}>
-      <Tag
-        className={`font-rader-medium w-fit  bg-black text-white ${sizeClasses[Tag]}`}
-      >
+      <Tag className={`font-rader-bold w-fit text-black ${sizeClasses[Tag]}`}>
         {block.text}
       </Tag>
     </div>

@@ -48,6 +48,11 @@
   --font-rader-medium-italic: var(--font-rader-medium-italic);
   --font-rader-bold-italic: var(--font-rader-bold-italic);
 
+  /* Garabosse */
+  --font-garabosse-parangon: var(--font-garabosse-parangon);
+  --font-garabosse-gaillarde: var(--font-garabosse-gaillarde);
+  --font-garabosse-perle: var(--font-garabosse-perle);
+
   --default-transition-duration: 250ms;
 }
 

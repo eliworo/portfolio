@@ -304,7 +304,9 @@ export const navigationImagesQuery = defineQuery(`{
     titleImage{asset->{url}}
   },
   "studioWorks": *[_type == "studioWorks"][0]{
-    titleImage{asset->{url}}
+    titleImage{asset->{url}}, // keep existing horizontal
+    titleImageStudio{asset->{url}},
+    titleImageWorks{asset->{url}}
   },
   "homepage": *[_type == "homepage"][0]{
     logo{asset->{url}}
@@ -504,7 +506,8 @@ export const projectQuery = defineQuery(`
         },
         layout,
         position,
-        spacing
+        spacing,
+        collageMode
       },
       // Image Gallery
       _type == "imageGallery" => {
@@ -513,6 +516,8 @@ export const projectQuery = defineQuery(`
             url
           },
           alt,
+          crop,
+          hotspot,
           caption,
           material,
           dimensions,
@@ -588,7 +593,8 @@ export const projectQuery = defineQuery(`
           year
         }
       },
-      layout
+      layout,
+      collageMode
     }
     },
 
@@ -635,7 +641,8 @@ export const projectQuery = defineQuery(`
           },
           layout,
           position,
-          spacing
+          spacing,
+          collageMode
         },
         // Image Gallery
         _type == "imageGallery" => {
@@ -644,6 +651,8 @@ export const projectQuery = defineQuery(`
               url
             },
             alt,
+            crop,
+            hotspot,
             caption,
             material,
             dimensions,
@@ -719,7 +728,8 @@ export const projectQuery = defineQuery(`
               year
             }
           },
-          layout
+          layout,
+          collageMode
         }
       }
     },
@@ -1143,14 +1153,15 @@ const projectFields = /* groq */ `
 export const studioWorksQuery = /* groq */ `
   *[_type == "studioWorks"][0]{
     title,
-    titleImage {
-      asset->{
-        url
-      }
-    },
+    titleImage { asset->{ url } },
+    titleImageStudio { asset->{ url } },
+    titleImageWorks { asset->{ url } },
     description,
     featuredProjects[] {
       _key,
+      kind,
+      blankLabel,
+      blankSize,
       project->{
         ${projectFields}
       },
@@ -1161,9 +1172,6 @@ export const studioWorksQuery = /* groq */ `
       scale,
       zIndex
     },
-    gridSpacing {
-      columnGap,
-      rowGap
-      }
+    gridSpacing { columnGap, rowGap }
   }
 `
