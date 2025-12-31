@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import CoverImage from './CoverImage'
 import PaintBrush from './drawings/PaintBrush'
 import RealBrush from './drawings/RealBrush'

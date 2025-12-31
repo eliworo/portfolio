@@ -3,6 +3,7 @@
 import { PortableText, PortableTextComponents } from '@portabletext/react'
 import Link from 'next/link'
 import { PortableTextBlock } from 'sanity'
+import RealBrush from './drawings/RealBrush' // adjust path to where RealBrush lives
 
 interface ProjectCreditsProps {
   credits?: PortableTextBlock[] | null
@@ -95,12 +96,10 @@ const components: PortableTextComponents = {
 const tourneeComponents: PortableTextComponents = {
   block: {
     normal: ({ children }) => {
-      // Check if children contains any React elements (like links)
       const hasComplexChildren =
         Array.isArray(children) &&
         children.some((child) => typeof child === 'object' && child !== null)
 
-      // If there are complex children (links, etc.), render them directly
       if (hasComplexChildren) {
         return (
           <p className='mb-5 last:mb-0 whitespace-pre-wrap leading-relaxed text-base lg:text-lg'>
@@ -109,7 +108,6 @@ const tourneeComponents: PortableTextComponents = {
         )
       }
 
-      // Otherwise, try to parse the text format
       const text = String(children)
 
       const match = text.match(
@@ -145,6 +143,58 @@ const tourneeComponents: PortableTextComponents = {
   list: components.list,
 }
 
+/** deterministic tiny variation, avoids hydration mismatch */
+function hashToFloat01(seed: string) {
+  let h = 2166136261
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  // 0..1
+  return (h >>> 0) / 4294967295
+}
+
+function BrushTitle({
+  children,
+  seed,
+  color = '#9AB1FF',
+  className = '',
+}: {
+  children: React.ReactNode
+  seed: string
+  color?: string
+  className?: string
+}) {
+  // small deterministic “hand placed” feel
+  const r = hashToFloat01(seed)
+  const rotate = (r * 6 - 3).toFixed(2) // -3..+3 deg
+  const y = ((r * 6 - 3) * 0.6).toFixed(2) // -1.8..+1.8 px
+
+  return (
+    <h3
+      className={['font-rader-bold text-2xl text-black', className].join(' ')}
+    >
+      <span
+        className='relative inline-block leading-none'
+        style={{ transform: `translateY(${y}px) rotate(${rotate}deg)` }}
+      >
+        <RealBrush
+          seed={`credits-title:${seed}`}
+          color={color}
+          className='absolute -inset-x-3 -inset-y-2 -z-10 opacity-90'
+          style={{
+            // slightly taller brush; keeps it visible behind caps
+            height: '1.35em',
+            top: '70%',
+            transform: 'translateY(-52%)',
+          }}
+        />
+        <span className='relative z-10'>{children}</span>
+      </span>
+    </h3>
+  )
+}
+
 export function ProjectCredits({
   credits,
   press,
@@ -159,9 +209,9 @@ export function ProjectCredits({
         <div>
           {credits && (
             <div className='group relative focus:outline-none' tabIndex={0}>
-              <h3 className='font-rader-bold text-3xl mb-4 text-black'>
+              <BrushTitle seed='credits' color='#D9D9D9' className='mb-4'>
                 Credits
-              </h3>
+              </BrushTitle>
 
               <div className='leading-tight overflow-hidden transition-all duration-500 ease-in-out max-h-[400px] group-hover:max-h-[2000px] group-focus:max-h-[2000px] text-sm lg:text-lg ml-0'>
                 <PortableText value={credits} components={components} />
@@ -176,9 +226,9 @@ export function ProjectCredits({
         <div className='space-y-24'>
           {press && (
             <>
-              <h3 className='font-rader-bold text-3xl mb-4 text-black py-0'>
+              <BrushTitle seed='press' color='#D9D9D9' className='mb-4'>
                 Press
-              </h3>
+              </BrushTitle>
               <div className='text-sm lg:text-lg'>
                 <PortableText value={press} components={components} />
               </div>
@@ -187,9 +237,9 @@ export function ProjectCredits({
 
           {tournee && (
             <>
-              <h3 className='font-rader-bold text-3xl mb-4 text-black py-0 mt-8'>
+              <BrushTitle seed='dates' color='#D9D9D9' className='mb-4 mt-8'>
                 Dates
-              </h3>
+              </BrushTitle>
               <div className='text-sm lg:text-lg'>
                 <PortableText value={tournee} components={tourneeComponents} />
               </div>

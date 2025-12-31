@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import HorizontalLine from './lines/HorizontalLine'
 import VerticalLine from './lines/VerticalLine'
 import { NavigationImagesQueryResult } from '@/sanity.types'

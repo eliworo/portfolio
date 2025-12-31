@@ -130,7 +130,6 @@ export default async function ProductionsProjectPage({
         (useStackedTitles ? (
           <ProjectSectionsStackedNavClient
             categories={categoryNavItems}
-            // You can pass images if you want, but group title is hidden anyway.
             groupTitleImages={{
               horizontal: project.titleImage?.asset?.url ?? undefined,
             }}
@@ -203,23 +202,10 @@ export default async function ProductionsProjectPage({
               <section
                 key={section.category._id}
                 id={section.category.slug.current}
-                className='scroll-mt-24'
+                className='scroll-mt-[110px]'
               >
-                {/* {section.category.titleImage?.asset?.url ? (
-                  <div className='flex justify-start items-center mb-0 lg:mb-5 mt-18'>
-                    <Image
-                      src={section.category.titleImage.asset.url}
-                      alt={section.category.title}
-                      width={1000}
-                      height={700}
-                      className='h-12 lg:h-24 w-auto object-contain -rotate-0'
-                    />
-                  </div>
-                ) : (
-                  <h2 className='text-3xl font-bold mb-8'>
-                    {section.category.title}
-                  </h2>
-                )} */}
+                {/* Sentinel for intersection observer */}
+                <div data-section-sentinel className='h-px w-px' />
 
                 <ContentRenderer content={section.content} />
               </section>
@@ -235,19 +221,6 @@ export default async function ProductionsProjectPage({
             tournee={project.tournee}
           />
         </section>
-
-        {/* Project Navigation */}
-
-        {/* Back link */}
-        {/* <div className='my-16'>
-          <Link
-            href='/productions'
-            className='inline-flex items-center text-gray-600 hover:text-black transition-transitions'
-          >
-            <span className='mr-2'>←</span>
-            Back to Productions
-          </Link>
-        </div> */}
       </div>
     </main>
   )

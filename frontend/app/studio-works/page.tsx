@@ -6,6 +6,7 @@ import CreativeProjectsList from '../components/CreativeProjectsList'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
 import Link from 'next/link'
+import RealBrush from '../components/drawings/RealBrush'
 
 export async function generateMetadata(
   _props: any,
@@ -30,7 +31,9 @@ export async function generateMetadata(
 const portableTextComponents = {
   marks: {
     strong: ({ children }: { children: React.ReactNode }) => (
-      <strong className='font-rader-bold text-[26px]'>{children}</strong>
+      <BrushStrong seed='strong' color='#D9D9D9'>
+        {children}
+      </BrushStrong>
     ),
     link: ({
       children,
@@ -44,12 +47,18 @@ const portableTextComponents = {
       if (href.startsWith('?category=')) {
         const category = href.replace('?category=', '')
         return (
-          <Link
+          <BrushLink
+            seed={`category-link-${category}`}
             href={`/studio-works${href}`}
-            className='underline decoration-2 underline-offset-4 hover:bg-yellow-100 transition-colors'
           >
             {children}
-          </Link>
+          </BrushLink>
+          // <Link
+          //   href={`/studio-works${href}`}
+          //   className='underline decoration-2 underline-offset-4 hover:bg-yellow-100 transition-colors'
+          // >
+          //   {children}
+          // </Link>
         )
       }
       return (
@@ -161,5 +170,73 @@ export default async function StudioWorksPage({
         )}
       </section>
     </main>
+  )
+}
+
+function BrushStrong({
+  children,
+  seed,
+  color = '#D9D9D9',
+}: {
+  children: React.ReactNode
+  seed: string
+  color?: string
+}) {
+  // Keep it inline, stable, and baseline-friendly
+  return (
+    <strong className='font-rader-bold'>
+      <span className='relative inline-block align-baseline leading-[1.05]'>
+        <RealBrush
+          as='span'
+          seed={seed}
+          color={color}
+          className='absolute -inset-x-2 -z-10 opacity-90'
+          style={{
+            height: '1.05em',
+            top: '72%',
+            transform: 'translateY(-50%)',
+          }}
+        />
+        <span className='relative z-10'>{children}</span>
+      </span>
+    </strong>
+  )
+}
+
+function BrushLink({
+  children,
+  href,
+  seed,
+  external,
+}: {
+  children: React.ReactNode
+  href: string
+  seed: string
+  external?: boolean
+}) {
+  return (
+    <a
+      href={href}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+      className='relative inline-block font-inherit text-black'
+    >
+      <span className='relative inline-block align-baseline leading-[1.05]'>
+        <RealBrush
+          as='span'
+          seed={seed}
+          color='#ccc'
+          className='absolute -inset-x-1 -z-10 opacity-80'
+          style={{
+            height: '0.9em',
+            top: '58%',
+            transform: 'translateY(-50%)',
+          }}
+        />
+        <span className='relative z-10 hover:opacity-70 transition-opacity'>
+          {children}
+        </span>
+      </span>
+    </a>
   )
 }

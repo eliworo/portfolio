@@ -53,7 +53,7 @@ const BRUSH_COLOR = '#9AB1FF'
  * Single knob for sizing.
  * 1 = current; 0.85 = 15% smaller; tweak as needed.
  */
-const SCALE = 0.85
+const SCALE = 1
 
 // Derived “rhythm” numbers so spacing stays proportional
 const ITEM_GAP = Math.round(65 * SCALE)

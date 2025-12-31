@@ -8,7 +8,7 @@ import {
   AnimatePresence,
   useMotionValue,
   useDragControls,
-} from 'framer-motion'
+} from 'motion/react'
 
 import PaintBrush from './drawings/PaintBrush'
 import ProjectModal from './ProjectModal'

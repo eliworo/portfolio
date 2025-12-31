@@ -25,13 +25,6 @@ export function ProjectNavigation({
             href={`/productions/${prevProject.slug}`}
             className='group items-start hover:opacity-70 transition-opacity pointer-events-auto flex flex-col space-y-1'
           >
-            <Image
-              src='/images/arrowLeftLogo.png'
-              alt='Previous Project'
-              width={600}
-              height={600}
-              className='object-contain h-auto w-10 select-none pointer-events-none'
-            />
             {prevProject.titleImageUrl && (
               <Image
                 src={prevProject.titleImageUrl}
@@ -42,6 +35,13 @@ export function ProjectNavigation({
                 unoptimized
               />
             )}
+            <Image
+              src='/images/arrowLeftLogo.png'
+              alt='Previous Project'
+              width={600}
+              height={600}
+              className='object-contain h-auto w-10 select-none pointer-events-none'
+            />
           </Link>
         ) : (
           <div className='opacity-0'>←</div>

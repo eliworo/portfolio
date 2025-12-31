@@ -1,4 +1,3 @@
-// ./drawings/RealBrush.tsx
 'use client'
 
 import { useMemo } from 'react'
@@ -8,14 +7,10 @@ interface BrushProps {
   color?: string
   className?: string
   style?: React.CSSProperties
+  as?: 'span' | 'div'
 }
 
-const brushTextures = [
-  '/images/brush/brush-1.png',
-  // '/images/brush/brush-2.png',
-  // '/images/brush/brush-3.png',
-  // '/images/brush/brush-4.png',
-]
+const brushTextures = ['/images/brush/brush-1.png']
 
 function hashStringToU32(str: string): number {
   let h = 2166136261
@@ -31,6 +26,7 @@ export default function RealBrush({
   color = '#9AB1FF',
   className,
   style,
+  as = 'div',
 }: BrushProps) {
   const src = useMemo(() => {
     return brushTextures[hashStringToU32(seed) % brushTextures.length]
@@ -49,8 +45,10 @@ export default function RealBrush({
     pointerEvents: 'none',
   }
 
+  const Comp: any = as
+
   return (
-    <div
+    <Comp
       aria-hidden
       className={className}
       style={{ ...maskStyles, ...style }}
