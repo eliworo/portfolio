@@ -25,6 +25,22 @@ export const studioWorks = defineType({
       ],
     }),
     defineField({
+      name: 'titleImageStudio',
+      title: 'Title Image (Stacked) — STUDIO',
+      type: 'image',
+      options: {hotspot: true},
+      fields: [{name: 'alt', type: 'string', title: 'Alternative text'}],
+    }),
+
+    defineField({
+      name: 'titleImageWorks',
+      title: 'Title Image (Stacked) — WORKS',
+      type: 'image',
+      options: {hotspot: true},
+      fields: [{name: 'alt', type: 'string', title: 'Alternative text'}],
+    }),
+
+    defineField({
       name: 'description',
       title: 'Introduction Text',
       type: 'array',
@@ -58,15 +74,57 @@ export const studioWorks = defineType({
           name: 'featuredItem',
           fields: [
             defineField({
+              name: 'kind',
+              title: 'Item Type',
+              type: 'string',
+              initialValue: 'project',
+              options: {
+                list: [
+                  {title: 'Project', value: 'project'},
+                  {title: 'Blank / Spacer', value: 'blank'},
+                ],
+                layout: 'radio',
+              },
+            }),
+            defineField({
               name: 'project',
               title: 'Project',
               type: 'reference',
               to: [{type: 'project'}],
-              validation: (rule) => rule.required(),
+              // was required — remove that
+              hidden: ({parent}) => (parent?.kind ?? 'project') === 'blank',
               options: {
                 filter: 'defined(visible) && visible == true',
               },
+              validation: (rule) =>
+                rule.custom((value, ctx) => {
+                  const kind = ((ctx.parent as any)?.kind ?? 'project') as string
+                  if (kind === 'project' && !value) return 'Project is required for Project items'
+                  return true
+                }),
             }),
+            defineField({
+              name: 'blankLabel',
+              title: 'Blank Label (optional)',
+              type: 'string',
+              description: 'Only used in Studio for identifying the spacer.',
+              hidden: ({parent}) => (parent?.kind ?? 'project') === 'blank',
+            }),
+            defineField({
+              name: 'blankSize',
+              title: 'Blank Size',
+              type: 'string',
+              initialValue: 'md',
+              options: {
+                list: [
+                  {title: 'Small', value: 'sm'},
+                  {title: 'Medium', value: 'md'},
+                  {title: 'Large', value: 'lg'},
+                ],
+              },
+              hidden: ({parent}) => (parent?.kind ?? 'project') === 'blank',
+            }),
+
             defineField({
               name: 'categorySectionKey',
               title: 'Category Section',
@@ -109,23 +167,48 @@ export const studioWorks = defineType({
           ],
           preview: {
             select: {
+              itemKind: 'kind',
+              blankLabel: 'blankLabel',
+              blankSize: 'blankSize',
+
+              // project-derived fields (will be undefined for blanks)
               title: 'project.title',
               media: 'project.coverImage',
-              kind: 'project.projectKind',
+              projectKind: 'project.projectKind',
               size: 'project.projectSize',
               subtype: 'project.projectSubtype',
               section: 'categorySectionKey',
               categorySections: 'project.categorySections',
             },
-            prepare({title, media, kind, size, subtype, section, categorySections}) {
+            prepare({
+              itemKind,
+              blankLabel,
+              blankSize,
+              title,
+              media,
+              projectKind,
+              size,
+              subtype,
+              section,
+              categorySections,
+            }) {
+              // 1) Blank/spacer preview
+              if (itemKind === 'blank') {
+                return {
+                  title: blankLabel ? `Blank: ${blankLabel}` : 'Blank / Spacer',
+                  subtitle: blankSize ? `Size: ${blankSize}` : 'Layout helper',
+                  media: StackCompactIcon,
+                }
+              }
+
+              // 2) Existing project logic (unchanged, just renamed variables)
               let typeLabel = ''
               let categoryLabel = null
               let previewMedia = media
 
-              // Type label logic
-              if (kind === 'professional') {
+              if (projectKind === 'professional') {
                 typeLabel = 'Professional'
-              } else if (kind === 'personal') {
+              } else if (projectKind === 'personal') {
                 if (size === 'large') {
                   typeLabel = 'Personal (Large/Full Page)'
                 } else if (size === 'small') {
@@ -142,13 +225,10 @@ export const studioWorks = defineType({
                 }
               }
 
-              // Match category section by key
               if (section && categorySections) {
                 const sec = categorySections.find((s: any) => s._key?.startsWith(section))
-
                 if (sec) {
                   categoryLabel = `Category: ${sec.category?.title || 'Unknown'}`
-
                   if (sec.preview?.mode === 'image' && sec.preview.image) {
                     previewMedia = sec.preview.image
                   } else if (sec.preview?.mode === 'text') {

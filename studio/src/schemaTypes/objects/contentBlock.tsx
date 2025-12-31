@@ -298,6 +298,13 @@ export const imageBlock = defineType({
       },
       initialValue: 'normal',
     }),
+    {
+      name: 'collageMode',
+      title: 'Collage Mode',
+      type: 'boolean',
+      description: 'Enable playful overlapping layout with random Y offsets',
+      initialValue: false,
+    },
   ],
   preview: {
     select: {
@@ -769,6 +776,13 @@ export const mediaWithMedia = defineType({
       },
       initialValue: 'equal',
     }),
+    {
+      name: 'collageMode',
+      title: 'Collage Mode',
+      type: 'boolean',
+      description: 'Enable playful overlapping layout with random Y offsets',
+      initialValue: false,
+    },
   ],
   preview: {
     select: {
