@@ -264,23 +264,46 @@ function DraggableProjectCard({
         <div className='absolute left-1/2 -translate-y-1/2 -translate-x-1/2 top-1/2 z-30 pointer-events-auto'>
           <div
             role='button'
-            className='opacity-0 group-hover:opacity-100 transition-opacity duration-150 cursor-grab select-none text-red-500 p-1 mix-blend-difference relative'
+            className='
+    opacity-0 group-hover:opacity-100 transition-opacity duration-150
+    cursor-grab select-none p-1
+    relative
+  '
             onPointerDown={(e) => {
               e.preventDefault()
               e.stopPropagation()
-              // IMPORTANT: do NOT mark moved yet — only once threshold is crossed
               pointerDownRef.current = { x: e.clientX, y: e.clientY }
               dragControls.start(e)
             }}
             onClick={(e) => {
-              // never activate content from handle
               e.preventDefault()
               e.stopPropagation()
             }}
             aria-label='Move card'
             tabIndex={-1}
           >
-            <RiDragMove2Fill size={20} />
+            {/* Back “halo” layer */}
+            <span className='absolute inset-0 flex items-center justify-center'>
+              <RiDragMove2Fill
+                size={20}
+                className='
+        text-white
+        drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]
+        drop-shadow-[0_0_6px_rgba(0,0,0,0.55)]
+        scale-[1.08]
+      '
+              />
+            </span>
+
+            {/* Front icon */}
+            <RiDragMove2Fill
+              size={20}
+              className='
+      relative
+      text-black
+      drop-shadow-[0_0_4px_rgba(255,255,255,0.7)]
+    '
+            />
           </div>
         </div>
 

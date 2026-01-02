@@ -31,7 +31,7 @@ export async function generateMetadata(
 const portableTextComponents = {
   marks: {
     strong: ({ children }: { children: React.ReactNode }) => (
-      <BrushStrong seed='strong' color='#D9D9D9'>
+      <BrushStrong seed='strong' color='#98D8C8'>
         {children}
       </BrushStrong>
     ),
@@ -47,18 +47,18 @@ const portableTextComponents = {
       if (href.startsWith('?category=')) {
         const category = href.replace('?category=', '')
         return (
-          <BrushLink
-            seed={`category-link-${category}`}
-            href={`/studio-works${href}`}
-          >
-            {children}
-          </BrushLink>
-          // <Link
+          // <BrushLink
+          //   seed={`category-link-${category}`}
           //   href={`/studio-works${href}`}
-          //   className='underline decoration-2 underline-offset-4 hover:bg-yellow-100 transition-colors'
           // >
           //   {children}
-          // </Link>
+          // </BrushLink>
+          <Link
+            href={`/studio-works${href}`}
+            className='text-black underline decoration-black decoration-dashed underline-offset-4 hover:opacity-70 transition-opacity'
+          >
+            {children}
+          </Link>
         )
       }
       return (
@@ -190,7 +190,7 @@ function BrushStrong({
           as='span'
           seed={seed}
           color={color}
-          className='absolute -inset-x-2 -z-10 opacity-90'
+          className='absolute -inset-x-2 -z-10 opacity-90 pointer-events-none'
           style={{
             height: '1.05em',
             top: '72%',
@@ -226,7 +226,7 @@ function BrushLink({
           as='span'
           seed={seed}
           color='#ccc'
-          className='absolute -inset-x-1 -z-10 opacity-80'
+          className='absolute -inset-x-1 -z-10 opacity-80 pointer-events-none'
           style={{
             height: '0.9em',
             top: '58%',

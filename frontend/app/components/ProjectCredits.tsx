@@ -176,12 +176,13 @@ function BrushTitle({
     >
       <span
         className='relative inline-block leading-none'
-        style={{ transform: `translateY(${y}px) rotate(${rotate}deg)` }}
+        // style={{ transform: `translateY(${y}px) rotate(${rotate}deg)` }}
+        style={{ transform: `translateY(${y}px)` }}
       >
         <RealBrush
           seed={`credits-title:${seed}`}
           color={color}
-          className='absolute -inset-x-3 -inset-y-2 -z-10 opacity-90'
+          className='absolute -inset-x-2 -inset-y-2 -z-10 opacity-90'
           style={{
             // slightly taller brush; keeps it visible behind caps
             height: '1.35em',

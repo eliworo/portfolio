@@ -11,12 +11,8 @@ type Props = {
   height: number
   sizes?: string
   className?: string
-
-  // optional: a blur placeholder (Sanity lqip)
   blurDataURL?: string
   priority?: boolean
-
-  // optional: render overlay only after image decode
   overlay?: (ready: boolean) => React.ReactNode
 }
 
@@ -35,33 +31,37 @@ export function ProgressiveRevealImage({
 
   return (
     <div className='relative'>
-      <motion.div
-        initial={{
-          filter: 'blur(18px)',
-          opacity: 0.9,
-          transform: 'translateZ(0)',
-        }}
-        whileInView={{ filter: 'blur(0px)', opacity: 1 }}
-        viewport={{ once: true, amount: 0.35 }}
-        transition={{ duration: 0.55, ease: 'easeOut' }}
-      >
-        <Image
-          src={src}
-          alt={alt}
-          width={width}
-          height={height}
-          sizes={sizes}
-          className={className}
-          priority={priority}
-          placeholder={blurDataURL ? 'blur' : undefined}
-          blurDataURL={blurDataURL}
-          onLoad={() => {
-            // decode is complete; safe to show overlays
-            setReady(true)
+      {/* Clip blur bleed to the image bounds */}
+      <div className='relative overflow-hidden'>
+        <motion.div
+          initial={{
+            filter: 'blur(18px)',
+            opacity: 0.85,
+            transform: 'translateZ(0) scale(1.02)',
           }}
-          draggable={false}
-        />
-      </motion.div>
+          whileInView={{
+            filter: 'blur(0px)',
+            opacity: 1,
+            transform: 'translateZ(0) scale(1)',
+          }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <Image
+            src={src}
+            alt={alt}
+            width={width}
+            height={height}
+            sizes={sizes}
+            className={className}
+            priority={priority}
+            placeholder={blurDataURL ? 'blur' : undefined}
+            blurDataURL={blurDataURL}
+            onLoadingComplete={() => setReady(true)}
+            draggable={false}
+          />
+        </motion.div>
+      </div>
 
       {overlay ? overlay(ready) : null}
     </div>

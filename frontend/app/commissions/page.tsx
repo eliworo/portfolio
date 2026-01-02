@@ -50,9 +50,9 @@ export default async function CommissionsPage() {
                 height={500}
                 priority
                 className='
-                          object-contain mx-auto mt-18 mb-8 xl:my-0
+                          object-contain mx-auto mt-18 mb-8 xl:mt-8 xl:mb-0
                           w-[80vw] max-w-[980px]
-                          xl:w-full xl:max-w-none
+                          xl:w-[90%] xl:max-w-none
                           h-auto
                         '
               />

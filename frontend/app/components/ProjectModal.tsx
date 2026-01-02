@@ -250,8 +250,8 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
         </div>
 
         {/* Content overlay */}
-        <div className='absolute inset-0 flex items-center justify-center p-10 sm:p-12 md:p-14'>
-          <div className='w-full h-full overflow-hidden flex items-center justify-center'>
+        <div className='absolute inset-0 flex items-center justify-center p-10 sm:p-12 md:px-20 xl:py-20 xl:pb-24'>
+          <div className='w-full h-full overflow-hidden flex items-start justify-center'>
             {children}
           </div>
         </div>
@@ -261,9 +261,21 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
 
   const renderWritingTextSlide = (text?: string) => (
     <PostItFrame>
-      <p className='text-xs sm:text-sm md:text-base leading-[1.15] text-black whitespace-pre-wrap max-h-full overflow-y-auto scrollbar-hide'>
-        {text}
-      </p>
+      <div className='relative w-full h-full'>
+        {/* Scroll area */}
+        <div className='h-full overflow-y-auto scrollbar-hide pr-1 pt-8'>
+          <p className='text-xs sm:text-sm md:text-base leading-[1.15] text-black whitespace-pre-wrap'>
+            {text}
+          </p>
+          <div className='h-6' />
+        </div>
+
+        {/* Top fade */}
+        <div className='pointer-events-none absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-white to-transparent' />
+
+        {/* Bottom fade */}
+        <div className='pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent' />
+      </div>
     </PostItFrame>
   )
 
@@ -383,7 +395,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                     >
                       {isDoubleLayout && currentSpread ? (
                         <div className='flex gap-6 sm:gap-8 px-4 sm:px-8 py-10 w-full h-full overflow-y-auto'>
-                          <div className='flex-1 border-r border-gray-200 pr-4 sm:pr-8'>
+                          <div className='flex-1 pr-4 sm:pr-8'>
                             {renderPageBlock(currentSpread.left)}
                           </div>
                           <div className='flex-1 pl-4 sm:pl-8'>

@@ -113,7 +113,7 @@ export default function StackedCategoryTitles({
           Group Title (supports stacked + horizontal)
          ========================================= */}
       {!hideGroupTitle && (
-        <div className='px-4 lg:px-0 lg:mb-8 absolute -rotate-3 lg:rotate-0 left-1/2 -translate-x-1/2 lg:left-22 top-30 lg:top-16 z-20 w-[85vw] lg:w-[40vw] lg:translate-x-0'>
+        <div className='px-4 lg:px-0 lg:mb-8 absolute -rotate-3 lg:rotate-0 left-1/2 -translate-x-1/2 lg:left-22 top-30 lg:top-16 z-20 w-[85vw] lg:w-[40vw] lg:translate-x-0 pointer-events-none'>
           <div className='mb-8 lg:mb-12'>
             {effectiveVariant === 'stacked' ? (
               <div
@@ -177,7 +177,7 @@ export default function StackedCategoryTitles({
           Stacked Category Titles (fixed right)
          ========================================= */}
       <div
-        className='fixed right-4 lg:right-10 top-28 lg:top-1/2 lg:-translate-y-1/2 z-30 pointer-events-auto'
+        className='fixed right-4 lg:right-10 top-28 lg:top-1/2 lg:-translate-y-1/2 z-30 pointer-events-none'
         style={{
           width: 460,
           height: stackHeight,
@@ -197,7 +197,7 @@ export default function StackedCategoryTitles({
                 onClick={() => onSelectCategory(isActive ? null : category.id)}
                 onMouseEnter={() => setHoveredCategory(category.id)}
                 onMouseLeave={() => setHoveredCategory(null)}
-                className='absolute right-0 cursor-pointer focus:outline-none'
+                className='absolute right-0 cursor-pointer focus:outline-none pointer-events-auto'
                 style={{
                   transformOrigin: 'right center',
                   transform: `translate(${offset.x}px, ${TOP_PAD + offset.y}px) rotate(${rotation}deg)`,

@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import BrushTitle from '@/app/components/BrushTitle'
 
 type Tool = {
-  titleImage?: {
-    asset?: { url?: string | null } | null
-  } | null
+  titleImage?: { asset?: { url?: string | null } | null } | null
   subtitle?: string | null
   description?: string | null
   image?: {
@@ -45,7 +44,7 @@ export default function ToolCard({ tool }: { tool: Tool }) {
       {/* Image */}
       {tool.image?.asset?.url && (
         <div
-          className='relative aspect-video rounded-lg cursor-pointer'
+          className='relative aspect-video rounded-lg'
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -55,30 +54,27 @@ export default function ToolCard({ tool }: { tool: Tool }) {
             fill
             className='object-cover'
           />
-
-          {/* Inner white haze frame */}
           <div className='absolute inset-0 shadow-[inset_0_0_8px_12px_white] pointer-events-none' />
         </div>
       )}
 
-      {/* Title image (the handwritten TOOL label image) */}
-      {/* {tool.titleImage?.asset?.url && (
-        <div className='-ml-2 -mt-24 mb-14 -rotate-2'>
-          <Image
-            src={tool.titleImage.asset.url}
-            alt={tool.subtitle || ''}
-            width={320}
-            height={120}
-            className='w-full h-auto object-contain object-left max-h-16'
-          />
-        </div>
-      )} */}
-
-      {/* Subtitle */}
+      {/* Subtitle with brush background */}
       {tool.subtitle && (
-        <h3 className='text-lg uppercase font-rader-bold mt-8 bg-black text-white w-fit px-2'>
-          Tool: {tool.subtitle}
-        </h3>
+        <BrushTitle
+          as='h3'
+          seed={`tool-subtitle:${tool.subtitle}`} // deterministic per tool
+          color='#98D8C8'
+          className='mt-8 font-rader-bold text-2xl text-black'
+          brushClassName='absolute -inset-x-2 -inset-y-2 -z-10 opacity-90'
+          brushStyle={{
+            height: '1.15em',
+            top: '70%',
+            transform: 'translateY(-52%)',
+          }}
+          rotate={false}
+        >
+          <span className=''>{tool.subtitle}</span>
+        </BrushTitle>
       )}
 
       {/* Description */}
