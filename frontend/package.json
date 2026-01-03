@@ -10,6 +10,9 @@
     "lint": "next lint",
     "typegen": "cd ../studio && sanity typegen generate"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "dependencies": {
     "@portabletext/react": "^4.0.3",
     "@sanity/client": "^7.6.0",

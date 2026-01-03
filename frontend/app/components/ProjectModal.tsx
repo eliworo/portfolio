@@ -417,7 +417,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               )}
 
               {!isWriting && allMedia.length > 0 && currentMedia && (
-                <div className='relative w-full max-h-[75vh] h-[75vh] rounded-lg overflow-hidden flex flex-col items-center justify-center'>
+                <div className='relative w-full max-h-[70vh] h-[70vh] rounded-lg overflow-hidden flex flex-col items-center justify-center'>
                   <AnimatePresence mode='wait'>
                     <motion.div
                       key={currentIndex}
