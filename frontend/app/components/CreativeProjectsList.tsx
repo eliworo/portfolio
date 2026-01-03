@@ -19,6 +19,7 @@ import { urlForImage } from '@/sanity/lib/utils'
 import { RiDragMove2Fill } from 'react-icons/ri'
 import StackedCategoryTitles from './StackedCategoryTitles'
 import RealBrush from './drawings/RealBrush'
+import StudioWorksPortableText from './portable/StudioWorksPortableText'
 
 /* =========================
    helpers (keep as-is)
@@ -153,14 +154,14 @@ const isProfessionalKind = (p: any) => kindOf(p).includes('professional')
 
 type CardAction =
   | { type: 'navigate'; href: string }
-  | { type: 'modal'; href: string } // real href for “open in new tab”, but normal click opens modal
+  | { type: 'modal'; href: string } // real href for "open in new tab", but normal click opens modal
   | { type: 'none' }
 
 const isModifiedClick = (e: React.MouseEvent) =>
   e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1
 
 /* =========================
-   DraggableProjectCard (UPDATED)
+   DraggableProjectCard (UPDATED with animations)
 ========================= */
 
 function DraggableProjectCard({
@@ -282,7 +283,7 @@ function DraggableProjectCard({
             aria-label='Move card'
             tabIndex={-1}
           >
-            {/* Back “halo” layer */}
+            {/* Back "halo" layer */}
             <span className='absolute inset-0 flex items-center justify-center'>
               <RiDragMove2Fill
                 size={20}
@@ -390,6 +391,16 @@ function DraggableProjectCard({
 
   return (
     <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.92, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.92, y: 20 }}
+      transition={{
+        layout: { type: 'spring', stiffness: 350, damping: 38 },
+        opacity: { duration: 0.35, delay: idx * 0.04 },
+        scale: { duration: 0.35, delay: idx * 0.04 },
+        y: { duration: 0.35, delay: idx * 0.04 },
+      }}
       drag
       dragControls={dragControls}
       dragListener={false}
@@ -421,7 +432,7 @@ function DraggableProjectCard({
         movedRef.current = true
       }}
       onDragEnd={() => {
-        // avoid “click on drag end” in some pointer sequences
+        // avoid "click on drag end" in some pointer sequences
         window.setTimeout(() => {
           movedRef.current = false
         }, 0)
@@ -451,9 +462,11 @@ function DraggableProjectCard({
 function BlankSpacer({
   item,
   isMobile,
+  idx,
 }: {
   item: FeaturedProject
   isMobile: boolean
+  idx: number
 }) {
   const offsetFactor = isMobile ? 0.55 : 1
   const rotationFactor = isMobile ? 0.7 : 1
@@ -480,6 +493,14 @@ function BlankSpacer({
 
   return (
     <motion.div
+      layout
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{
+        layout: { type: 'spring', stiffness: 350, damping: 38 },
+        opacity: { duration: 0.3, delay: idx * 0.04 },
+      }}
       aria-hidden='true'
       className='pointer-events-none select-none'
       style={{
@@ -509,6 +530,7 @@ export default function CreativeProjectsList({
   useStackedTitles = false,
   stackedTitleStudioUrl,
   stackedTitleWorksUrl,
+  description,
 }: {
   featuredProjects: FeaturedProject[]
   groupSlug: string
@@ -522,6 +544,7 @@ export default function CreativeProjectsList({
   useStackedTitles?: boolean
   stackedTitleStudioUrl?: string
   stackedTitleWorksUrl?: string
+  description?: any
 }) {
   const [modalProject, setModalProject] = React.useState<any>(null)
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(
@@ -848,7 +871,6 @@ export default function CreativeProjectsList({
   return (
     <>
       {useStackedTitles ? (
-        // NEW: Stacked titles version
         allCategories.length > 0 && (
           <StackedCategoryTitles
             groupTitle={groupTitle}
@@ -864,7 +886,6 @@ export default function CreativeProjectsList({
           />
         )
       ) : (
-        // EXISTING: Category nav + animated title image
         <>
           {allCategories.length > 0 && (
             <CategoryNav
@@ -877,102 +898,19 @@ export default function CreativeProjectsList({
             />
           )}
 
-          <div className='px-4 lg:px-0 lg:mb-8 absolute -rotate-3 lg:rotate-0 left-1/2 -translate-x-1/2 lg:left-22 top-30 lg:top-16 z-20 w-[85vw] lg:w-[40vw] lg:translate-x-0'>
-            <AnimatePresence mode='wait'>
-              {currentCategory?.titleImageUrl ? (
-                <motion.div
-                  key={`category-${currentCategory.id}`}
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.3 }}
-                  className='w-full max-w-[600px] mx-auto lg:mx-0'
-                >
-                  <Image
-                    src={currentCategory.titleImageUrl}
-                    alt={currentCategory.title}
-                    width={600}
-                    height={300}
-                    className='object-contain h-auto max-h-[120px] lg:max-h-[150px] w-auto mx-auto lg:mx-0'
-                    priority
-                    sizes='(max-width: 1024px) 85vw, 40vw'
-                  />
-                </motion.div>
-              ) : groupTitleImageUrl ? (
-                <motion.div
-                  key='group-title'
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.3 }}
-                  className='w-full'
-                >
-                  <Image
-                    src={groupTitleImageUrl}
-                    alt={groupTitle || 'Project Group Title'}
-                    width={1000}
-                    height={300}
-                    className='object-contain h-auto max-h-[180px] lg:max-h-[150px] w-auto mx-auto lg:mx-0'
-                    priority
-                    sizes='(max-width: 1024px) 85vw, 40vw'
-                  />
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </div>
+          {/* IMPORTANT: Title image block REMOVED from here.
+           The page now renders <StudioWorksTitleBlock/> in normal flow. */}
         </>
       )}
 
-      {/* {allCategories.length > 0 && (
-        <CategoryNav
-          items={allCategories}
-          title='woronoff by category'
-          isStudioWorks={true}
-          groupSlug={groupSlug}
-          onSelectCategory={handleSelectCategory}
-          selectedCategory={selectedCategory}
-        />
+      {description && (
+        <div className='px-4 mt-16 mb-16 md:hidden'>
+          <div className='text-lg leading-[1.15] font-garabosse-gaillarde'>
+            <StudioWorksPortableText value={description} />
+          </div>
+        </div>
       )}
 
-      <div className='px-4 lg:px-0 lg:mb-8 absolute -rotate-3 lg:rotate-0 left-1/2 -translate-x-1/2 lg:left-22 top-30 lg:top-16 z-20 w-[85vw] lg:w-[40vw] lg:translate-x-0'>
-        <AnimatePresence mode='wait'>
-          {currentCategory?.titleImageUrl ? (
-            <motion.div
-              key={`category-${currentCategory.id}`}
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.3 }}
-              className='w-full max-w-[600px] mx-auto lg:mx-0'
-            >
-              <Image
-                src={currentCategory.titleImageUrl}
-                alt={currentCategory.title}
-                width={600}
-                height={300}
-                className='object-contain h-auto max-h-[120px] lg:max-h-[180px] w-auto mx-auto lg:mx-0'
-              />
-            </motion.div>
-          ) : groupTitleImageUrl ? (
-            <motion.div
-              key='group-title'
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.3 }}
-              className='w-full'
-            >
-              <Image
-                src={groupTitleImageUrl}
-                alt={groupTitle || 'Project Group Title'}
-                width={1000}
-                height={300}
-                className='object-contain h-auto max-h-[180px] lg:max-h-[150px] w-auto mx-auto lg:mx-0'
-              />
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-      </div> */}
       <div
         className='mt-0 px-2 lg:mt-0 grid grid-cols-2 lg:grid-cols-4 py-40 lg:pt-0 lg:pb-64 pt-0'
         style={{
@@ -984,27 +922,28 @@ export default function CreativeProjectsList({
           {filteredProjects.map((item, idx) => {
             const itemKind = (item as any).kind ?? 'project'
 
-            // If this is a blank/spacer, render it here
             if (itemKind === 'blank') {
               return (
-                <BlankSpacer key={item._key} item={item} isMobile={isMobile} />
+                <BlankSpacer
+                  key={item._key}
+                  item={item}
+                  isMobile={isMobile}
+                  idx={idx}
+                />
               )
             }
 
-            // From here down, it's a normal project item
             if (!item?.project) return null
             const p = item.project
 
             let preview = coverOrPreviewForItem(item)
             if (preview.type === 'image' && !hasImageAsset(preview.image)) {
-              // Only skip if it's a personal small project (which MUST have an image)
               if (
                 isPersonalKind(item.project) &&
                 item.project.projectSize !== 'large'
               ) {
                 return null
               }
-              // For professional/large projects without images, show title as fallback
               preview = {
                 type: 'text',
                 content: item.project.title || 'Project',
@@ -1014,7 +953,6 @@ export default function CreativeProjectsList({
             const action = getCardAction(item)
 
             const openModal = () => {
-              // For modal items only, but safe
               setModalProject({
                 title: p.title,
                 titleImageUrl: p.titleImage?.asset?.url,
@@ -1054,13 +992,6 @@ export default function CreativeProjectsList({
                         className='relative'
                         style={{ rotate: `${brushRotation(item._key)}deg` }}
                       >
-                        {/* <PaintBrush
-                          className='absolute top-1/2 -translate-y-[45%] -translate-x-[2%] w-[125%] h-[90%] -z-10'
-                          theme={{
-                            fill: brushColor(item.project._id || item._key),
-                          }}
-                        /> */}
-
                         <RealBrush
                           seed={`category:${item.project._id}`}
                           color={brushColor(item.project._id || item._key)}

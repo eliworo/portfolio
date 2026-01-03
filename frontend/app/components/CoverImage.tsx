@@ -7,6 +7,7 @@ interface CoverImageProps {
   image: any
   priority?: boolean
   overlay?: (ready: boolean) => React.ReactNode
+  revealEffect?: 'blur' | 'pixelate' | 'pixelate-blur'
 }
 
 const normalizeImageSource = (source?: any) => {
@@ -25,6 +26,7 @@ export default function CoverImage({
   image: source,
   priority,
   overlay,
+  revealEffect = 'pixelate-blur',
 }: CoverImageProps) {
   const normalized = normalizeImageSource(source)
   const fallbackUrl = source?.asset?.url
@@ -51,6 +53,7 @@ export default function CoverImage({
         sizes='(min-width: 1280px) 1200px, 100vw'
         blurDataURL={blurDataURL}
         overlay={overlay}
+        revealEffect={revealEffect}
       />
     </div>
   )

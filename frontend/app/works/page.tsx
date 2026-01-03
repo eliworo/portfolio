@@ -9,6 +9,7 @@ import {
 } from '@/sanity/lib/queries'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
+import RealBrush from '../components/drawings/RealBrush'
 // import PaintBrush from '../components/drawings/PaintBrush'
 
 function drift(seed: string, range = 24) {
@@ -117,7 +118,7 @@ export default async function WorksPage() {
           )}
         </div>
       </header>{' '}
-      <div className='absolute top-1/2 -translate-y-1/3 left-1/2 -z-10 group'>
+      {/* <div className='absolute top-1/2 -translate-y-1/3 left-1/2 -z-10 group'>
         <Image
           src='/images/eli.JPG'
           alt={'Profile Image'}
@@ -125,9 +126,9 @@ export default async function WorksPage() {
           height={600}
           className='w-auto max-h-[50vh] object-cover z-0'
         />
-      </div>
+      </div> */}
       {/* Productions and Studio Works Side by Side */}
-      <section className='relative px-4 lg:px-16 xl:pl-54 mb-20 lg:mb-32 mt-14 xl:mt-20'>
+      <section className='relative px-4 lg:px-16 xl:pl-54 mb-20 lg:mb-32 mt-14 xl:mt-32'>
         <div className='w-full mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12'>
           {/* Productions */}
           <Link
@@ -137,20 +138,20 @@ export default async function WorksPage() {
             <div className='h-full flex flex-col'>
               <div className='flex-1 flex flex-col justify-start items-start p-8 lg:p-12'>
                 {productionsPage?.titleImage?.asset?.url && (
-                  <div className='mb-6 lg:mb-8 w-full relative'>
+                  <div className='mb-6 lg:mb-16 w-full relative rotate-1'>
                     <Image
                       src={productionsPage.titleImage.asset.url}
                       alt='Productions'
                       width={500}
                       height={500}
-                      className='object-contain w-full max-h-[60px] h-auto object-left'
+                      className='object-contain w-full max-h-[150px] h-auto object-left'
                     />
                   </div>
                 )}
                 <p className='text-base lg:text-2xl leading-[1.15]'>
-                  <span className='font-rader-bold text-[26px]'>
-                    Full-scale productions.
-                  </span>{' '}
+                  <BrushStrong seed='works-productions' color='#98D8C8'>
+                    <span className='text-[26px]'>Full-scale productions.</span>
+                  </BrushStrong>
                   Developed through in-depth research, exploring contemporary
                   societal issues through a performative approach, immersive
                   installations, embodied fashion, words, and visual arts.
@@ -165,22 +166,22 @@ export default async function WorksPage() {
             className='block group hover:opacity-95 transition-opacity'
           >
             <div className='h-full flex flex-col'>
-              <div className='flex-1 flex flex-col justify-center items-start p-8 lg:p-12 xl:pt-32'>
+              <div className='flex-1 flex flex-col justify-center items-start p-8 lg:p-12'>
                 {studioWorksPage?.titleImage?.asset?.url && (
-                  <div className='mb-6 lg:mb-8 w-full relative'>
+                  <div className='mb-6 lg:mb-16 w-full relative'>
                     <Image
                       src={studioWorksPage.titleImage.asset.url}
                       alt='Studio Works'
                       width={500}
                       height={500}
-                      className='object-contain w-full max-h-[60px] h-auto object-left'
+                      className='object-contain w-full max-h-[150px] h-auto object-left'
                     />
                   </div>
                 )}
                 <p className='text-base lg:text-2xl leading-[1.15]'>
-                  <span className='font-rader-bold text-[26px]'>
-                    Inside the studio.
-                  </span>{' '}
+                  <BrushStrong seed='works-studio' color='#98D8C8'>
+                    <span className='text-[26px]'>Inside the studio.</span>
+                  </BrushStrong>
                   Independent standalone works and fragments from larger
                   productions, spanning fashion, photography, installation,
                   writing, performance, ink, painting, sculpture, and music.
@@ -191,5 +192,34 @@ export default async function WorksPage() {
         </div>
       </section>
     </main>
+  )
+}
+
+function BrushStrong({
+  children,
+  seed,
+  color = '#D9D9D9',
+}: {
+  children: React.ReactNode
+  seed: string
+  color?: string
+}) {
+  return (
+    <strong className='font-rader-bold'>
+      <span className='relative inline-block align-baseline leading-[1.05]'>
+        <RealBrush
+          as='span'
+          seed={seed}
+          color={color}
+          className='absolute -inset-x-2 -z-10 opacity-90 pointer-events-none'
+          style={{
+            height: '1.05em',
+            top: '72%',
+            transform: 'translateY(-50%)',
+          }}
+        />
+        <span className='relative z-10'>{children}</span>
+      </span>
+    </strong>
   )
 }

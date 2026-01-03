@@ -113,7 +113,21 @@ export default function StackedCategoryTitles({
           Group Title (supports stacked + horizontal)
          ========================================= */}
       {!hideGroupTitle && (
-        <div className='px-4 lg:px-0 lg:mb-8 absolute -rotate-3 lg:rotate-0 left-1/2 -translate-x-1/2 lg:left-22 top-30 lg:top-16 z-20 w-[85vw] lg:w-[40vw] lg:translate-x-0 pointer-events-none'>
+        <div
+          className='
+    px-4 lg:px-0
+    relative lg:absolute
+    mt-14 sm:mt-20 lg:mt-0
+    -rotate-3 lg:rotate-0
+    left-auto lg:left-22
+    top-auto lg:top-16
+    w-[85vw] lg:w-[40vw]
+    mx-auto lg:mx-0
+    z-20
+    pointer-events-none
+  '
+        >
+          {' '}
           <div className='mb-8 lg:mb-12'>
             {effectiveVariant === 'stacked' ? (
               <div
@@ -123,51 +137,63 @@ export default function StackedCategoryTitles({
                   height: 'clamp(180px, 18vw, 260px)',
                 }}
               >
-                {/* STUDIO */}
-                <div className='absolute left-0 top-0 origin-left rotate-[0deg]'>
+                {/* STUDIO — clickable only on the STUDIO image area */}
+                <button
+                  type='button'
+                  onClick={() => onSelectCategory(null)}
+                  className='absolute left-0 top-0 origin-left rotate-[0deg] pointer-events-auto cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+                  aria-label='Reset category filter (Studio)'
+                >
                   <Image
                     src={images.studio!}
                     alt={groupTitle ? `${groupTitle} — Studio` : 'Studio'}
                     width={900}
                     height={260}
                     className='object-contain h-auto w-auto'
-                    style={{
-                      maxHeight: Math.round(140 * SCALE),
-                    }}
+                    style={{ maxHeight: Math.round(140 * SCALE) }}
                     priority
                     sizes='(max-width: 1024px) 85vw, 680px'
                   />
-                </div>
+                </button>
 
-                {/* WORKS */}
-                <div className='absolute left-[20%] top-[52%] origin-left rotate-[2deg]'>
+                {/* WORKS — clickable only on the WORKS image area */}
+                <button
+                  type='button'
+                  onClick={() => onSelectCategory(null)}
+                  className='absolute left-[20%] top-[52%] origin-left rotate-[2deg] pointer-events-auto cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+                  aria-label='Reset category filter (Works)'
+                >
                   <Image
                     src={images.works!}
                     alt={groupTitle ? `${groupTitle} — Works` : 'Works'}
                     width={900}
                     height={260}
                     className='object-contain h-auto w-auto'
-                    style={{
-                      maxHeight: Math.round(140 * SCALE),
-                    }}
+                    style={{ maxHeight: Math.round(140 * SCALE) }}
                     priority
                     sizes='(max-width: 1024px) 85vw, 680px'
                   />
-                </div>
+                </button>
               </div>
             ) : images.horizontal ? (
-              <Image
-                src={images.horizontal}
-                alt={groupTitle || 'Studio Works'}
-                width={800}
-                height={200}
-                className='object-contain h-auto w-auto'
-                style={{
-                  maxHeight: Math.round(120 * SCALE),
-                }}
-                priority
-                sizes='(max-width: 1024px) 80vw, 600px'
-              />
+              // Horizontal variant: clickable only on the image itself
+              <button
+                type='button'
+                onClick={() => onSelectCategory(null)}
+                className='pointer-events-auto cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+                aria-label='Reset category filter'
+              >
+                <Image
+                  src={images.horizontal}
+                  alt={groupTitle || 'Studio Works'}
+                  width={800}
+                  height={200}
+                  className='object-contain h-auto w-auto'
+                  style={{ maxHeight: Math.round(120 * SCALE) }}
+                  priority
+                  sizes='(max-width: 1024px) 80vw, 600px'
+                />
+              </button>
             ) : null}
           </div>
         </div>
@@ -177,7 +203,7 @@ export default function StackedCategoryTitles({
           Stacked Category Titles (fixed right)
          ========================================= */}
       <div
-        className='fixed right-4 lg:right-10 top-28 lg:top-1/2 lg:-translate-y-1/2 z-30 pointer-events-none'
+        className='hidden lg:block fixed right-4 lg:right-10 top-28 lg:top-1/2 lg:-translate-y-1/2 z-30 pointer-events-none'
         style={{
           width: 460,
           height: stackHeight,
@@ -197,7 +223,7 @@ export default function StackedCategoryTitles({
                 onClick={() => onSelectCategory(isActive ? null : category.id)}
                 onMouseEnter={() => setHoveredCategory(category.id)}
                 onMouseLeave={() => setHoveredCategory(null)}
-                className='absolute right-0 cursor-pointer focus:outline-none pointer-events-auto'
+                className='absolute right-0 cursor-pointer focus:outline-none pointer-events-auto focus-visible:ring-2 focus-visible:ring-black/40'
                 style={{
                   transformOrigin: 'right center',
                   transform: `translate(${offset.x}px, ${TOP_PAD + offset.y}px) rotate(${rotation}deg)`,
