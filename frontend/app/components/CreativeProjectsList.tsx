@@ -31,6 +31,12 @@ const stripInvisible = (s?: string) =>
 const normalizeCategoryKey = (key: string) =>
   stripInvisible(key).substring(0, 12)
 
+const hasProject = (
+  item: FeaturedProject
+): item is FeaturedProject & {
+  project: NonNullable<FeaturedProject['project']>
+} => Boolean(item.project)
+
 type SanityImageAsset = {
   _ref?: string
   _id?: string
@@ -650,21 +656,21 @@ export default function CreativeProjectsList({
 
   const allCategories = useMemo(() => {
     const pairs: [string, any][] = featuredProjects
-      .filter((item) => item?.project)
+      .filter(hasProject)
       .flatMap((item) => {
+        const p = item.project
         const categories: [string, any][] = []
 
         if (
           item.categorySectionKey &&
-          (isProfessionalKind(item.project) ||
-            (isPersonalKind(item.project) &&
-              item.project.projectSize === 'large'))
+          (isProfessionalKind(p) ||
+            (isPersonalKind(p) && p.projectSize === 'large'))
         ) {
           const coreKey = normalizeCategoryKey(item.categorySectionKey)
-          const sec = item.project.categorySections?.find((s) =>
+          const sec = p.categorySections?.find((s) =>
             s._key.startsWith(coreKey)
           )
-          if (sec) {
+          if (sec?.category?.slug?.current) {
             categories.push([
               sec.category.slug.current,
               {
@@ -676,12 +682,9 @@ export default function CreativeProjectsList({
           }
         }
 
-        if (
-          isPersonalKind(item.project) &&
-          item.project.projectSize !== 'large' &&
-          item.project.categories
-        ) {
-          item.project.categories.forEach((cat) => {
+        if (isPersonalKind(p) && p.projectSize !== 'large' && p.categories) {
+          p.categories.forEach((cat) => {
+            if (!cat?.slug?.current) return
             categories.push([
               cat.slug.current,
               {
@@ -695,7 +698,6 @@ export default function CreativeProjectsList({
 
         return categories
       })
-      .filter(Boolean) as [string, any][]
 
     return Array.from(new Map(pairs).values())
   }, [featuredProjects])
@@ -704,28 +706,23 @@ export default function CreativeProjectsList({
     if (!selectedCategory) return featuredProjects
 
     return featuredProjects.filter((item) => {
-      if (!item?.project) return false
+      if (!item.project) return false
+      const p = item.project
 
-      if (
-        isPersonalKind(item.project) &&
-        item.project.projectSize !== 'large'
-      ) {
-        return item.project.categories?.some(
+      if (isPersonalKind(p) && p.projectSize !== 'large') {
+        return p.categories?.some(
           (cat) => cat.slug.current === selectedCategory
         )
       }
 
       if (
         item.categorySectionKey &&
-        item.project.categorySections &&
-        (isProfessionalKind(item.project) ||
-          (isPersonalKind(item.project) &&
-            item.project.projectSize === 'large'))
+        p.categorySections &&
+        (isProfessionalKind(p) ||
+          (isPersonalKind(p) && p.projectSize === 'large'))
       ) {
         const coreKey = normalizeCategoryKey(item.categorySectionKey)
-        const sec = item.project.categorySections.find((s) =>
-          s._key.startsWith(coreKey)
-        )
+        const sec = p.categorySections.find((s) => s._key.startsWith(coreKey))
         return sec?.category?.slug?.current === selectedCategory
       }
 

@@ -17,6 +17,17 @@ type Props = {
   revealEffect?: 'blur' | 'pixelate' | 'pixelate-blur'
 }
 
+type RevealEffect = NonNullable<Props['revealEffect']>
+
+type EffectConfig = {
+  initial: Record<string, any>
+  animate: Record<string, any>
+  transition: any
+  imageRendering: 'auto' | 'pixelated'
+  animateImageRendering?: boolean
+  imageRenderingResetDelayMs?: number
+}
+
 export function ProgressiveRevealImage({
   src,
   alt,
@@ -34,8 +45,7 @@ export function ProgressiveRevealImage({
   const ref = React.useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, amount: 0.2 })
 
-  // Different reveal effects
-  const effects = {
+  const effects: Record<RevealEffect, EffectConfig> = {
     blur: {
       initial: {
         filter: 'blur(18px)',
@@ -48,8 +58,11 @@ export function ProgressiveRevealImage({
         transform: 'translateZ(0) scale(1)',
       },
       transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
-      imageRendering: 'auto' as const,
+      imageRendering: 'auto',
+      animateImageRendering: false,
+      imageRenderingResetDelayMs: 0,
     },
+
     pixelate: {
       initial: {
         opacity: 0.7,
@@ -63,9 +76,11 @@ export function ProgressiveRevealImage({
         opacity: { duration: 0.4, ease: 'easeOut' },
         transform: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
       },
-      imageRendering: 'pixelated' as const,
+      imageRendering: 'pixelated',
       animateImageRendering: true,
+      imageRenderingResetDelayMs: 600,
     },
+
     'pixelate-blur': {
       initial: {
         filter: 'blur(12px)',
@@ -82,31 +97,37 @@ export function ProgressiveRevealImage({
         opacity: { duration: 0.4, ease: 'easeOut' },
         transform: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
       },
-      imageRendering: 'pixelated' as const,
+      imageRendering: 'pixelated',
       animateImageRendering: true,
+      imageRenderingResetDelayMs: 600,
     },
   }
 
   const effect = effects[revealEffect]
 
-  // For pixelate effects, we need to animate the image-rendering property
   const [imageRendering, setImageRendering] = React.useState<
     'auto' | 'pixelated'
   >(effect.imageRendering)
 
   React.useEffect(() => {
-    if (effect.animateImageRendering && ready) {
-      // Start pixelated
-      setImageRendering('pixelated')
-      // Transition to smooth after reveal animation
-      const timer = setTimeout(() => {
-        setImageRendering('auto')
-      }, 600)
-      return () => clearTimeout(timer)
-    }
-  }, [ready, effect.animateImageRendering])
+    setImageRendering(effect.imageRendering)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealEffect])
 
-  // Reduced motion: instant reveal
+  React.useEffect(() => {
+    if (!effect.animateImageRendering) return
+    if (!ready) return
+
+    setImageRendering('pixelated')
+
+    const delay = effect.imageRenderingResetDelayMs ?? 600
+    const timer = window.setTimeout(() => {
+      setImageRendering('auto')
+    }, delay)
+
+    return () => window.clearTimeout(timer)
+  }, [ready, effect.animateImageRendering, effect.imageRenderingResetDelayMs])
+
   if (shouldReduceMotion) {
     return (
       <div className='relative'>
@@ -133,15 +154,12 @@ export function ProgressiveRevealImage({
 
   return (
     <div className='relative' ref={ref}>
-      {/* Clip blur/scale bleed to the image bounds */}
       <div className='relative overflow-hidden'>
         <motion.div
           initial={effect.initial}
           animate={isInView ? effect.animate : effect.initial}
           transition={effect.transition}
-          style={{
-            willChange: 'transform, filter, opacity',
-          }}
+          style={{ willChange: 'transform, filter, opacity' }}
         >
           <Image
             src={src}
@@ -157,7 +175,9 @@ export function ProgressiveRevealImage({
             draggable={false}
             style={{
               imageRendering,
-              transition: 'image-rendering 0.3s ease-out',
+              transition: effect.animateImageRendering
+                ? 'image-rendering 0.3s ease-out'
+                : undefined,
             }}
           />
         </motion.div>
