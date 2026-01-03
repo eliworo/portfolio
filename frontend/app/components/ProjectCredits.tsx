@@ -171,9 +171,7 @@ function BrushTitle({
   const y = ((r * 6 - 3) * 0.6).toFixed(2) // -1.8..+1.8 px
 
   return (
-    <h3
-      className={['font-rader-bold text-2xl text-black', className].join(' ')}
-    >
+    <h3 className={['font-rader-bold text-xl text-black', className].join(' ')}>
       <span
         className='relative inline-block leading-none'
         // style={{ transform: `translateY(${y}px) rotate(${rotate}deg)` }}

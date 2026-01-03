@@ -147,7 +147,17 @@ export default async function ProductionsProjectPage({
       {/* Content wrapper: one place controls page padding & rhythm */}
       <div className='px-8 pt-32 sm:pt-20 lg:pt-16'>
         {/* HEADER: title image + description in FLOW */}
+
         <header className='mb-10 lg:mb-16'>
+          {/* <Image
+            src='/images/ticketsLogo.png'
+            alt='Previous'
+            width={150}
+            height={150}
+            className='h-8 lg:h-10 w-auto z-10 absolute left-[55vw] top-[35vh]'
+            draggable={false}
+            priority
+          /> */}
           <div className='lg:grid lg:grid-cols-12 lg:gap-x-10 lg:items-start'>
             {/* Title image */}
             {project?.titleImage?.asset?.url && (
@@ -168,6 +178,7 @@ export default async function ProductionsProjectPage({
                     lg:mx-0
                   '
                 />
+
                 <div className='-mt-4'>
                   <ProjectNavigation
                     prevProject={prevProject}

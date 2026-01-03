@@ -11,6 +11,7 @@ import ImageGalleryGrid from './ImageGalleryGrid'
 import BrushFrame from './drawings/BrushFrame'
 import BrushFrameRaster from './drawings/BrushFrameRaster'
 import RealBrush from './drawings/RealBrush'
+import VerticalLine from './lines/VerticalLine'
 
 type ContentBlock =
   | TextBlock
@@ -348,8 +349,11 @@ function TextBlockRenderer({ block }: { block: TextBlock }) {
               </h4>
             ),
             blockquote: ({ children }) => (
-              <blockquote className='border-l-4 border-gray-300 pl-4 italic mb-4 whitespace-pre-wrap'>
-                {children}
+              <blockquote className='ml-16 relative flex gap-3 mb-4 pl-6 whitespace-pre-wrap'>
+                <div className='absolute left-0 top-0 h-full'>
+                  <VerticalLine className='h-full' theme={{ fill: 'black' }} />
+                </div>
+                <span className='italic flex-1'>{children}</span>
               </blockquote>
             ),
           },
