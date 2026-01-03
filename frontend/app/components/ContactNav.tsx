@@ -149,7 +149,7 @@ export default function ContactNav({
             <div className='relative'>
               {/* RealBrush underneath */}
               <div
-                className='absolute inset-x-0 top-1/2 -translate-y-[45%] -z-10 pointer-events-none'
+                className='absolute inset-x-0 top-1/2 -translate-y-[45%] -z-10 pointer-events-none xl:hidden'
                 style={{ height: '100%' }}
               >
                 <RealBrush
