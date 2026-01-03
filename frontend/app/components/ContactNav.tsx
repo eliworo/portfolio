@@ -2,14 +2,14 @@
 
 import ReactDOM from 'react-dom'
 import { useEffect, useState, useRef } from 'react'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import Image from 'next/image'
 import { FiInstagram } from 'react-icons/fi'
 import { BiLogoFacebookSquare } from 'react-icons/bi'
 import HorizontalLine from './lines/HorizontalLine'
-import PaintBrush from './drawings/PaintBrush'
+import RealBrush from './drawings/RealBrush'
 import VerticalLine from './lines/VerticalLine'
-
+const CONTACT_BRUSH_COLOR = '#E5E7EB'
 interface ContactNavProps {
   contact: {
     email?: string | null
@@ -25,6 +25,7 @@ export default function ContactNav({
   cv,
   contactImageUrl,
 }: ContactNavProps) {
+  const menuRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLDivElement>(null)
   const [contentWidth, setContentWidth] = useState(0)
@@ -80,6 +81,27 @@ export default function ContactNav({
     }
   }, [navItems])
 
+  useEffect(() => {
+    if (!isHovered) return
+
+    const onPointerDown = (e: PointerEvent) => {
+      const menuEl = menuRef.current
+      if (!menuEl) return
+
+      // If the click is outside the menu, close it
+      if (!menuEl.contains(e.target as Node)) {
+        setIsHovered(false)
+      }
+    }
+
+    // Use capture so we reliably detect outside clicks even if something stops propagation
+    document.addEventListener('pointerdown', onPointerDown, true)
+
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true)
+    }
+  }, [isHovered])
+
   if (!navItems.length) return null
 
   const horizontalLineWidth = 40
@@ -107,7 +129,10 @@ export default function ContactNav({
       <BlurryBackdrop show={isHovered} />
       <div
         className='flex items-end xl:items-start pointer-events-auto'
-        ref={contentRef}
+        ref={(node) => {
+          contentRef.current = node
+          menuRef.current = node
+        }}
         onMouseEnter={() => window.innerWidth >= 1280 && setIsHovered(true)}
         onMouseLeave={() => window.innerWidth >= 1280 && setIsHovered(false)}
         onClick={() => {
@@ -122,16 +147,25 @@ export default function ContactNav({
         >
           {contactImageUrl && (
             <div className='relative'>
-              <PaintBrush
-                className='absolute top-1/2 -translate-y-[40%] -rotate-6 w-full h-[80%] -z-10'
-                theme={{ fill: 'transparent' }}
-              />
+              {/* RealBrush underneath */}
+              <div
+                className='absolute inset-x-0 top-1/2 -translate-y-[45%] -z-10 pointer-events-none'
+                style={{ height: '100%' }}
+              >
+                <RealBrush
+                  seed='contact-nav:title'
+                  color={CONTACT_BRUSH_COLOR}
+                  className='absolute -inset-x-3'
+                  style={{ height: 44 }}
+                />
+              </div>
+
               <Image
                 src={contactImageUrl}
                 alt='Contact'
                 width={1000}
                 height={1000}
-                className='object-contain h-10 xl:h-12 w-auto select-none pointer-events-none relative z-10' // smaller on desktop
+                className='object-contain h-10 xl:h-12 w-auto select-none pointer-events-none relative z-10'
               />
             </div>
           )}
@@ -149,7 +183,7 @@ export default function ContactNav({
                 href={item.href}
                 target={item.id !== 'email' ? '_blank' : undefined}
                 rel={item.id !== 'email' ? 'noopener noreferrer' : undefined}
-                className='block w-fit px-2 py-1 text-xs xl:text-sm transition-colors cursor-pointer whitespace-nowrap hover:opacity-70' // smaller text
+                className='block w-fit px-2 py-1 text-sm xl:text-sm transition-colors cursor-pointer whitespace-nowrap hover:opacity-70' // smaller text
               >
                 {item.id === 'instagram' && (
                   <FiInstagram className='inline w-4 h-4 mr-2' />
@@ -167,10 +201,38 @@ export default function ContactNav({
   )
 }
 
+function useMounted() {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  return mounted
+}
+
 function BlurryBackdrop({ show }: { show: boolean }) {
-  if (!show) return null
+  const mounted = useMounted()
+
+  // During SSR/first render, there is no document; render nothing.
+  if (!mounted) return null
+
+  // At this point, we're guaranteed to be in the browser.
   return ReactDOM.createPortal(
-    <div className='fixed inset-0 bg-white/30 backdrop-blur-md z-30 pointer-events-none' />,
+    <AnimatePresence>
+      {show ? (
+        <motion.div
+          key='contact-nav-backdrop'
+          className='fixed inset-0 z-30'
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1] }}
+          style={{
+            background: 'rgba(255,255,255,0.30)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            pointerEvents: 'none',
+          }}
+        />
+      ) : null}
+    </AnimatePresence>,
     document.body
   )
 }

@@ -75,7 +75,7 @@ export default async function WorksPage() {
         <div className='xl:grid xl:grid-cols-12 xl:gap-x-16 xl:items-center'>
           {/* Title image: in-flow, anchored left on desktop */}
           {worksPage.titleImage?.asset?.url && (
-            <div className='xl:col-span-5 xl:row-start-1 ml-20 mt-4'>
+            <div className='xl:col-span-5 xl:row-start-1 xl:ml-20 mt-4'>
               <Image
                 src={worksPage.titleImage.asset.url}
                 alt='Works'
@@ -100,9 +100,10 @@ export default async function WorksPage() {
                 xl:col-start-7 xl:col-span-6
                 xl:row-start-1
                 xl:max-w-[80ch]
+                px-8
               '
             >
-              <div className='text-xl xl:text-2xl leading-[1.15]'>
+              <div className='text-lg xl:text-2xl leading-[1.15]'>
                 <PortableText
                   value={worksPage.description}
                   components={{
@@ -117,19 +118,10 @@ export default async function WorksPage() {
             </div>
           )}
         </div>
-      </header>{' '}
-      {/* <div className='absolute top-1/2 -translate-y-1/3 left-1/2 -z-10 group'>
-        <Image
-          src='/images/eli.JPG'
-          alt={'Profile Image'}
-          width={400}
-          height={600}
-          className='w-auto max-h-[50vh] object-cover z-0'
-        />
-      </div> */}
-      {/* Productions and Studio Works Side by Side */}
-      <section className='relative px-4 lg:px-16 xl:pl-54 mb-20 lg:mb-32 mt-14 xl:mt-32'>
-        <div className='w-full mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12'>
+      </header>
+
+      <section className='relative px-4 xl:pl-54 mb-20 mt-14 xl:mt-32'>
+        <div className='w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12'>
           {/* Productions */}
           <Link
             href='/productions'
@@ -150,7 +142,9 @@ export default async function WorksPage() {
                 )}
                 <p className='text-base lg:text-2xl leading-[1.15]'>
                   <BrushStrong seed='works-productions' color='#98D8C8'>
-                    <span className='text-[26px]'>Full-scale productions.</span>
+                    <span className='text-[18px] xl:text-[26px] mr-1'>
+                      Full-scale productions.{' '}
+                    </span>
                   </BrushStrong>
                   Developed through in-depth research, exploring contemporary
                   societal issues through a performative approach, immersive
@@ -180,7 +174,9 @@ export default async function WorksPage() {
                 )}
                 <p className='text-base lg:text-2xl leading-[1.15]'>
                   <BrushStrong seed='works-studio' color='#98D8C8'>
-                    <span className='text-[26px]'>Inside the studio.</span>
+                    <span className='text-[18px] mr-1 xl:text-[26px]'>
+                      Inside the studio.
+                    </span>
                   </BrushStrong>
                   Independent standalone works and fragments from larger
                   productions, spanning fashion, photography, installation,

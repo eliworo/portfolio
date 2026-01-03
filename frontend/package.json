@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "predev": "npm run typegen",
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "prebuild": "npm run typegen",
     "build": "next build",
     "start": "next start",

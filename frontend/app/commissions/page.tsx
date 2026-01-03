@@ -64,8 +64,8 @@ export default async function CommissionsPage() {
             <div
               className='
                 mt-10
-                xl:mt-8
-                xl:col-start-7 xl:col-span-6
+                xl:mt-16
+                xl:col-start-7 xl:col-span-5
                 xl:row-start-1
                 xl:max-w-[70ch]
               '
@@ -79,8 +79,8 @@ export default async function CommissionsPage() {
       </header>
 
       {/* TOOLS GRID */}
-      <section className='px-8 pb-48 mt-14 xl:mt-20 xl:pl-60 3xl:pl-88'>
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 xl:gap-16 xl:gap-y-24 3xl:gap-32'>
+      <section className='px-2 pb-48 mt-14 xl:mt-20 xl:pl-60 3xl:pl-88'>
+        <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 xl:gap-16 xl:gap-y-24 3xl:gap-32'>
           {commissionsPage.tools?.map((tool, index) => (
             <ToolCard key={index} tool={tool} />
           ))}

@@ -52,7 +52,7 @@ export default function ImageGalleryGrid({ images }: ImageGalleryGridProps) {
 
   return (
     <>
-      <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 lg:gap-4 lg:my-32'>
+      <div className='mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 lg:gap-4 lg:my-32'>
         {images.map((image, idx) => {
           const { xOffset, yOffset } = offsets[idx] ?? {
             xOffset: 0,

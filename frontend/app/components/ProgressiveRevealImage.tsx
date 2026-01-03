@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Image from 'next/image'
-import { motion, useReducedMotion } from 'motion/react'
+import { motion, useReducedMotion, useInView } from 'motion/react'
 
 type Props = {
   src: string
@@ -31,6 +31,8 @@ export function ProgressiveRevealImage({
 }: Props) {
   const [ready, setReady] = React.useState(false)
   const shouldReduceMotion = useReducedMotion()
+  const ref = React.useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: true, amount: 0.2 })
 
   // Different reveal effects
   const effects = {
@@ -130,13 +132,12 @@ export function ProgressiveRevealImage({
   }
 
   return (
-    <div className='relative'>
+    <div className='relative' ref={ref}>
       {/* Clip blur/scale bleed to the image bounds */}
       <div className='relative overflow-hidden'>
         <motion.div
           initial={effect.initial}
-          whileInView={effect.animate}
-          viewport={{ once: true, amount: 0.35 }}
+          animate={isInView ? effect.animate : effect.initial}
           transition={effect.transition}
           style={{
             willChange: 'transform, filter, opacity',

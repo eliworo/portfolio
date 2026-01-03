@@ -262,51 +262,51 @@ function DraggableProjectCard({
         whileHover={{ opacity: 0.98 }}
         transition={{ duration: 0.12, ease: 'easeOut' }}
       >
-        <div className='absolute left-1/2 -translate-y-1/2 -translate-x-1/2 top-1/2 z-30 pointer-events-auto'>
-          <div
-            role='button'
-            className='
-    opacity-0 group-hover:opacity-100 transition-opacity duration-150
-    cursor-grab select-none p-1
-    relative
-  '
-            onPointerDown={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              pointerDownRef.current = { x: e.clientX, y: e.clientY }
-              dragControls.start(e)
-            }}
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-            }}
-            aria-label='Move card'
-            tabIndex={-1}
-          >
-            {/* Back "halo" layer */}
-            <span className='absolute inset-0 flex items-center justify-center'>
+        {!isMobile && (
+          <div className='absolute left-1/2 -translate-y-1/2 -translate-x-1/2 top-1/2 z-30 pointer-events-auto'>
+            <div
+              role='button'
+              className='
+        opacity-0 group-hover:opacity-100 transition-opacity duration-150
+        cursor-grab select-none p-1
+        relative
+      '
+              onPointerDown={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                pointerDownRef.current = { x: e.clientX, y: e.clientY }
+                dragControls.start(e)
+              }}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+              }}
+              aria-label='Move card'
+              tabIndex={-1}
+            >
+              <span className='absolute inset-0 flex items-center justify-center'>
+                <RiDragMove2Fill
+                  size={20}
+                  className='
+            text-white
+            drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]
+            drop-shadow-[0_0_6px_rgba(0,0,0,0.55)]
+            scale-[1.08]
+          '
+                />
+              </span>
+
               <RiDragMove2Fill
                 size={20}
                 className='
-        text-white
-        drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]
-        drop-shadow-[0_0_6px_rgba(0,0,0,0.55)]
-        scale-[1.08]
-      '
+          relative
+          text-black
+          drop-shadow-[0_0_4px_rgba(255,255,255,0.7)]
+        '
               />
-            </span>
-
-            {/* Front icon */}
-            <RiDragMove2Fill
-              size={20}
-              className='
-      relative
-      text-black
-      drop-shadow-[0_0_4px_rgba(255,255,255,0.7)]
-    '
-            />
+            </div>
           </div>
-        </div>
+        )}
 
         {preview.type === 'image' ? (
           <CoverImage image={preview.image} />
@@ -391,23 +391,21 @@ function DraggableProjectCard({
 
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, scale: 0.92, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.92, y: 20 }}
       transition={{
-        layout: { type: 'spring', stiffness: 350, damping: 38 },
         opacity: { duration: 0.35, delay: idx * 0.04 },
         scale: { duration: 0.35, delay: idx * 0.04 },
         y: { duration: 0.35, delay: idx * 0.04 },
       }}
-      drag
+      drag={!isMobile}
       dragControls={dragControls}
       dragListener={false}
       dragElastic={0.18}
       dragMomentum={false}
       whileDrag={{ cursor: 'grabbing', zIndex: 100 }}
-      whileHover={{ zIndex: 50 }}
+      whileHover={isMobile ? undefined : { zIndex: 50 }}
       className='relative cursor-default'
       style={{
         x,
@@ -420,6 +418,7 @@ function DraggableProjectCard({
         movedRef.current = false
       }}
       onPointerMove={(e) => {
+        if (isMobile) return
         if (!pointerDownRef.current) return
         const dx = e.clientX - pointerDownRef.current.x
         const dy = e.clientY - pointerDownRef.current.y
@@ -429,6 +428,7 @@ function DraggableProjectCard({
         pointerDownRef.current = null
       }}
       onDragStart={() => {
+        if (isMobile) return
         movedRef.current = true
       }}
       onDragEnd={() => {
@@ -441,15 +441,18 @@ function DraggableProjectCard({
       <div
         ref={hoverAreaRef}
         onPointerEnter={(e) => {
+          if (isMobile) return
           updateCaptionPos(e.clientX, e.clientY)
           captionOpacity.set(1)
           setHovered(true)
         }}
         onPointerLeave={() => {
+          if (isMobile) return
           captionOpacity.set(0)
           setHovered(false)
         }}
         onPointerMove={(e) => {
+          if (isMobile) return
           if (hovered) updateCaptionPos(e.clientX, e.clientY)
         }}
       >
@@ -493,12 +496,10 @@ function BlankSpacer({
 
   return (
     <motion.div
-      layout
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{
-        layout: { type: 'spring', stiffness: 350, damping: 38 },
         opacity: { duration: 0.3, delay: idx * 0.04 },
       }}
       aria-hidden='true'
@@ -904,7 +905,7 @@ export default function CreativeProjectsList({
       )}
 
       {description && (
-        <div className='px-4 mt-16 mb-16 md:hidden'>
+        <div className='px-8 mt-24 mb-16 md:hidden'>
           <div className='text-lg leading-[1.15] font-garabosse-gaillarde'>
             <StudioWorksPortableText value={description} />
           </div>
