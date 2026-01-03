@@ -455,25 +455,18 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                   )}
                 </div>
               )}
-
               {totalSlides > 1 && (
-                <div className='flex gap-1.5 py-2 mt-16 relative'>
-                  {paginationItems.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => selectSlide(idx)}
-                      className={`w-1.75 h-1.75 rounded-none transition-all ${
-                        idx === currentIndex
-                          ? 'bg-black scale-135'
-                          : 'bg-gray-300 hover:bg-gray-600'
-                      }`}
-                      aria-label={`Go to slide ${idx + 1}`}
-                    />
-                  ))}
+                <div className='flex items-center gap-6 py-2 mt-16 relative'>
+                  {/* Counter */}
+                  <div className='text-lg xl:text-2xl font-rader-medium'>
+                    {currentIndex + 1}/{totalSlides}
+                  </div>
 
+                  {/* Navigation arrows */}
                   <button
                     onClick={prevSlide}
-                    className='absolute -left-24 top-1/2 -translate-y-1/2'
+                    className='absolute -left-22 top-1/2 -translate-y-1/2'
+                    aria-label='Previous'
                   >
                     <Image
                       src='/images/arrowLeftLogo.png'
@@ -485,7 +478,8 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                   </button>
                   <button
                     onClick={nextSlide}
-                    className='absolute -right-24 top-1/2 -translate-y-1/2'
+                    className='absolute -right-22 top-1/2 -translate-y-1/2'
+                    aria-label='Next'
                   >
                     <Image
                       src='/images/arrowRightLogo.png'
