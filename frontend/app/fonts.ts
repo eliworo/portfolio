@@ -177,6 +177,21 @@ export const rader = {
   boldItalic: raderBoldItalic,
 }
 
+/* ---------------------------- RIGHT GROTESK ---------------------------- */
+
+export const rightGroteskNarrowMedium = localFont({
+  src: '../public/fonts/Right-Grotesk/PPRightGrotesk-NarrowMedium.woff2',
+  variable: '--font-right-grotesk-narrow-medium',
+  display: 'swap',
+  preload: true,
+})
+
+export const rightGrotesk = {
+  narrowMedium: rightGroteskNarrowMedium,
+}
+
+/* ------------------------------ GARABOSSE ------------------------------ */
+
 export const garabosseParangon = localFont({
   src: '../public/fonts/Garabosse/Garabosse-Parangon.woff',
   variable: '--font-garabosse-parangon',
@@ -224,6 +239,9 @@ export function getFontVariables() {
     raderItalic.variable,
     raderMediumItalic.variable,
     raderBoldItalic.variable,
+
+    // Right Grotesk
+    rightGroteskNarrowMedium.variable,
 
     // Garabosse
     garabosseParangon.variable,

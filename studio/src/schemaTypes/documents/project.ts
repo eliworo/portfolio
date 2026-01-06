@@ -136,6 +136,22 @@ export const project = defineType({
     }),
 
     defineField({
+      name: 'brushColor',
+      title: 'Brush/Accent Color',
+      type: 'string',
+      description:
+        'Color for brush strokes and accents (e.g., #FFB6C1). Leave empty to use auto-generated color.',
+      validation: (rule) =>
+        rule.custom((value) => {
+          if (!value) return true // Optional field
+          // Validate hex color format
+          if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+            return 'Must be a valid hex color (e.g., #FFB6C1)'
+          }
+          return true
+        }),
+    }),
+    defineField({
       name: 'previewType',
       title: 'Preview Type',
       type: 'string',

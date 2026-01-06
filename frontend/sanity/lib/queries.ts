@@ -181,6 +181,7 @@ const featuredProjectFields = /* groq */ `
       hotspot,
       alt
     },
+    brushColor,
     projectType->{
       title,
       slug {
@@ -1001,6 +1002,7 @@ const productionsFeaturedProjectFields = /* groq */ `
     },
     coverImage,
     projectKind,
+    brushColor,
     categories[]->{
       _id,
       title,

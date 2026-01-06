@@ -48,6 +48,8 @@ export default function Navigation({ navImages }: NavigationProps) {
     null
   )
 
+  const menuRef = useRef<HTMLDivElement>(null)
+
   function handleLogoHover() {
     setShowMenu(true)
   }
@@ -56,6 +58,11 @@ export default function Navigation({ navImages }: NavigationProps) {
     setShowMenu(false)
     setActiveCategory(null)
     setActiveSubCategory(null)
+  }
+
+  // Close menu when mouse leaves the menu area
+  function handleMenuMouseLeave() {
+    handleCloseMenu()
   }
 
   const menuVariants = {
@@ -91,7 +98,11 @@ export default function Navigation({ navImages }: NavigationProps) {
       </AnimatePresence>
 
       <nav className='fixed left-10 top-1/2 -translate-y-1/2 z-50 flex items-center'>
-        <>
+        <div
+          ref={menuRef}
+          onMouseLeave={handleMenuMouseLeave}
+          className='flex items-center'
+        >
           <Link
             href='/'
             className='cursor-pointer relative z-10'
@@ -124,167 +135,171 @@ export default function Navigation({ navImages }: NavigationProps) {
                   animate='visible'
                   exit='hidden'
                 >
-                  <ul className='flex flex-col space-y-3 pl-4 relative'>
-                    <div className='absolute left-0 top-0 h-full'>
-                      <VerticalLine
-                        className='h-full'
-                        theme={{ fill: 'black' }}
-                      />
-                    </div>
-                    {navigationData.mainCategories.map((category) => {
-                      let imageUrl = null
+                  <div className='py-4 -my-4 pr-8 -mr-8'>
+                    <ul className='flex flex-col space-y-3 pl-4 relative'>
+                      <div className='absolute left-0 top-0 h-full'>
+                        <VerticalLine
+                          className='h-full'
+                          theme={{ fill: 'black' }}
+                        />
+                      </div>
+                      {navigationData.mainCategories.map((category) => {
+                        let imageUrl = null
 
-                      if (
-                        category.title === 'WORKS' &&
-                        navImages?.works?.titleImage?.asset?.url
-                      ) {
-                        imageUrl = navImages.works.titleImage.asset.url
-                      } else if (
-                        category.title === 'ABOUT' &&
-                        navImages?.about?.titleImage?.asset?.url
-                      ) {
-                        imageUrl = navImages.about.titleImage.asset.url
-                      } else if (
-                        category.title === 'COMMISSIONS' &&
-                        navImages?.commissions?.titleImage?.asset?.url
-                      ) {
-                        imageUrl = navImages.commissions.titleImage.asset.url
-                      }
+                        if (
+                          category.title === 'WORKS' &&
+                          navImages?.works?.titleImage?.asset?.url
+                        ) {
+                          imageUrl = navImages.works.titleImage.asset.url
+                        } else if (
+                          category.title === 'ABOUT' &&
+                          navImages?.about?.titleImage?.asset?.url
+                        ) {
+                          imageUrl = navImages.about.titleImage.asset.url
+                        } else if (
+                          category.title === 'COMMISSIONS' &&
+                          navImages?.commissions?.titleImage?.asset?.url
+                        ) {
+                          imageUrl = navImages.commissions.titleImage.asset.url
+                        }
 
-                      return (
-                        <li key={category.title} className='relative w-fit'>
-                          <div
-                            className={`cursor-pointer hover:opacity-90 transition-opacity`}
-                            onMouseEnter={() =>
-                              setActiveCategory(category.title)
-                            }
-                          >
-                            <Link
-                              href={category.slug}
-                              onClick={handleCloseMenu}
+                        return (
+                          <li key={category.title} className='relative w-fit'>
+                            <div
+                              className={`cursor-pointer hover:opacity-90 transition-opacity`}
+                              onMouseEnter={() =>
+                                setActiveCategory(category.title)
+                              }
                             >
-                              {imageUrl ? (
-                                <Image
-                                  src={imageUrl}
-                                  alt={category.title}
-                                  width={150}
-                                  height={50}
-                                  style={{
-                                    width: 'auto',
-                                    maxHeight: '35px',
-                                  }}
-                                  className='object-contain'
-                                />
-                              ) : (
-                                <span
-                                  className={`text-lg font-medium ${
-                                    activeCategory === category.title
-                                      ? 'font-bold'
-                                      : ''
-                                  }`}
-                                >
-                                  {category.title}
-                                </span>
-                              )}
-                            </Link>
-                          </div>
-
-                          {/* Subcategories */}
-                          <AnimatePresence>
-                            {activeCategory === category.title &&
-                              category.subCategories &&
-                              category.subCategories.length > 0 && (
-                                <div className='flex items-center absolute left-full top-1/2 -translate-y-1/2 ml-4 w-[40vw]'>
-                                  <HorizontalLine
-                                    className='w-24'
-                                    theme={{ fill: 'black' }}
+                              <Link
+                                href={category.slug}
+                                onClick={handleCloseMenu}
+                              >
+                                {imageUrl ? (
+                                  <Image
+                                    src={imageUrl}
+                                    alt={category.title}
+                                    width={150}
+                                    height={50}
+                                    style={{
+                                      width: 'auto',
+                                      maxHeight: '35px',
+                                    }}
+                                    className='object-contain'
                                   />
-
-                                  <motion.div
-                                    className='relative'
-                                    variants={menuVariants}
-                                    initial='hidden'
-                                    animate='visible'
-                                    exit='hidden'
+                                ) : (
+                                  <span
+                                    className={`text-lg font-medium ${
+                                      activeCategory === category.title
+                                        ? 'font-bold'
+                                        : ''
+                                    }`}
                                   >
-                                    <ul className='flex flex-col space-y-3 pl-3 relative'>
-                                      <div className='absolute left-0 top-0 h-full'>
-                                        <VerticalLine
-                                          className='h-full'
-                                          theme={{ fill: 'black' }}
-                                        />
-                                      </div>
-                                      {category.subCategories.map(
-                                        (subCategory) => {
-                                          const hasImage =
-                                            subCategory?.titleImage?.asset?.url
+                                    {category.title}
+                                  </span>
+                                )}
+                              </Link>
+                            </div>
 
-                                          return (
-                                            <li
-                                              key={`${category.title}-${subCategory.title}`}
-                                              className='relative w-fit'
-                                            >
-                                              <div
-                                                className={`cursor-pointer hover:opacity-90 transition-opacity`}
-                                                onMouseEnter={() =>
-                                                  setActiveSubCategory(
-                                                    subCategory.title ?? null
-                                                  )
-                                                }
+                            {/* Subcategories */}
+                            <AnimatePresence>
+                              {activeCategory === category.title &&
+                                category.subCategories &&
+                                category.subCategories.length > 0 && (
+                                  <div className='flex items-center absolute left-full top-1/2 -translate-y-1/2 ml-4 w-[40vw]'>
+                                    <HorizontalLine
+                                      className='w-24'
+                                      theme={{ fill: 'black' }}
+                                    />
+
+                                    <motion.div
+                                      className='relative'
+                                      variants={menuVariants}
+                                      initial='hidden'
+                                      animate='visible'
+                                      exit='hidden'
+                                    >
+                                      <ul className='flex flex-col space-y-3 pl-3 relative'>
+                                        <div className='absolute left-0 top-0 h-full'>
+                                          <VerticalLine
+                                            className='h-full'
+                                            theme={{ fill: 'black' }}
+                                          />
+                                        </div>
+                                        {category.subCategories.map(
+                                          (subCategory) => {
+                                            const hasImage =
+                                              subCategory?.titleImage?.asset
+                                                ?.url
+
+                                            return (
+                                              <li
+                                                key={`${category.title}-${subCategory.title}`}
+                                                className='relative w-fit'
                                               >
-                                                <Link
-                                                  href={subCategory.slug}
-                                                  onClick={handleCloseMenu}
+                                                <div
+                                                  className={`cursor-pointer hover:opacity-90 transition-opacity`}
+                                                  onMouseEnter={() =>
+                                                    setActiveSubCategory(
+                                                      subCategory.title ?? null
+                                                    )
+                                                  }
                                                 >
-                                                  {hasImage ? (
-                                                    <Image
-                                                      src={
-                                                        subCategory.titleImage
-                                                          ?.asset?.url || ''
-                                                      }
-                                                      alt={
-                                                        subCategory.title || ''
-                                                      }
-                                                      width={150}
-                                                      height={50}
-                                                      style={{
-                                                        width: 'auto',
-                                                        maxHeight: '35px',
-                                                      }}
-                                                      className='object-contain'
-                                                    />
-                                                  ) : (
-                                                    <span
-                                                      className={`text-lg font-medium ${
-                                                        activeSubCategory ===
-                                                        subCategory.title
-                                                          ? 'font-bold'
-                                                          : ''
-                                                      }`}
-                                                    >
-                                                      {subCategory.title}
-                                                    </span>
-                                                  )}
-                                                </Link>
-                                              </div>
-                                            </li>
-                                          )
-                                        }
-                                      )}
-                                    </ul>
-                                  </motion.div>
-                                </div>
-                              )}
-                          </AnimatePresence>
-                        </li>
-                      )
-                    })}
-                  </ul>
+                                                  <Link
+                                                    href={subCategory.slug}
+                                                    onClick={handleCloseMenu}
+                                                  >
+                                                    {hasImage ? (
+                                                      <Image
+                                                        src={
+                                                          subCategory.titleImage
+                                                            ?.asset?.url || ''
+                                                        }
+                                                        alt={
+                                                          subCategory.title ||
+                                                          ''
+                                                        }
+                                                        width={150}
+                                                        height={50}
+                                                        style={{
+                                                          width: 'auto',
+                                                          maxHeight: '35px',
+                                                        }}
+                                                        className='object-contain'
+                                                      />
+                                                    ) : (
+                                                      <span
+                                                        className={`text-lg font-medium ${
+                                                          activeSubCategory ===
+                                                          subCategory.title
+                                                            ? 'font-bold'
+                                                            : ''
+                                                        }`}
+                                                      >
+                                                        {subCategory.title}
+                                                      </span>
+                                                    )}
+                                                  </Link>
+                                                </div>
+                                              </li>
+                                            )
+                                          }
+                                        )}
+                                      </ul>
+                                    </motion.div>
+                                  </div>
+                                )}
+                            </AnimatePresence>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
                 </motion.div>
               </div>
             )}
           </AnimatePresence>
-        </>
+        </div>
       </nav>
     </>
   )

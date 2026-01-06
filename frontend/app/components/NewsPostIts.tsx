@@ -16,20 +16,40 @@ interface NewsPostIt {
   titleImage?: { asset?: { url: string } }
 }
 
-// Define positions outside component to prevent re-creation on render
+/**
+ * Desktop positions (lg only).
+ * Mobile is ALWAYS centered via CSS.
+ */
 const POSITIONS = [
-  { top: '15%', left: '10%', rotate: -2 },
-  { top: '45%', left: '40%', rotate: 3 },
-  { top: '20%', left: '55%', rotate: 1 },
-  { top: '60%', left: '15%', rotate: -3 },
-]
+  { top: '10%', leftLg: 'lg:left-[8%]', rotate: -2 },
+  { top: '34%', leftLg: 'lg:left-[22%]', rotate: 3 },
+  { top: '18%', leftLg: 'lg:left-[48%]', rotate: 1 },
+  { top: '58%', leftLg: 'lg:left-[12%]', rotate: -3 },
+  { top: '44%', leftLg: 'lg:left-[36%]', rotate: 2 },
+] as const
 
 export default function NewsPostIts({ news }: { news: NewsPostIt[] }) {
-  // Use a ref for the container to constrain dragging (optional, keeps them on screen)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Local state to manage which items are visible
-  // We attach the 'initialIndex' to ensure they stay in their visual spot even if others close
+  /**
+   * This key forces Framer Motion to REMOUNT
+   * when crossing the lg breakpoint.
+   * That resets transforms (drag, x jitter, etc.)
+   */
+  const [breakpointKey, setBreakpointKey] = useState(0)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)')
+
+    const onChange = () => {
+      setBreakpointKey((k) => k + 1)
+    }
+
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  // Keep initial positions stable even if items are closed
   const [activeItems, setActiveItems] = useState(() =>
     news.map((item, index) => ({ ...item, id: index, initialIndex: index }))
   )
@@ -45,83 +65,111 @@ export default function NewsPostIts({ news }: { news: NewsPostIt[] }) {
       ref={containerRef}
       className='absolute inset-0 z-20 pointer-events-none overflow-hidden'
     >
-      {/* Container restricted to right half on desktop */}
-      <div className='absolute top-0 right-0 w-full h-full lg:w-1/2 pointer-events-auto'>
-        {/* AnimatePresence handles the exit animation when an item is removed */}
-        <AnimatePresence mode='popLayout'>
+      {/* Post-it lane: visual layout only */}
+      <div
+        className={[
+          'absolute pointer-events-auto',
+          // Mobile: centered lane
+          'left-1/2 -translate-x-1/2 w-[92vw] max-w-[360px] top-0 bottom-0',
+          // Desktop: right side only
+          'lg:translate-x-0 lg:left-[58%] lg:right-[3%] lg:w-auto lg:max-w-none',
+          'lg:top-[6%] lg:bottom-[6%]',
+        ].join(' ')}
+      >
+        {/* KEY forces remount on breakpoint change */}
+        <AnimatePresence mode='popLayout' key={breakpointKey}>
           {activeItems.map((item) => {
             const pos = POSITIONS[item.initialIndex % POSITIONS.length]
             const hasCustomBg = !!item.postItImage?.asset?.url
 
+            // small messy offset (applies everywhere, but gets reset on breakpoint)
+            const xJitter = ((item.initialIndex % 3) - 1) * 18 // -18, 0, +18
+
             return (
               <motion.div
                 key={item.id}
-                // --- DRAG SETTINGS ---
                 drag
-                dragConstraints={containerRef} // Keeps it generally within bounds
-                dragElastic={0.2} // Adds a nice resistance feeling at edges
-                dragMomentum={false} // Stops it sliding forever on mobile
-                // --- ANIMATION SETTINGS ---
-                initial={{ opacity: 0, scale: 0.8, rotate: pos.rotate }}
-                animate={{ opacity: 1, scale: 1, rotate: pos.rotate }}
-                exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+                dragConstraints={containerRef}
+                dragElastic={0.2}
+                dragMomentum={false}
+                initial={{
+                  opacity: 0,
+                  scale: 0.8,
+                  rotate: pos.rotate,
+                  x: xJitter,
+                }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  rotate: pos.rotate,
+                  x: xJitter,
+                }}
+                exit={{
+                  opacity: 0,
+                  scale: 0.5,
+                  transition: { duration: 0.2 },
+                }}
                 whileHover={{ scale: 1.02, zIndex: 50, cursor: 'grab' }}
-                whileDrag={{ scale: 1.1, zIndex: 100, cursor: 'grabbing' }}
-                // --- STYLING ---
-                className={`absolute w-[240px] md:w-[280px] min-h-[280px] flex flex-col items-center ${
+                whileDrag={{ scale: 1.08, zIndex: 100, cursor: 'grabbing' }}
+                className={[
+                  'absolute w-[240px] md:w-[280px] min-h-[280px]',
+                  'flex flex-col items-center',
+                  // Mobile: always centered
+                  'left-1/2 -translate-x-1/2',
+                  // Desktop: override with per-item left
+                  'lg:translate-x-0',
+                  pos.leftLg,
                   !hasCustomBg
                     ? 'bg-white border-[3px] border-black shadow-lg'
-                    : 'shadow-none border-none bg-transparent'
-                }`}
+                    : 'shadow-none border-none bg-transparent',
+                ].join(' ')}
                 style={{
                   top: pos.top,
-                  left: pos.left,
                   borderRadius: !hasCustomBg
                     ? '2px 4px 2px 255px / 255px 5px 225px 5px'
                     : '0',
                 }}
               >
-                {/* 1. CUSTOM BACKGROUND IMAGE */}
+                {/* Background image */}
                 {item.postItImage?.asset?.url && (
-                  <div className='absolute inset-0 z-0 pointer-events-none opacity-85'>
+                  <div className='absolute inset-0 z-0 pointer-events-none opacity-70'>
                     <Image
                       src={item.postItImage.asset.url}
                       alt=''
                       fill
                       className='object-fill'
                       sizes='(max-width: 768px) 240px, 280px'
-                      draggable={false} // Prevent browser native image dragging
+                      draggable={false}
                     />
                   </div>
                 )}
 
-                {/* CLOSE BUTTON - Using 'pointerDown' to prevent drag conflict */}
+                {/* Close button */}
                 <button
-                  onPointerDown={(e) => {
-                    e.stopPropagation() // Prevents drag start when clicking X
-                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => handleClose(item.id)}
-                  className={`absolute top-12 right-7 select-none cursor-pointer z-20 opacity-70 hover:opacity-100 transition-opacity ${
-                    hasCustomBg ? 'text-black' : ''
-                  }`}
+                  className='absolute top-12 right-7 z-20 opacity-70 hover:opacity-100 transition-opacity'
                   aria-label='Close news note'
                 >
                   <Image
                     src='/images/close.png'
-                    alt='Close menu'
+                    alt='Close'
                     width={200}
                     height={200}
-                    className='object-contain w-auto h-8'
+                    draggable={false}
+                    className='object-contain h-5 w-auto
+                      drop-shadow-[0_1px_0_rgba(0,0,0,0.35)]
+                      drop-shadow-[0_2px_0_rgba(0,0,0,0.18)]'
                   />
                 </button>
 
-                {/* CONTENT WRAPPER */}
+                {/* Content */}
                 <div
-                  className={`relative z-10 flex flex-col gap-1 text-black h-full justify-center w-full ${
-                    hasCustomBg ? 'p-12' : 'p-6'
-                  }`}
+                  className={[
+                    'relative z-10 flex flex-col gap-1 text-black h-full justify-center w-full',
+                    hasCustomBg ? 'p-12' : 'p-6',
+                  ].join(' ')}
                 >
-                  {/* TITLE */}
                   {item.titleImage?.asset?.url ? (
                     <div className='mb-2 w-full relative h-10 pointer-events-none'>
                       <Image
@@ -150,7 +198,6 @@ export default function NewsPostIts({ news }: { news: NewsPostIt[] }) {
                     </p>
                   )}
 
-                  {/* LINK (Needs stopPropagation so clicking link doesn't trigger drag) */}
                   {item.linkUrl && (
                     <div
                       className='mt-3'
@@ -158,10 +205,10 @@ export default function NewsPostIts({ news }: { news: NewsPostIt[] }) {
                     >
                       <Link
                         href={item.linkUrl}
-                        className='inline-block relative relative group'
+                        className='inline-block relative group'
                         target='_blank'
+                        rel='noopener noreferrer'
                       >
-                        {/* <span className='absolute inset-0 bg-blue-200/50 -skew-x-6 transform -rotate-1 rounded-sm group-hover:bg-blue-300/60 transition-colors'></span> */}
                         <span className='relative text-sm font-bold flex items-center gap-1 px-1'>
                           ≈&gt; {item.linkText || 'MORE INFO'}
                         </span>

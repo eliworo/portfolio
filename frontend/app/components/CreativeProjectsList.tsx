@@ -633,8 +633,15 @@ export default function CreativeProjectsList({
     return Math.abs(hash)
   }
 
-  const brushColor = (projectId: string) =>
-    brushColors[hashString(projectId) % brushColors.length]
+  const brushColor = (project: any) => {
+    // Use project's custom brush color if available
+    if (project?.brushColor && /^#[0-9A-Fa-f]{6}$/.test(project.brushColor)) {
+      return project.brushColor
+    }
+    // Fallback to hash-based color
+    const projectId = project?._id || ''
+    return brushColors[hashString(projectId) % brushColors.length]
+  }
 
   const brushRotation = (itemKey: string) => {
     const hash = hashString(itemKey + 'rotation')
@@ -992,7 +999,7 @@ export default function CreativeProjectsList({
                       >
                         <RealBrush
                           seed={`category:${item.project._id}`}
-                          color={brushColor(item.project._id || item._key)}
+                          color={brushColor(item.project)}
                           className='absolute -inset-x-2 bottom-0 h-14 inset-y-1 -z-10'
                         />
                         <div className='py-2'>

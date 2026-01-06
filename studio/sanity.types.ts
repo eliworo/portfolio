@@ -13,6 +13,58 @@
  */
 
 // Source: schema.json
+export type MediaWithMedia = {
+  _type: 'mediaWithMedia'
+  leftMedia?: {
+    mediaType?: 'video' | 'image'
+    url?: string
+    caption?: string
+    aspectRatio?: '16:9' | '4:3' | '1:1' | '9:16'
+    image?: {
+      asset?: {
+        _ref: string
+        _type: 'reference'
+        _weak?: boolean
+        [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+      }
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      caption?: string
+      material?: string
+      dimensions?: string
+      year?: string
+      _type: 'image'
+    }
+  }
+  rightMedia?: {
+    mediaType?: 'video' | 'image'
+    url?: string
+    caption?: string
+    aspectRatio?: '16:9' | '4:3' | '1:1' | '9:16'
+    image?: {
+      asset?: {
+        _ref: string
+        _type: 'reference'
+        _weak?: boolean
+        [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+      }
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      caption?: string
+      material?: string
+      dimensions?: string
+      year?: string
+      _type: 'image'
+    }
+  }
+  layout?: 'equal' | 'leftLarger' | 'rightLarger'
+  collageMode?: boolean
+}
+
 export type VideoBlock = {
   _type: 'videoBlock'
   url?: string
@@ -56,6 +108,7 @@ export type TextWithImage = {
   }>
   imagePosition?: 'left' | 'right'
   imageSize?: 'small' | 'medium' | 'large'
+  verticalAlignment?: 'start' | 'center' | 'end'
 }
 
 export type ImageGallery = {
@@ -105,6 +158,14 @@ export type ImageBlock = {
   layout?: 'single-full' | 'single-large' | 'single-medium' | 'two-row' | 'three-row'
   position?: 'left' | 'center' | 'right'
   spacing?: 'compact' | 'normal' | 'spacious'
+  collageMode?: boolean
+}
+
+export type HeadingBlock = {
+  _type: 'headingBlock'
+  text?: string
+  level?: 'h2' | 'h3' | 'h4'
+  alignment?: 'left' | 'center' | 'right'
 }
 
 export type TextBlock = {
@@ -182,6 +243,9 @@ export type CategorySection = {
       } & TextBlock)
     | ({
         _key: string
+      } & HeadingBlock)
+    | ({
+        _key: string
       } & ImageBlock)
     | ({
         _key: string
@@ -192,6 +256,9 @@ export type CategorySection = {
     | ({
         _key: string
       } & VideoBlock)
+    | ({
+        _key: string
+      } & MediaWithMedia)
   >
 }
 
@@ -366,6 +433,32 @@ export type StudioWorks = {
     alt?: string
     _type: 'image'
   }
+  titleImageStudio?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  }
+  titleImageWorks?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  }
   description?: Array<{
     children?: Array<{
       marks?: Array<string>
@@ -385,12 +478,15 @@ export type StudioWorks = {
     _key: string
   }>
   featuredProjects?: Array<{
+    kind?: 'project' | 'blank'
     project?: {
       _ref: string
       _type: 'reference'
       _weak?: boolean
       [internalGroqTypeReferenceTo]?: 'project'
     }
+    blankLabel?: string
+    blankSize?: 'sm' | 'md' | 'lg'
     categorySectionKey?: string
     offsetX?: number
     offsetY?: number
@@ -400,6 +496,10 @@ export type StudioWorks = {
     _type: 'featuredItem'
     _key: string
   }>
+  gridSpacing?: {
+    columnGap?: number
+    rowGap?: number
+  }
 }
 
 export type Productions = {
@@ -780,6 +880,7 @@ export type Project = {
     [internalGroqTypeReferenceTo]?: 'category'
   }>
   description?: string
+  brushColor?: string
   previewType?: 'image' | 'text'
   coverImage?: {
     asset?: {
@@ -1013,6 +1114,62 @@ export type Homepage = {
     loop?: boolean
     controls?: boolean
   }
+  muteIcon?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
+  unmuteIcon?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
+  newsPostIts?: Array<{
+    postItImage?: {
+      asset?: {
+        _ref: string
+        _type: 'reference'
+        _weak?: boolean
+        [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+      }
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      _type: 'image'
+    }
+    titleImage?: {
+      asset?: {
+        _ref: string
+        _type: 'reference'
+        _weak?: boolean
+        [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+      }
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      _type: 'image'
+    }
+    title?: string
+    date?: string
+    description?: string
+    linkUrl?: string
+    linkText?: string
+    _key: string
+  }>
 }
 
 export type Settings = {
@@ -1377,10 +1534,12 @@ export type Geopoint = {
 }
 
 export type AllSanitySchemaTypes =
+  | MediaWithMedia
   | VideoBlock
   | TextWithImage
   | ImageGallery
   | ImageBlock
+  | HeadingBlock
   | TextBlock
   | CategorySection
   | Link

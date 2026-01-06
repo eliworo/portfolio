@@ -29,6 +29,7 @@ type ProductionsProjectCardProps = {
         alt?: string | null
       } | null
       projectKind?: string | null
+      brushColor?: string | null
       categories?: Array<{
         _id: string
         title: string | null
@@ -101,6 +102,16 @@ export default function ProductionsProjectCard({
   // Use project ID to get consistent color and rotation
   const brushColor = useMemo(() => {
     if (!item.project) return brushColors[0]
+
+    // Check if project has a custom brush color
+    if (
+      item.project.brushColor &&
+      /^#[0-9A-Fa-f]{6}$/.test(item.project.brushColor)
+    ) {
+      return item.project.brushColor
+    }
+
+    // Fallback to hash-based color selection
     return brushColors[hashString(item.project._id) % brushColors.length]
   }, [item.project])
 
@@ -158,10 +169,6 @@ export default function ProductionsProjectCard({
                   height={500}
                   className='object-contain h-12 lg:h-18 w-auto'
                 />
-                {/* <PaintBrush
-                  className='absolute top-1/2 -translate-y-[45%] -translate-x-[2%] w-[125%] h-[90%] -z-10'
-                  theme={{ fill: brushColor }}
-                /> */}
                 <RealBrush
                   seed={`category:${item.project._id}`}
                   color={brushColor}

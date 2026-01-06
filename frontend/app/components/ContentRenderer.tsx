@@ -201,16 +201,19 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
 
   return (
     <div
-      className={`grid grid-cols-1 ${layoutClasses[block.layout]} gap-4 lg:gap-8 w-full`}
+      className={`relative isolate grid grid-cols-1 ${layoutClasses[block.layout]} gap-4 lg:gap-8 w-full`}
     >
       {/* Left Media */}
       <div
-        className='w-full'
+        className={`w-full ${
+          isCollage
+            ? 'relative z-10 hover:z-[999] has-[iframe:hover]:z-[999]'
+            : ''
+        }`}
         style={
           isCollage
             ? {
                 transform: `translateY(${leftYOffset}vh)`,
-                zIndex: 1,
               }
             : undefined
         }
@@ -255,13 +258,16 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
 
       {/* Right Media */}
       <div
-        className='w-full'
+        className={`w-full ${
+          isCollage
+            ? 'relative z-20 hover:z-[999] has-[iframe:hover]:z-[999]'
+            : ''
+        }`}
         style={
           isCollage
             ? {
-                marginLeft: overlapPx, // overlap the two columns
+                marginLeft: overlapPx,
                 transform: `translateY(${rightYOffset}vh)`,
-                zIndex: 2,
               }
             : undefined
         }
@@ -490,7 +496,7 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
 
     return (
       <div
-        className={`flex flex-wrap items-center ${!layout.includes('row') ? positionClasses[position] : ''}`}
+        className={`relative isolate flex flex-wrap items-center ${!layout.includes('row') ? positionClasses[position] : ''}`}
       >
         {(block.images ?? []).map((image, idx) => {
           const yOffset = getYOffset(idx)
@@ -499,11 +505,12 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
           return (
             <figure
               key={idx}
-              className={`flex-shrink-0 relative ${widthClass} leading-none h-fit group`}
+              className={`flex-shrink-0 relative ${widthClass} leading-none h-fit group [z-index:var(--z)] hover:z-[999]`}
               style={{
                 marginLeft: overlap,
                 transform: `translateY(${yOffset}vh)`,
-                zIndex: idx,
+                // Tailwind can override this because it's not the zIndex property directly
+                ['--z' as any]: idx,
               }}
             >
               <CoverImage image={image} />

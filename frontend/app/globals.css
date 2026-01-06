@@ -48,6 +48,9 @@
   --font-rader-medium-italic: var(--font-rader-medium-italic);
   --font-rader-bold-italic: var(--font-rader-bold-italic);
 
+  /* Right Grotesk */
+  --font-right-grotesk-narrow-medium: var(--font-right-grotesk-narrow-medium);
+
   /* Garabosse */
   --font-garabosse-parangon: var(--font-garabosse-parangon);
   --font-garabosse-gaillarde: var(--font-garabosse-gaillarde);
@@ -83,30 +86,10 @@ img {
   pointer-events: none;
 }
 
-/* strong,
+/* Use Right Grotesk for all bold text */
+strong,
 b {
-  font-family: var(--font-agrandir-bold), sans-serif;
+  font-family: var(--font-right-grotesk-narrow-medium), sans-serif;
   font-weight: normal;
-  letter-spacing: 0.02em;
-  padding-right: 0.05em;
+  letter-spacing: 0.01em;
 }
-
-em,
-i {
-  font-family: var(--font-agrandir-italic), sans-serif;
-  font-style: normal;
-  letter-spacing: 0.02em;
-  padding-right: 0.05em;
-  padding-left: 0.05em;
-}
-
-strong::after,
-b::after,
-em::after,
-i::after,
-i::before,
-em::before {
-  content: '';
-  display: inline-block;
-  width: 0.15em;
-} */

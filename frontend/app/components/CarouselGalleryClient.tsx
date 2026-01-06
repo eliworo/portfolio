@@ -190,7 +190,7 @@ export default function CarouselGalleryClient({
             return (
               <figure
                 key={image.id ?? String(idx)}
-                className='flex-shrink-0 relative m-0 leading-none'
+                className='flex-shrink-0 relative m-0 leading-none transition-all duration-200 hover:z-50'
                 style={{
                   marginLeft: idx === 0 ? 0 : roundedOverlap,
                   transform: `translate3d(0, ${yOffset}vh, 0)`,

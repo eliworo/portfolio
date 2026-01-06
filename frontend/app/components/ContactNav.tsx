@@ -185,12 +185,6 @@ export default function ContactNav({
                 rel={item.id !== 'email' ? 'noopener noreferrer' : undefined}
                 className='block w-fit px-2 py-1 text-sm xl:text-sm transition-colors cursor-pointer whitespace-nowrap hover:opacity-70' // smaller text
               >
-                {item.id === 'instagram' && (
-                  <FiInstagram className='inline w-4 h-4 mr-2' />
-                )}
-                {item.id === 'facebook' && (
-                  <BiLogoFacebookSquare className='inline w-4 h-4 mr-2' />
-                )}
                 {item.title}
               </a>
             </li>
