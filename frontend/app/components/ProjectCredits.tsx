@@ -51,9 +51,9 @@ const components: PortableTextComponents = {
     ),
   },
   marks: {
-    strong: ({ children }) => (
-      <strong className='font-rader-bold'>{children}</strong>
-    ),
+    // strong: ({ children }) => (
+    //   <strong className='font-rader-bold'>{children}</strong>
+    // ),
     em: ({ children }) => <em>{children}</em>,
     underline: ({ children }) => <span className='underline'>{children}</span>,
     link: ({ value, children }) => {
@@ -136,9 +136,9 @@ const tourneeComponents: PortableTextComponents = {
   },
   marks: {
     ...components.marks,
-    strong: ({ children }) => (
-      <span className='font-rader-bold'>{children}</span>
-    ),
+    // strong: ({ children }) => (
+    //   <span className='font-rader-bold'>{children}</span>
+    // ),
   },
   list: components.list,
 }
@@ -208,11 +208,15 @@ export function ProjectCredits({
         <div>
           {credits && (
             <div className='group relative focus:outline-none' tabIndex={0}>
-              <BrushTitle seed='credits' color='#D9D9D9' className='mb-4'>
+              <BrushTitle
+                seed='credits'
+                color='#D9D9D9'
+                className='mb-4 text-sm lg:text-lg'
+              >
                 Credits
               </BrushTitle>
 
-              <div className='leading-tight overflow-hidden transition-all duration-500 ease-in-out max-h-[400px] group-hover:max-h-[2000px] group-focus:max-h-[2000px] text-sm lg:text-lg ml-0'>
+              <div className='leading-snug overflow-hidden transition-all duration-500 ease-in-out max-h-[400px] group-hover:max-h-[2000px] group-focus:max-h-[2000px] text-sm lg:text-lg ml-0'>
                 <PortableText value={credits} components={components} />
                 <div className='h-4' />
               </div>
@@ -225,7 +229,11 @@ export function ProjectCredits({
         <div className='space-y-24'>
           {press && (
             <>
-              <BrushTitle seed='press' color='#D9D9D9' className='mb-4'>
+              <BrushTitle
+                seed='press'
+                color='#D9D9D9'
+                className='mb-4 text-sm lg:text-lg'
+              >
                 Press
               </BrushTitle>
               <div className='text-sm lg:text-lg'>
@@ -236,7 +244,11 @@ export function ProjectCredits({
 
           {tournee && (
             <>
-              <BrushTitle seed='dates' color='#D9D9D9' className='mb-4 mt-8'>
+              <BrushTitle
+                seed='dates'
+                color='#D9D9D9'
+                className='mb-4 mt-8 text-sm lg:text-lg'
+              >
                 Dates
               </BrushTitle>
               <div className='text-sm lg:text-lg'>

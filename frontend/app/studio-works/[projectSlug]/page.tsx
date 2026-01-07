@@ -116,7 +116,7 @@ export default async function StudioWorksProjectPage(props: Props) {
 
       <div className='px-6 mb-8 xl:mb-16'>
         {project.description && (
-          <p className='text-xl leading-tight lg:text-4xl max-w-7xl mt-68 xl:mt-88'>
+          <p className='text-xl leading-snug lg:text-4xl max-w-7xl mt-68 xl:mt-88'>
             {project.description}
           </p>
         )}

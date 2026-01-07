@@ -23,7 +23,7 @@ export function ProjectNavigation({
         {prevProject ? (
           <Link
             href={`/productions/${prevProject.slug}`}
-            className='group items-start hover:opacity-70 transition-opacity pointer-events-auto flex flex-col space-y-1'
+            className='group items-start opacity-50 hover:opacity-100 transition-opacity pointer-events-auto flex flex-col space-y-1'
           >
             {prevProject.titleImageUrl && (
               <Image
@@ -31,7 +31,7 @@ export function ProjectNavigation({
                 alt={prevProject.title}
                 width={200}
                 height={28}
-                className='object-contain h-7 xl:h-10 w-auto'
+                className='object-contain h-7 xl:h-8 w-auto'
                 unoptimized
               />
             )}
@@ -40,7 +40,7 @@ export function ProjectNavigation({
               alt='Previous Project'
               width={600}
               height={600}
-              className='object-contain h-auto w-10 select-none pointer-events-none'
+              className='object-contain h-auto w-8 select-none pointer-events-none'
             />
           </Link>
         ) : (
@@ -52,7 +52,7 @@ export function ProjectNavigation({
       {nextProject ? (
         <Link
           href={`/productions/${nextProject.slug}`}
-          className='group items-end hover:opacity-70 transition-opacity pointer-events-auto flex flex-col space-y-1'
+          className='group items-end opacity-50 hover:opacity-100 transition-opacity pointer-events-auto flex flex-col space-y-1'
         >
           {nextProject.titleImageUrl && (
             <Image
@@ -60,7 +60,7 @@ export function ProjectNavigation({
               alt={nextProject.title}
               width={200}
               height={28}
-              className='object-contain h-7 xl:h-10 w-auto'
+              className='object-contain h-7 xl:h-8 w-auto'
               unoptimized
             />
           )}
@@ -69,7 +69,7 @@ export function ProjectNavigation({
             alt='Next'
             width={600}
             height={600}
-            className='object-contain h-auto w-10 select-none pointer-events-none'
+            className='object-contain h-auto w-8 select-none pointer-events-none'
           />
         </Link>
       ) : (

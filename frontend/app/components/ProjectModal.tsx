@@ -264,7 +264,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
       <div className='relative w-full h-full'>
         {/* Scroll area */}
         <div className='h-full overflow-y-auto scrollbar-hide pr-1 pt-8'>
-          <p className='text-xs sm:text-sm md:text-base leading-[1.15] text-black whitespace-pre-wrap'>
+          <p className='text-xs sm:text-sm md:text-base leading-snug text-black whitespace-pre-wrap'>
             {text}
           </p>
           <div className='h-6' />
@@ -493,7 +493,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               )}
 
               <div className='flex justify-center items-center w-full my-8 mb-4'>
-                <h1 className='text-3xl font-rader-bold text-center'>
+                <h1 className='text-3xl font-right-grotesk-narrow-medium text-center'>
                   {project.title}
                   {project.year && (
                     <span className='opacity-50'>, {project.year}</span>
@@ -501,7 +501,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                 </h1>
               </div>
               {project.description && (
-                <p className='text-sm xl:text-2xl leading-tight px-2 max-w-3xl font-normal'>
+                <p className='text-sm xl:text-2xl leading-snug px-2 max-w-3xl font-normal'>
                   {project.description}
                 </p>
               )}

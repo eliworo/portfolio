@@ -71,7 +71,7 @@ export default async function StudioWorksPage({
         <header className='hidden md:block px-4 pt-16 sm:pt-20 md:pt-16 xl:py-28 xl:pt-32'>
           <div className='xl:grid xl:grid-cols-12 xl:gap-x-16'>
             <div className='xl:col-start-5 xl:col-span-6 xl:row-start-1 xl:max-w-[80ch]'>
-              <div className='text-lg xl:text-2xl leading-[1.15] font-garabosse-gaillarde'>
+              <div className='text-lg xl:text-2xl leading-snug font-garabosse-gaillarde'>
                 <StudioWorksPortableText value={studioWorks.description} />
               </div>
             </div>

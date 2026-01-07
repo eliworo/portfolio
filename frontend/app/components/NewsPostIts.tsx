@@ -21,7 +21,7 @@ interface NewsPostIt {
  * Mobile is ALWAYS centered via CSS.
  */
 const POSITIONS = [
-  { top: '10%', leftLg: 'lg:left-[8%]', rotate: -2 },
+  { top: '5%', leftLg: 'lg:left-[24%]', rotate: -2 },
   { top: '34%', leftLg: 'lg:left-[22%]', rotate: 3 },
   { top: '18%', leftLg: 'lg:left-[48%]', rotate: 1 },
   { top: '58%', leftLg: 'lg:left-[12%]', rotate: -3 },
@@ -193,7 +193,7 @@ export default function NewsPostIts({ news }: { news: NewsPostIt[] }) {
                   )}
 
                   {item.description && (
-                    <p className='text-sm whitespace-pre-line leading-tight select-none'>
+                    <p className='text-sm whitespace-pre-line leading-snug select-none'>
                       {item.description}
                     </p>
                   )}

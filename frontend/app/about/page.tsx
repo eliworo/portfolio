@@ -74,7 +74,7 @@ export default async function AboutPage() {
       {/* Description Box */}
       <div className='bg-black rounded-[2px] px-6 lg:px-6 py-6 lg:py-8 relative lg:absolute lg:left-44 lg:top-16 w-[65vw] lg:max-w-[17vw] ml-28 lg:ml-0 mt-40 lg:mt-0'>
         <div className='max-w-full lg:max-w-74 bg-white text-black rounded-[2px] -rotate-6 p-4'>
-          <p className='text-sm lg:text-base leading-[1.15]'>
+          <p className='text-sm lg:text-base leading-snug'>
             {aboutPage.arteosDescription}
           </p>
         </div>
@@ -85,7 +85,7 @@ export default async function AboutPage() {
   return (
     <main className='w-full min-h-screen relative overflow-hidden'>
       {aboutPage.quote && (
-        <div className='text-base lg:text-2xl leading-tight lg:max-w-[60vw] lg:ml-132 mt-70 mb-8 lg:mb-0 px-8 pl-20 lg:px-8 lg:mt-32'>
+        <div className='text-base lg:text-2xl leading-snug lg:max-w-[60vw] lg:ml-132 mt-70 mb-8 lg:mb-0 px-8 pl-20 lg:px-8 lg:mt-32'>
           <p>&ldquo;{aboutPage.quote}&rdquo;</p>
         </div>
       )}
@@ -127,7 +127,7 @@ export default async function AboutPage() {
           {/* RIGHT COL: BIO PART 1 */}
           <div className='space-y-12 -mt-124 px-4 lg:mt-0 lg:-ml-80 z-10 w-full lg:max-w-[30vw]'>
             {bioPart1.length > 0 && (
-              <div className='text-sm lg:text-xl max-w-none leading-tight pl-34 lg:px-0'>
+              <div className='text-sm lg:text-xl max-w-none leading-snug pl-34 lg:px-0'>
                 <PortableText
                   value={bioPart1}
                   components={portableTextComponents}
@@ -145,7 +145,7 @@ export default async function AboutPage() {
 
         {/* BIO PART 2 (Flows underneath image) */}
         {bioPart2.length > 0 && (
-          <div className='mt-0 lg:mt-16 px-16 lg:px-64 lg:max-w-7xl max-w-none w-full text-sm lg:text-xl leading-tight'>
+          <div className='mt-0 lg:mt-16 px-16 lg:px-64 lg:max-w-7xl max-w-none w-full text-sm lg:text-xl leading-snug'>
             <PortableText
               value={bioPart2}
               components={portableTextComponents}

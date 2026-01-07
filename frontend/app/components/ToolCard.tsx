@@ -64,7 +64,7 @@ export default function ToolCard({ tool }: { tool: Tool }) {
           as='h3'
           seed={`tool-subtitle:${tool.subtitle}`} // deterministic per tool
           color='#98D8C8'
-          className='mt-8 font-rader-bold text-lg xl:text-2xl text-black px-4'
+          className='mt-8 font-right-grotesk-narrow-medium text-lg xl:text-2xl text-black px-4'
           brushClassName='absolute -inset-x-2 -inset-y-2 -z-10 opacity-90'
           brushStyle={{
             height: '1.15em',
@@ -79,7 +79,7 @@ export default function ToolCard({ tool }: { tool: Tool }) {
 
       {/* Description */}
       {tool.description && (
-        <p className='text-black text-base xl:text-lg leading-tight drop-shadow-xs mt-4 px-4'>
+        <p className='text-black text-base xl:text-lg leading-snug drop-shadow-xs mt-4 px-4'>
           {tool.description}
         </p>
       )}

@@ -243,7 +243,7 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
               block.leftMedia.image.material ||
               block.leftMedia.image.dimensions ||
               block.leftMedia.image.year) && (
-              <figcaption className='h-auto text-xs lg:text-sm text-gray-600 flex items-center leading-tight justify-start gap-1 mt-2 opacity-0 hidden lg:block group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto ml-1'>
+              <figcaption className='h-auto text-xs lg:text-sm text-gray-600 flex items-center leading-snug justify-start gap-1 mt-2 opacity-0 hidden lg:block group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto ml-1'>
                 {block.leftMedia.image.caption && (
                   <p>{block.leftMedia.image.caption}</p>
                 )}{' '}
@@ -297,7 +297,7 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
               block.rightMedia.image.material ||
               block.rightMedia.image.dimensions ||
               block.rightMedia.image.year) && (
-              <figcaption className='h-auto text-xs lg:text-sm text-gray-600 flex items-center leading-tight justify-start gap-1 mt-2 opacity-0 hidden lg:block group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto ml-1'>
+              <figcaption className='h-auto text-xs lg:text-sm text-gray-600 flex items-center leading-snug justify-start gap-1 mt-2 opacity-0 hidden lg:block group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto ml-1'>
                 {block.rightMedia.image.caption && (
                   <p>{block.rightMedia.image.caption}</p>
                 )}{' '}
@@ -518,7 +518,7 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
                 image.material ||
                 image.dimensions ||
                 image.year) && (
-                <figcaption className='h-auto text-xs lg:text-sm text-gray-600 flex items-center leading-tight justify-start gap-1 mt-2 opacity-0 hidden lg:block group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto ml-1'>
+                <figcaption className='h-auto text-xs lg:text-sm text-gray-600 flex items-center leading-snug justify-start gap-1 mt-2 opacity-0 hidden lg:block group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto ml-1'>
                   {image.caption && <p>{image.caption}</p>}{' '}
                   {image.year && <span>({image.year})</span>}
                 </figcaption>
@@ -544,7 +544,7 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
             image.material ||
             image.dimensions ||
             image.year) && (
-            <figcaption className='h-auto text-xs lg:text-sm text-gray-600 flex items-center leading-tight justify-start gap-1 mt-2 opacity-0 hidden lg:block group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto ml-1'>
+            <figcaption className='h-auto text-xs lg:text-sm text-gray-600 flex items-center leading-snug justify-start gap-1 mt-2 opacity-0 hidden lg:block group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto ml-1'>
               {image.caption && <p>{image.caption}</p>}{' '}
               {image.year && <span>({image.year})</span>}
             </figcaption>
@@ -691,7 +691,7 @@ function TextWithImageRenderer({ block }: { block: TextWithImage }) {
       >
         <CoverImage image={block.image} />
         {block.image.caption && (
-          <figcaption className='absolute -bottom-8 left-0 w-full text-xs lg:text-sm text-gray-600 flex items-center leading-tight justify-start gap-1 pr-2 py-1 opacity-0 hidden lg:flex group-hover:opacity-100 transition-opacity duration-200'>
+          <figcaption className='absolute -bottom-8 left-0 w-full text-xs lg:text-sm text-gray-600 flex items-center leading-snug justify-start gap-1 pr-2 py-1 opacity-0 hidden lg:flex group-hover:opacity-100 transition-opacity duration-200'>
             {block.image.caption}
           </figcaption>
         )}
@@ -775,7 +775,9 @@ function HeadingBlockRenderer({ block }: { block: HeadingBlock }) {
   }
   return (
     <div className={`w-full ${alignmentClasses[block.alignment]}`}>
-      <Tag className={`font-rader-bold w-fit text-black ${sizeClasses[Tag]}`}>
+      <Tag
+        className={`font-right-grotesk-narrow-medium w-fit text-black ${sizeClasses[Tag]}`}
+      >
         {block.text}
       </Tag>
     </div>
@@ -792,7 +794,7 @@ function BrushStrong({
 }) {
   // Keep it inline, stable, and baseline-friendly
   return (
-    <strong className='font-rader-bold'>
+    <strong>
       <span className='relative inline-block align-baseline leading-[1.05]'>
         <RealBrush
           as='span'

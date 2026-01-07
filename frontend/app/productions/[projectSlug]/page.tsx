@@ -191,7 +191,7 @@ export default async function ProductionsProjectPage({
             {/* Description */}
             {project.description && (
               <div className='mt-8 lg:mt-16 lg:col-start-1 lg:col-span-9'>
-                <p className='text-xl leading-[1.15] tracking-tight lg:text-4xl max-w-7xl'>
+                <p className='text-xl leading-snug tracking-tight lg:text-4xl max-w-7xl'>
                   {project.description}
                 </p>
               </div>

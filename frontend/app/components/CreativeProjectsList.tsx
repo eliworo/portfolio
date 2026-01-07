@@ -335,7 +335,7 @@ function DraggableProjectCard({
               {/* Text content overlay - absolutely positioned to match image bounds */}
               <div className='absolute inset-0 flex items-center justify-center p-10 md:py-18 md:px-16'>
                 <div className='w-full h-full flex items-center justify-center overflow-hidden'>
-                  <p className='text-xs md:text-sm leading-[1.15] text-black whitespace-pre-line max-h-full overflow-y-auto scrollbar-hide'>
+                  <p className='text-xs md:text-sm leading-snug text-black whitespace-pre-line max-h-full overflow-y-auto scrollbar-hide'>
                     {preview.content}
                   </p>
                 </div>
@@ -910,7 +910,7 @@ export default function CreativeProjectsList({
 
       {description && (
         <div className='px-8 mt-24 mb-16 md:hidden'>
-          <div className='text-lg leading-[1.15] font-garabosse-gaillarde'>
+          <div className='text-lg leading-snug font-garabosse-gaillarde'>
             <StudioWorksPortableText value={description} />
           </div>
         </div>

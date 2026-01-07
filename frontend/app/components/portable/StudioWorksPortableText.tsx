@@ -5,11 +5,9 @@ import { BrushMark } from './BrushMark'
 
 function StrongMark({ children }: { children: React.ReactNode }) {
   return (
-    <strong className='font-rader-bold'>
-      <BrushMark seed='strong' color='#98D8C8'>
-        {children}
-      </BrushMark>
-    </strong>
+    <BrushMark seed='strong' color='#ccc'>
+      {children}
+    </BrushMark>
   )
 }
 

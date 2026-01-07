@@ -70,7 +70,7 @@ export default async function CommissionsPage() {
                 xl:max-w-[70ch]
               '
             >
-              <p className='whitespace-pre-line text-lg xl:text-2xl leading-[1.15]'>
+              <p className='whitespace-pre-line text-lg xl:text-2xl leading-snug'>
                 {commissionsPage.quote}
               </p>
             </div>

@@ -32,7 +32,7 @@ export function BrushMark({
         style={{
           height,
           top,
-          transform: 'translateY(-50%)',
+          transform: 'translateY(-60%)',
         }}
       />
       <span className='relative z-10'>{children}</span>

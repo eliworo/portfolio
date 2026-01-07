@@ -83,7 +83,7 @@ export default async function WorksPage() {
                 height={500}
                 priority
                 className='
-                  object-contain mx-auto mt-18 mb-8 xl:my-0 object-left
+                  object-contain mx-auto mt-18 mb-8 xl:my-0 object-left px-2 xl:px-0
                   max-h-[200px]
                   xl:w-full xl:max-w-none
                 '
@@ -100,10 +100,10 @@ export default async function WorksPage() {
                 xl:col-start-7 xl:col-span-6
                 xl:row-start-1
                 xl:max-w-[80ch]
-                px-8
+                px-2
               '
             >
-              <div className='text-lg xl:text-2xl leading-[1.15]'>
+              <div className='text-lg xl:text-2xl leading-snug'>
                 <PortableText
                   value={worksPage.description}
                   components={{
@@ -120,7 +120,7 @@ export default async function WorksPage() {
         </div>
       </header>
 
-      <section className='relative px-4 xl:pl-54 mb-20 mt-14 xl:mt-32'>
+      <section className='relative xl:pl-54 mb-20 mt-14 xl:mt-32'>
         <div className='w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12'>
           {/* Productions */}
           <Link
@@ -128,7 +128,7 @@ export default async function WorksPage() {
             className='block group hover:opacity-95 transition-opacity'
           >
             <div className='h-full flex flex-col'>
-              <div className='flex-1 flex flex-col justify-start items-start p-8 lg:p-12'>
+              <div className='flex-1 flex flex-col justify-start items-start p-6 lg:p-12'>
                 {productionsPage?.titleImage?.asset?.url && (
                   <div className='mb-6 lg:mb-16 w-full relative rotate-1'>
                     <Image
@@ -140,11 +140,9 @@ export default async function WorksPage() {
                     />
                   </div>
                 )}
-                <p className='text-base lg:text-2xl leading-[1.15]'>
-                  <BrushStrong seed='works-productions' color='#98D8C8'>
-                    <span className='text-[18px] xl:text-[26px] mr-1'>
-                      Full-scale productions.{' '}
-                    </span>
+                <p className='text-base lg:text-2xl leading-snug'>
+                  <BrushStrong seed='works-productions' color='#ccc'>
+                    <span className='mr-1'>Full-scale productions.</span>
                   </BrushStrong>
                   Developed through in-depth research, exploring contemporary
                   societal issues through a performative approach, immersive
@@ -160,7 +158,7 @@ export default async function WorksPage() {
             className='block group hover:opacity-95 transition-opacity'
           >
             <div className='h-full flex flex-col'>
-              <div className='flex-1 flex flex-col justify-center items-start p-8 lg:p-12'>
+              <div className='flex-1 flex flex-col justify-center items-start p-6 lg:p-12'>
                 {studioWorksPage?.titleImage?.asset?.url && (
                   <div className='mb-6 lg:mb-16 w-full relative'>
                     <Image
@@ -172,11 +170,9 @@ export default async function WorksPage() {
                     />
                   </div>
                 )}
-                <p className='text-base lg:text-2xl leading-[1.15]'>
-                  <BrushStrong seed='works-studio' color='#98D8C8'>
-                    <span className='text-[18px] mr-1 xl:text-[26px]'>
-                      Inside the studio.
-                    </span>
+                <p className='text-base lg:text-2xl leading-snug'>
+                  <BrushStrong seed='works-studio' color='#ccc'>
+                    <span className='mr-1'>Inside the studio.</span>
                   </BrushStrong>
                   Independent standalone works and fragments from larger
                   productions, spanning fashion, photography, installation,
@@ -201,21 +197,18 @@ function BrushStrong({
   color?: string
 }) {
   return (
-    <strong className='font-rader-bold'>
-      <span className='relative inline-block align-baseline leading-[1.05]'>
-        <RealBrush
-          as='span'
-          seed={seed}
-          color={color}
-          className='absolute -inset-x-2 -z-10 opacity-90 pointer-events-none'
-          style={{
-            height: '1.05em',
-            top: '72%',
-            transform: 'translateY(-50%)',
-          }}
-        />
-        <span className='relative z-10'>{children}</span>
-      </span>
-    </strong>
+    <span className='relative inline-block align-baseline'>
+      <RealBrush
+        as='span'
+        seed={seed}
+        color={color}
+        className='absolute -inset-x-2 -z-10 opacity-90 pointer-events-none'
+        style={{
+          height: '1.05em',
+          top: '5%',
+        }}
+      />
+      <span className='relative z-10'>{children}</span>
+    </span>
   )
 }

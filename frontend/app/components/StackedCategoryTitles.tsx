@@ -53,7 +53,7 @@ const BRUSH_COLOR = '#9AB1FF'
  * Single knob for sizing.
  * 1 = current; 0.85 = 15% smaller; tweak as needed.
  */
-const SCALE = 1
+const SCALE = 0.75
 
 // Derived “rhythm” numbers so spacing stays proportional
 const ITEM_GAP = Math.round(65 * SCALE)
@@ -261,7 +261,7 @@ export default function StackedCategoryTitles({
                         sizes='400px'
                       />
                     ) : (
-                      <span className='text-xl lg:text-2xl font-rader-bold'>
+                      <span className='text-xl lg:text-2xl font-right-grotesk-narrow-medium'>
                         {category.title}
                       </span>
                     )}

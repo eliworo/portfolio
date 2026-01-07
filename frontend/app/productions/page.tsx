@@ -9,6 +9,28 @@ import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
 import Link from 'next/link'
 
+type FeaturedProjectItem = {
+  project: {
+    _id: string
+    title: string | null
+    slug: {
+      current: string | null
+    } | null
+    titleImage?: {
+      asset?: {
+        url?: string | null
+      } | null
+    } | null
+    coverImage: {
+      asset?: {
+        _ref: string
+        _type: 'reference'
+      }
+      alt?: string | null
+    } | null
+  }
+}
+
 export async function generateMetadata(
   _props: any,
   parent: ResolvingMetadata
@@ -43,7 +65,7 @@ export async function generateMetadata(
 const portableTextComponents = {
   marks: {
     strong: ({ children }: { children: React.ReactNode }) => (
-      <strong className='font-rader-bold text-[26px]'>{children}</strong>
+      <strong>{children}</strong>
     ),
     link: ({
       children,
@@ -120,7 +142,7 @@ export default async function ProductionsPage() {
       <div className='flex w-full'>
         <div className='hidden lg:block w-[45%]'></div>
         {productionsPage.description && (
-          <div className='t-46 py-16 lg:mt-0 lg:text-2xl leading-tight lg:mb-12 w-full columns-1 lg:pt-32 lg:px-0 px-4 max-w-3xl'>
+          <div className='t-46 py-16 lg:mt-0 lg:text-2xl leading-snug lg:mb-12 w-full columns-1 lg:pt-32 lg:px-0 px-4 max-w-3xl'>
             <PortableText
               value={productionsPage.description}
               components={portableTextComponents}
@@ -133,9 +155,11 @@ export default async function ProductionsPage() {
       {productionsPage?.featuredProjects &&
         productionsPage.featuredProjects.length > 0 && (
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-24 gap-y-44 relative overflow-visible pb-16 lg:pb-32 lg:pr-32 lg:pl-16'>
-            {productionsPage.featuredProjects.map((item, index) => (
-              <ProductionsProjectCard key={index} item={item} />
-            ))}
+            {productionsPage.featuredProjects.map(
+              (item: FeaturedProjectItem, index: number) => (
+                <ProductionsProjectCard key={index} item={item} />
+              )
+            )}
           </div>
         )}
     </main>
