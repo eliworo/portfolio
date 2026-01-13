@@ -159,7 +159,7 @@ export default async function StudioWorksProjectPage(props: Props) {
         </div>
       )}
 
-      <div className='px-6'>
+      <div className='px-6' data-credits-section>
         <ProjectCredits
           credits={project.credits}
           press={project.press}

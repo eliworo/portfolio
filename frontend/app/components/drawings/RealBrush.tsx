@@ -10,7 +10,7 @@ interface BrushProps {
   as?: 'span' | 'div'
 }
 
-const brushTextures = ['/images/brush/brush-1.png']
+const brushTextures = ['/images/brush/brush-3.png']
 
 function hashStringToU32(str: string): number {
   let h = 2166136261

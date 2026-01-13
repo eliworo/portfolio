@@ -121,9 +121,19 @@ export default function ProjectSectionsStackedNavClient({
 
     let tops = getSectionTops()
 
+    // Get the credits section to detect when we've scrolled past all categories
+    const getCreditsTop = () => {
+      const creditsEl = document.querySelector('[data-credits-section]')
+      if (!creditsEl) return null
+      return creditsEl.getBoundingClientRect().top + window.scrollY
+    }
+
+    let creditsTop = getCreditsTop()
+
     // Recompute tops on resize (layout changes)
     const onResize = () => {
       tops = getSectionTops()
+      creditsTop = getCreditsTop()
     }
     window.addEventListener('resize', onResize)
 
@@ -142,6 +152,16 @@ export default function ProjectSectionsStackedNavClient({
           window.scrollY +
           headerOffset +
           (window.innerHeight - headerOffset) * ACTIVATION
+
+        // If we've scrolled past all sections and into credits area, clear active
+        if (creditsTop && activationY >= creditsTop) {
+          setActiveId(null)
+          // Clear hash from URL when scrolling to credits
+          if (window.location.hash) {
+            window.history.replaceState({}, '', window.location.pathname)
+          }
+          return
+        }
 
         // Above first section => none active
         if (tops.length && activationY < tops[0].top) {

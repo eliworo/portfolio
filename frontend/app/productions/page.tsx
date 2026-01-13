@@ -8,6 +8,7 @@ import CategoryNav from '@/app/components/CategoryNav'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
 import Link from 'next/link'
+import Loading from '../loading'
 
 type FeaturedProjectItem = {
   project: {

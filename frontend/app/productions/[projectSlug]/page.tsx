@@ -11,6 +11,7 @@ import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
 import { ProjectNavigation } from '@/app/components/ProjectNavigation'
 import ProjectSectionsStackedNavClient from '@/app/components/ProjectSectionsStackedNavClient'
+import RealBrush from '@/app/components/drawings/RealBrush'
 
 type Category = {
   _id: string
@@ -149,15 +150,31 @@ export default async function ProductionsProjectPage({
         {/* HEADER: title image + description in FLOW */}
 
         <header className='mb-10 lg:mb-16'>
-          {/* <Image
-            src='/images/ticketsLogo.png'
-            alt='Previous'
-            width={150}
-            height={150}
-            className='h-8 lg:h-10 w-auto z-10 absolute left-[55vw] top-[35vh]'
-            draggable={false}
-            priority
-          /> */}
+          <div className='fixed right-8 top-[13vh] z-10'>
+            <div className='relative inline-block px-2 py-1'>
+              {/* Black brush background */}
+              <RealBrush
+                seed='tickets-brush'
+                color='#000'
+                className='absolute -inset-x-1 z-0'
+                style={{
+                  height: '130%',
+                  top: '45%',
+                  transform: 'translateY(-50%)',
+                }}
+              />
+              {/* Tickets logo on top */}
+              <Image
+                src='/images/ticketsLogo-blanc.png'
+                alt='Previous'
+                width={800}
+                height={269}
+                className='h-8 lg:h-8 w-auto relative z-10'
+                draggable={false}
+                priority
+              />
+            </div>
+          </div>
           <div className='lg:grid lg:grid-cols-12 lg:gap-x-10 lg:items-start'>
             {/* Title image */}
             {project?.titleImage?.asset?.url && (
@@ -225,7 +242,7 @@ export default async function ProductionsProjectPage({
         )}
 
         {/* Credits */}
-        <section className='mt-16 lg:my-32'>
+        <section className='mt-16 lg:my-32' data-credits-section>
           <ProjectCredits
             credits={project.credits}
             press={project.press}

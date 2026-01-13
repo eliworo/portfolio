@@ -3,7 +3,8 @@
 import { PortableText, PortableTextComponents } from '@portabletext/react'
 import Link from 'next/link'
 import { PortableTextBlock } from 'sanity'
-import RealBrush from './drawings/RealBrush' // adjust path to where RealBrush lives
+import RealBrush from './drawings/RealBrush'
+import Image from 'next/image'
 
 interface ProjectCreditsProps {
   credits?: PortableTextBlock[] | null
@@ -88,8 +89,31 @@ const components: PortableTextComponents = {
     },
   },
   list: {
-    bullet: ({ children }) => <ul className='list-disc ml-6'>{children}</ul>,
+    bullet: ({ children }) => (
+      <ul className='list-none ml-0 space-y-2'>{children}</ul>
+    ),
     number: ({ children }) => <ol className='list-decimal ml-6'>{children}</ol>,
+  },
+  listItem: {
+    bullet: ({ children }) => (
+      <li className='relative inline-block mb-2'>
+        <span className='relative inline-block align-baseline pl-1'>
+          <RealBrush
+            as='span'
+            seed={`bullet-${Math.random()}`}
+            color='#D9D9D9'
+            className='absolute -inset-x-2 -z-10 opacity-90'
+            style={{
+              height: '1.2em',
+              top: '55%',
+              transform: 'translateY(-50%)',
+            }}
+          />
+          <span className='relative z-10'>{children}</span>
+        </span>
+      </li>
+    ),
+    number: ({ children }) => <li>{children}</li>,
   },
 }
 
@@ -136,11 +160,9 @@ const tourneeComponents: PortableTextComponents = {
   },
   marks: {
     ...components.marks,
-    // strong: ({ children }) => (
-    //   <span className='font-rader-bold'>{children}</span>
-    // ),
   },
   list: components.list,
+  listItem: components.listItem,
 }
 
 /** deterministic tiny variation, avoids hydration mismatch */
@@ -165,7 +187,7 @@ function BrushTitle({
   color?: string
   className?: string
 }) {
-  // small deterministic “hand placed” feel
+  // small deterministic "hand placed" feel
   const r = hashToFloat01(seed)
   const rotate = (r * 6 - 3).toFixed(2) // -3..+3 deg
   const y = ((r * 6 - 3) * 0.6).toFixed(2) // -1.8..+1.8 px
@@ -208,13 +230,21 @@ export function ProjectCredits({
         <div>
           {credits && (
             <div className='group relative focus:outline-none' tabIndex={0}>
-              <BrushTitle
+              {/* <BrushTitle
                 seed='credits'
                 color='#D9D9D9'
                 className='mb-4 text-sm lg:text-lg'
               >
                 Credits
-              </BrushTitle>
+              </BrushTitle> */}
+
+              <Image
+                src={'/images/CreditsLogo.png'}
+                alt='PRODUCTIONS'
+                width={800}
+                height={215}
+                className='h-8 w-auto mb-4'
+              />
 
               <div className='leading-snug overflow-hidden transition-all duration-500 ease-in-out max-h-[400px] group-hover:max-h-[2000px] group-focus:max-h-[2000px] text-sm lg:text-lg ml-0'>
                 <PortableText value={credits} components={components} />
@@ -229,14 +259,21 @@ export function ProjectCredits({
         <div className='space-y-24'>
           {press && (
             <>
-              <BrushTitle
+              {/* <BrushTitle
                 seed='press'
                 color='#D9D9D9'
                 className='mb-4 text-sm lg:text-lg'
               >
                 Press
-              </BrushTitle>
+              </BrushTitle> */}
               <div className='text-sm lg:text-lg'>
+                <Image
+                  src={'/images/pressLogo.png'}
+                  alt='PRODUCTIONS'
+                  width={800}
+                  height={335}
+                  className='h-8 w-auto mb-4'
+                />
                 <PortableText value={press} components={components} />
               </div>
             </>
@@ -244,14 +281,21 @@ export function ProjectCredits({
 
           {tournee && (
             <>
-              <BrushTitle
+              {/* <BrushTitle
                 seed='dates'
                 color='#D9D9D9'
                 className='mb-4 mt-8 text-sm lg:text-lg'
               >
                 Dates
-              </BrushTitle>
+              </BrushTitle> */}
               <div className='text-sm lg:text-lg'>
+                <Image
+                  src={'/images/datesLogo.png'}
+                  alt='PRODUCTIONS'
+                  width={800}
+                  height={297}
+                  className='h-8 w-auto mb-4'
+                />
                 <PortableText value={tournee} components={tourneeComponents} />
               </div>
             </>

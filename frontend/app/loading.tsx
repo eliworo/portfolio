@@ -4,9 +4,9 @@ export default function Loading() {
   // You can add any UI inside Loading, including a Skeleton.
   return (
     <div className='h-svh w-full flex justify-center items-center gap-1 lg:gap-2'>
-      <div className='h-5 w-5 lg:h-7 lg:w-7 relative'>
+      <div className='h-5 w-5 lg:h-5 lg:w-5 relative'>
         <Image
-          src='/images/circle4Logo.png'
+          src='/images/cercleRempliLogo.png'
           alt='Loading...'
           width={50}
           height={50}
@@ -15,9 +15,9 @@ export default function Loading() {
           priority
         />
       </div>
-      <div className='h-5 w-5 lg:h-7 lg:w-7 relative'>
+      <div className='h-5 w-5 lg:h-5 lg:w-5 relative'>
         <Image
-          src='/images/circle2Logo.png'
+          src='/images/cercleRempliLogo.png'
           alt='Loading...'
           width={50}
           height={50}
@@ -26,9 +26,9 @@ export default function Loading() {
           priority
         />
       </div>
-      <div className='h-5 w-5 lg:h-7 lg:w-7 relative'>
+      <div className='h-5 w-5 lg:h-5 lg:w-5 relative'>
         <Image
-          src='/images/circle3Logo.png'
+          src='/images/cercleRempliLogo.png'
           alt='Loading...'
           width={50}
           height={50}
