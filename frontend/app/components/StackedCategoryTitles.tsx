@@ -241,7 +241,7 @@ export default function StackedCategoryTitles({
                       <RealBrush
                         seed={`category:${category.id}`}
                         color={BRUSH_COLOR}
-                        className='absolute -inset-x-4 bottom-0'
+                        className='absolute -inset-x-2 bottom-0'
                         style={{ height: BRUSH_H_PX }}
                       />
                     </div>
