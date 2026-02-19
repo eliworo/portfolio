@@ -83,6 +83,7 @@ type FeaturedProject = {
   kind?: 'project' | 'blank'
   blankLabel?: string
   blankSize?: 'sm' | 'md' | 'lg'
+  hideOnDefaultList?: boolean
 
   offsetY?: number
   offsetX?: number
@@ -710,7 +711,12 @@ export default function CreativeProjectsList({
   }, [featuredProjects])
 
   const filteredProjects = useMemo(() => {
-    if (!selectedCategory) return featuredProjects
+    if (!selectedCategory) {
+      return featuredProjects.filter((item) => {
+        if (!item.project) return true
+        return item.hideOnDefaultList !== true
+      })
+    }
 
     return featuredProjects.filter((item) => {
       if (!item.project) return false

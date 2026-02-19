@@ -8,6 +8,7 @@ const imageBuilder = createImageUrlBuilder({
   projectId: projectId || "",
   dataset: dataset || "",
 });
+const DEFAULT_IMAGE_QUALITY = 72;
 
 export const urlForImage = (source: any) => {
   // Ensure that source image contains a valid reference
@@ -35,10 +36,16 @@ export const urlForImage = (source: any) => {
     return imageBuilder
       ?.image(source)
       .rect(left, top, croppedWidth, croppedHeight)
-      .auto("format");
+      .fit("max")
+      .auto("format")
+      .quality(DEFAULT_IMAGE_QUALITY);
   }
 
-  return imageBuilder?.image(source).auto("format");
+  return imageBuilder
+    ?.image(source)
+    .fit("max")
+    .auto("format")
+    .quality(DEFAULT_IMAGE_QUALITY);
 };
 
 export function resolveOpenGraphImage(image: any, width = 1200, height = 627) {

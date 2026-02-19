@@ -1164,6 +1164,7 @@ export const studioWorksQuery = /* groq */ `
       kind,
       blankLabel,
       blankSize,
+      hideOnDefaultList,
       project->{
         ${projectFields}
       },

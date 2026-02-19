@@ -8,7 +8,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",
-    "typegen": "cd ../studio && sanity typegen generate"
+    "typegen": "node ../scripts/patch-sanity-export.mjs && cd ../studio && sanity typegen generate"
   },
   "engines": {
     "node": "20.x"

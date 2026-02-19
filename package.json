@@ -3,9 +3,10 @@
   "description": "Next.js + Sanity: A Powerful Website Starter with Real-time Visual Editing",
   "scripts": {
     "dev": "npm-run-all --parallel --print-label dev:*",
-    "dev:next": "npm run dev --workspace=frontend",
-    "dev:studio": "npm run dev --workspace=studio",
-    "import-sample-data": "cd studio && sanity dataset import sample-data.tar.gz --replace"
+    "dev:next": "npm run patch:sanity-export && npm run dev --workspace=frontend",
+    "dev:studio": "npm run patch:sanity-export && npm run dev --workspace=studio",
+    "import-sample-data": "npm run patch:sanity-export && cd studio && sanity dataset import sample-data.tar.gz --replace",
+    "patch:sanity-export": "node scripts/patch-sanity-export.mjs"
   },
   "keywords": [
     "Sanity",

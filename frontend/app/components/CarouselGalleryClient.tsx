@@ -211,7 +211,7 @@ export default function CarouselGalleryClient({
                     draggable={false}
                     sizes='(min-width: 1024px) 800px, 80vw'
                     className='object-contain object-left select-none'
-                    onLoadingComplete={() => requestScrollStateUpdate()}
+                    onLoad={() => requestScrollStateUpdate()}
                   />
                 </div>
 

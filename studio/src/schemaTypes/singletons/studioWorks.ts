@@ -134,6 +134,15 @@ export const studioWorks = defineType({
               components: {input: CategorySectionSelect},
             }),
             defineField({
+              name: 'hideOnDefaultList',
+              title: 'Hide on default Studio Works list',
+              type: 'boolean',
+              initialValue: false,
+              description:
+                'If enabled, this item is hidden on /studio-works when no category is selected, but will still appear when its category is selected.',
+              hidden: ({parent}) => (parent?.kind ?? 'project') === 'blank',
+            }),
+            defineField({
               name: 'offsetX',
               title: 'Horizontal Offset (px)',
               type: 'number',

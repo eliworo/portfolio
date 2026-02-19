@@ -5,12 +5,12 @@
   "main": "package.json",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "sanity dev",
-    "start": "sanity start",
+    "dev": "node ../scripts/patch-sanity-export.mjs && sanity dev",
+    "start": "node ../scripts/patch-sanity-export.mjs && sanity start",
     "prebuild": "npm run extract-types",
-    "build": "sanity build",
-    "deploy": "sanity deploy",
-    "extract-types": "sanity schema extract --enforce-required-fields"
+    "build": "node ../scripts/patch-sanity-export.mjs && sanity build",
+    "deploy": "node ../scripts/patch-sanity-export.mjs && sanity deploy",
+    "extract-types": "node ../scripts/patch-sanity-export.mjs && sanity schema extract --enforce-required-fields"
   },
   "keywords": [
     "sanity"
