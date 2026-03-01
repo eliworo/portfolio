@@ -1,30 +1,36 @@
 'use client'
 
-import { useState } from 'react'
 import Image from 'next/image'
+import {
+  PortableText,
+  type PortableTextReactComponents,
+} from '@portabletext/react'
 import BrushTitle from '@/app/components/BrushTitle'
 
 type Tool = {
-  titleImage?: { asset?: { url?: string | null } | null } | null
-  subtitle?: string | null
-  description?: string | null
+  title?: string | null
+  description?: any[] | string | null
   image?: {
     asset?: { url?: string | null } | null
     alt?: string | null
   } | null
   offsetY?: number | null
   offsetX?: number | null
-  rotation?: number | null
-  scale?: number | null
 }
 
 export default function ToolCard({ tool }: { tool: Tool }) {
-  const [isHovered, setIsHovered] = useState(false)
-
   const tx = tool.offsetX ?? 0
   const ty = tool.offsetY ?? 0
-  const rot = tool.rotation ?? 0
-  const s = tool.scale ?? 1
+  const portableComponents: Partial<PortableTextReactComponents> = {
+    block: {
+      normal: ({ children }) => (
+        <p className='text-black text-base xl:text-lg leading-snug'>{children}</p>
+      ),
+    },
+    marks: {
+      strong: ({ children }) => <strong className='font-semibold'>{children}</strong>,
+    },
+  }
 
   return (
     <div
@@ -32,25 +38,19 @@ export default function ToolCard({ tool }: { tool: Tool }) {
         {
           '--tx': `${tx}px`,
           '--ty': `${ty}px`,
-          '--rot': `${rot}deg`,
-          '--s': String(s),
         } as React.CSSProperties
       }
       className='
         transition-transform duration-300 ease-out
-        xl:[transform:translate(var(--tx),var(--ty))_rotate(var(--rot))_scale(var(--s))]
+        xl:[transform:translate(var(--tx),var(--ty))]
       '
     >
       {/* Image */}
       {tool.image?.asset?.url && (
-        <div
-          className='relative aspect-video rounded-lg'
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
+        <div className='relative aspect-video rounded-lg'>
           <Image
             src={tool.image.asset.url}
-            alt={tool.image.alt || tool.subtitle || ''}
+            alt={tool.image.alt || tool.title || ''}
             fill
             className='object-cover'
           />
@@ -58,13 +58,13 @@ export default function ToolCard({ tool }: { tool: Tool }) {
         </div>
       )}
 
-      {/* Subtitle with brush background */}
-      {tool.subtitle && (
+      {/* Title with brush background */}
+      {tool.title && (
         <BrushTitle
           as='h3'
-          seed={`tool-subtitle:${tool.subtitle}`} // deterministic per tool
-          color='#98D8C8'
-          className='mt-8 font-right-grotesk-narrow-medium text-lg xl:text-2xl text-black px-4'
+          seed={`tool-title:${tool.title}`} // deterministic per tool
+          color='#D9D9D9'
+          className='mt-4 font-right-grotesk-narrow-medium text-lg xl:text-2xl text-black px-3'
           brushClassName='absolute -inset-x-2 -inset-y-2 -z-10 opacity-90'
           brushStyle={{
             height: '1.15em',
@@ -73,15 +73,21 @@ export default function ToolCard({ tool }: { tool: Tool }) {
           }}
           rotate={false}
         >
-          <span className=''>{tool.subtitle}</span>
+          <span>{tool.title}</span>
         </BrushTitle>
       )}
 
       {/* Description */}
       {tool.description && (
-        <p className='text-black text-base xl:text-lg leading-snug drop-shadow-xs mt-4 px-4'>
-          {tool.description}
-        </p>
+        <div className='drop-shadow-xs mt-2 px-3'>
+          {typeof tool.description === 'string' ? (
+            <p className='text-black text-base xl:text-lg leading-snug'>
+              {tool.description}
+            </p>
+          ) : (
+            <PortableText value={tool.description} components={portableComponents} />
+          )}
+        </div>
       )}
     </div>
   )

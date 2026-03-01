@@ -17,7 +17,7 @@ import { handleError } from './client-utils'
 import Navigation from './components/Navigation'
 import NavigationWrapper from './components/NavigationWrapper'
 
-import { agrandirRegular, getFontVariables } from './fonts'
+import { getFontVariables } from './fonts'
 import MobileNavigation from './components/MobileNavigation'
 
 /**
@@ -69,7 +69,7 @@ export default async function RootLayout({
 
   return (
     <html lang='en' className={`${fontVariables}`}>
-      <body className='font-garabosse-gaillarde'>
+      <body className='font-sans'>
         <section className='min-h-screen'>
           {/* The <Toaster> component is responsible for rendering toast notifications used in /app/client-utils.ts and /app/components/DraftModeToast.tsx */}
           <div suppressHydrationWarning>

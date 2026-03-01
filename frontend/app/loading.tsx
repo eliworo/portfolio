@@ -13,6 +13,7 @@ export default function Loading() {
           className='animate-bounce h-full w-full'
           style={{ animationDelay: '0s' }}
           priority
+          unoptimized
         />
       </div>
       <div className='h-5 w-5 lg:h-5 lg:w-5 relative'>
@@ -24,6 +25,7 @@ export default function Loading() {
           className='animate-bounce h-full w-full'
           style={{ animationDelay: '0.2s' }}
           priority
+          unoptimized
         />
       </div>
       <div className='h-5 w-5 lg:h-5 lg:w-5 relative'>
@@ -35,6 +37,7 @@ export default function Loading() {
           className='animate-bounce h-full w-full'
           style={{ animationDelay: '0.4s' }}
           priority
+          unoptimized
         />
       </div>
     </div>

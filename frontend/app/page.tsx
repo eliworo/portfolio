@@ -23,7 +23,7 @@ export default async function Page() {
 
   return (
     <>
-      <div className='relative'>
+      <div className='relative h-screen overflow-hidden'>
         {homepage?.newsPostIts && <NewsPostIts news={homepage.newsPostIts} />}
 
         {homepage?.heroType === 'video' && (

@@ -30,31 +30,27 @@
 
   /* ----------------------------- Font tokens ----------------------------- */
   /* Base defaults (pick what you want as global default) */
-  --font-display: var(--font-rader-regular), sans-serif;
-  --font-sans: var(--font-rader-regular), sans-serif;
+  --font-display: var(--font-pp-radio-grotesk), sans-serif;
+  --font-sans: var(--font-pp-radio-grotesk), sans-serif;
+  --font-mono: var(--font-pp-radio-grotesk), sans-serif;
 
   /* Agrandir aliases (your existing naming) */
-  --font-agrandir: var(--font-agrandir-regular);
-  --font-agrandir-bold: var(--font-agrandir-bold);
-  --font-agrandir-grand-heavy: var(--font-agrandir-grand-heavy);
-  --font-agrandir-tight: var(--font-agrandir-tight-regular);
-  --font-agrandir-italic: var(--font-agrandir-italic);
+  --font-agrandir: var(--font-pp-radio-grotesk);
+  --font-agrandir-bold: var(--font-pp-radio-grotesk);
+  --font-agrandir-grand-heavy: var(--font-pp-radio-grotesk);
+  --font-agrandir-tight: var(--font-pp-radio-grotesk);
+  --font-agrandir-italic: var(--font-pp-radio-grotesk);
 
   /* Rader aliases (new) */
-  --font-rader: var(--font-rader-regular);
-  --font-rader-medium: var(--font-rader-medium);
-  --font-rader-bold: var(--font-rader-bold);
-  --font-rader-italic: var(--font-rader-italic);
-  --font-rader-medium-italic: var(--font-rader-medium-italic);
-  --font-rader-bold-italic: var(--font-rader-bold-italic);
+  --font-rader: var(--font-pp-radio-grotesk);
+  --font-rader-medium: var(--font-pp-radio-grotesk);
+  --font-rader-bold: var(--font-pp-radio-grotesk);
+  --font-rader-italic: var(--font-pp-radio-grotesk);
+  --font-rader-medium-italic: var(--font-pp-radio-grotesk);
+  --font-rader-bold-italic: var(--font-pp-radio-grotesk);
 
   /* Right Grotesk */
-  --font-right-grotesk-narrow-medium: var(--font-right-grotesk-narrow-medium);
-
-  /* Garabosse */
-  --font-garabosse-parangon: var(--font-garabosse-parangon);
-  --font-garabosse-gaillarde: var(--font-garabosse-gaillarde);
-  --font-garabosse-perle: var(--font-garabosse-perle);
+  --font-right-grotesk-narrow-medium: var(--font-pp-radio-grotesk);
 
   --default-transition-duration: 250ms;
 }
@@ -86,12 +82,10 @@ img {
   pointer-events: none;
 }
 
-/* Use Right Grotesk for all bold text */
+/* Keep bold tags on the active family */
 strong,
 b {
-  font-family: var(--font-right-grotesk-narrow-medium), sans-serif;
-  font-weight: normal;
-  letter-spacing: 0.01em;
+  font-family: inherit;
 }
 
 /* View Transition Customization */

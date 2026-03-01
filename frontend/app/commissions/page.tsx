@@ -50,7 +50,7 @@ export default async function CommissionsPage() {
                 height={500}
                 priority
                 className='
-                          object-contain mx-auto mt-18 mb-8 xl:mt-8 xl:mb-0
+                          object-contain mx-auto mt-18 mb-4 xl:mt-8 xl:mb-0
                           w-[80vw] max-w-[980px]
                           xl:w-[90%] xl:max-w-none
                           h-auto
@@ -63,8 +63,8 @@ export default async function CommissionsPage() {
           {commissionsPage.quote && (
             <div
               className='
-                mt-10
-                xl:mt-16
+                mt-6
+                xl:mt-10
                 xl:col-start-7 xl:col-span-5
                 xl:row-start-1
                 xl:max-w-[70ch]
@@ -81,7 +81,7 @@ export default async function CommissionsPage() {
       {/* TOOLS GRID */}
       <section className='px-2 pb-48 mt-14 xl:mt-20 xl:pl-60 3xl:pl-88'>
         <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 xl:gap-16 xl:gap-y-24 3xl:gap-32'>
-          {commissionsPage.tools?.map((tool, index) => (
+          {commissionsPage.tools?.map((tool: NonNullable<NonNullable<CommissionsPageQueryResult>['tools']>[number], index: number) => (
             <ToolCard key={index} tool={tool} />
           ))}
         </div>

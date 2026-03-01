@@ -16,16 +16,19 @@ interface NewsPostIt {
   titleImage?: { asset?: { url: string } }
 }
 
-/**
- * Desktop positions (lg only).
- * Mobile is ALWAYS centered via CSS.
- */
-const POSITIONS = [
-  { top: '5%', leftLg: 'lg:left-[24%]', rotate: -2 },
-  { top: '34%', leftLg: 'lg:left-[22%]', rotate: 3 },
-  { top: '18%', leftLg: 'lg:left-[48%]', rotate: 1 },
-  { top: '58%', leftLg: 'lg:left-[12%]', rotate: -3 },
-  { top: '44%', leftLg: 'lg:left-[36%]', rotate: 2 },
+const DESKTOP_POSITIONS = [
+  { top: '8%', leftLg: 'lg:left-[8%]', rotate: -2 },
+  { top: '34%', leftLg: 'lg:left-[6%]', rotate: 3 },
+  { top: '18%', leftLg: 'lg:left-[30%]', rotate: 1 },
+  { top: '58%', leftLg: 'lg:left-[2%]', rotate: -3 },
+  { top: '44%', leftLg: 'lg:left-[22%]', rotate: 2 },
+] as const
+
+// Mobile stack order is left -> right (1, 2, 3), with #3 visually on top.
+const MOBILE_STACK_POSITIONS = [
+  { left: '6%', bottom: '8%', rotate: -6, zIndex: 20 },
+  { left: '24%', bottom: '13%', rotate: -1, zIndex: 30 },
+  { left: '42%', bottom: '16%', rotate: 4, zIndex: 40 },
 ] as const
 
 export default function NewsPostIts({ news }: { news: NewsPostIt[] }) {
@@ -37,21 +40,24 @@ export default function NewsPostIts({ news }: { news: NewsPostIt[] }) {
    * That resets transforms (drag, x jitter, etc.)
    */
   const [breakpointKey, setBreakpointKey] = useState(0)
+  const [isDesktop, setIsDesktop] = useState(false)
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)')
 
     const onChange = () => {
       setBreakpointKey((k) => k + 1)
+      setIsDesktop(mq.matches)
     }
 
+    setIsDesktop(mq.matches)
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
   }, [])
 
   // Keep initial positions stable even if items are closed
   const [activeItems, setActiveItems] = useState(() =>
-    news.map((item, index) => ({ ...item, id: index, initialIndex: index }))
+    news.map((item, index) => ({ ...item, id: index, initialIndex: index })),
   )
 
   const handleClose = (id: number) => {
@@ -68,22 +74,32 @@ export default function NewsPostIts({ news }: { news: NewsPostIt[] }) {
       {/* Post-it lane: visual layout only */}
       <div
         className={[
-          'absolute pointer-events-auto',
-          // Mobile: centered lane
-          'left-1/2 -translate-x-1/2 w-[92vw] max-w-[360px] top-0 bottom-0',
+          'absolute pointer-events-none',
+          // Mobile: full-width lane for stacked cards under logo area
+          'left-0 right-0 top-0 bottom-0',
           // Desktop: right side only
-          'lg:translate-x-0 lg:left-[58%] lg:right-[3%] lg:w-auto lg:max-w-none',
+          'lg:translate-x-0 lg:left-[74%] lg:right-[1.5%] lg:w-auto lg:max-w-none',
           'lg:top-[6%] lg:bottom-[6%]',
         ].join(' ')}
       >
         {/* KEY forces remount on breakpoint change */}
         <AnimatePresence mode='popLayout' key={breakpointKey}>
           {activeItems.map((item) => {
-            const pos = POSITIONS[item.initialIndex % POSITIONS.length]
+            const desktopPos =
+              DESKTOP_POSITIONS[item.initialIndex % DESKTOP_POSITIONS.length]
+            const mobilePos =
+              MOBILE_STACK_POSITIONS[
+                item.initialIndex % MOBILE_STACK_POSITIONS.length
+              ]
+            const mobileLayer = Math.floor(
+              item.initialIndex / MOBILE_STACK_POSITIONS.length,
+            )
             const hasCustomBg = !!item.postItImage?.asset?.url
 
             // small messy offset (applies everywhere, but gets reset on breakpoint)
             const xJitter = ((item.initialIndex % 3) - 1) * 18 // -18, 0, +18
+            const rotate = isDesktop ? desktopPos.rotate : mobilePos.rotate
+            const xOffset = isDesktop ? xJitter : 0
 
             return (
               <motion.div
@@ -95,39 +111,55 @@ export default function NewsPostIts({ news }: { news: NewsPostIt[] }) {
                 initial={{
                   opacity: 0,
                   scale: 0.8,
-                  rotate: pos.rotate,
-                  x: xJitter,
+                  rotate,
+                  x: xOffset,
                 }}
                 animate={{
                   opacity: 1,
                   scale: 1,
-                  rotate: pos.rotate,
-                  x: xJitter,
+                  rotate,
+                  x: xOffset,
                 }}
                 exit={{
                   opacity: 0,
                   scale: 0.5,
                   transition: { duration: 0.2 },
                 }}
-                whileHover={{ scale: 1.02, zIndex: 50, cursor: 'grab' }}
-                whileDrag={{ scale: 1.08, zIndex: 100, cursor: 'grabbing' }}
+                whileHover={
+                  isDesktop ? { scale: 1.02, zIndex: 50, cursor: 'grab' } : {}
+                }
+                whileDrag={
+                  isDesktop
+                    ? { scale: 1.08, zIndex: 100, cursor: 'grabbing' }
+                    : {}
+                }
                 className={[
-                  'absolute w-[240px] md:w-[280px] min-h-[280px]',
-                  'flex flex-col items-center',
-                  // Mobile: always centered
-                  'left-1/2 -translate-x-1/2',
-                  // Desktop: override with per-item left
+                  'absolute w-[58vw] max-w-[230px] min-h-[220px]',
+                  'md:w-[280px] md:min-h-[280px]',
+                  'flex flex-col items-center pointer-events-auto',
+                  // Desktop: override mobile left positioning
+                  'left-0',
                   'lg:translate-x-0',
-                  pos.leftLg,
+                  desktopPos.leftLg,
                   !hasCustomBg
                     ? 'bg-white border-[3px] border-black shadow-lg'
                     : 'shadow-none border-none bg-transparent',
                 ].join(' ')}
                 style={{
-                  top: pos.top,
+                  ...(isDesktop
+                    ? {
+                        top: desktopPos.top,
+                        zIndex: 10 + item.initialIndex,
+                      }
+                    : {
+                        left: mobilePos.left,
+                        bottom: `calc(${mobilePos.bottom} + ${mobileLayer * 14}px)`,
+                        zIndex: mobilePos.zIndex + mobileLayer,
+                      }),
                   borderRadius: !hasCustomBg
                     ? '2px 4px 2px 255px / 255px 5px 225px 5px'
                     : '0',
+                  touchAction: 'none',
                 }}
               >
                 {/* Background image */}

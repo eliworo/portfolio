@@ -16,7 +16,13 @@ const postFields = /* groq */ `
 const linkReference = /* groq */ `
   _type == "link" => {
     "page": page->slug.current,
-    "post": post->slug.current
+    "post": post->slug.current,
+    "internalLink": select(
+      defined(internalLink) => internalLink,
+      defined(page->slug.current) => page->slug.current,
+      defined(post->slug.current) => "posts/" + post->slug.current,
+      null
+    )
   }
 `
 
@@ -160,58 +166,14 @@ const worksFields = /* groq */ `
       }
     }
   },
-  description
-`
-
-const featuredProjectFields = /* groq */ `
-  project->{
-    _id,
-    title,
-    slug {
-      current
-    },
-    titleImage {
-      asset->{
-        url
-      }
-    },
-    coverImage {
-      asset->{ _id, url },
-      crop,
-      hotspot,
-      alt
-    },
-    brushColor,
-    projectType->{
-      title,
-      slug {
-        current
-      }
-    },
-    categories[]->{
-      _id,
-      title,
-      slug{current},
-      titleImage {
-        asset->{
-          url
-        }
-      }
-    }
-  },
-  offsetY,
-  offsetX,
-  rotation,
-  scale,
-  zIndex
+  description,
+  productionsPreviewText,
+  studioWorksPreviewText
 `
 
 export const worksPageQuery = defineQuery(`
   *[_type == "works" && _id == "worksPage"][0]{
-    ${worksFields},
-    featuredProjects[]{
-      ${featuredProjectFields}
-    }
+    ${worksFields}
   }
 `)
 
@@ -946,15 +908,7 @@ const commissionsFields = /* groq */ `
   },
   quote,
   tools[]{
-    titleImage{
-      asset->{
-        url,
-        metadata {
-          dimensions
-        }
-      }
-    },
-    subtitle,
+    "title": coalesce(title, subtitle),
     description,
     image{
       asset->{
@@ -963,9 +917,7 @@ const commissionsFields = /* groq */ `
       alt
     },
     offsetY,
-    offsetX,
-    rotation,
-    scale
+    offsetX
   }
 `
 
@@ -1036,6 +988,7 @@ const projectFields = /* groq */ `
   title,
   slug { current },
   projectKind,
+  brushColor,
   projectSize,
   projectSubtype,
   titleImage { asset->{ url } },

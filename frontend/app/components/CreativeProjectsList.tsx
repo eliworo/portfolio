@@ -7,7 +7,6 @@ import {
   motion,
   AnimatePresence,
   useMotionValue,
-  useDragControls,
 } from 'motion/react'
 
 import PaintBrush from './drawings/PaintBrush'
@@ -16,7 +15,6 @@ import CategoryNav from './CategoryNav'
 import CoverImage from './CoverImage'
 import { urlForImage } from '@/sanity/lib/utils'
 
-import { RiDragMove2Fill } from 'react-icons/ri'
 import StackedCategoryTitles from './StackedCategoryTitles'
 import RealBrush from './drawings/RealBrush'
 import StudioWorksPortableText from './portable/StudioWorksPortableText'
@@ -167,6 +165,49 @@ type CardAction =
 const isModifiedClick = (e: React.MouseEvent) =>
   e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1
 
+function ThreeDotsLoader() {
+  return (
+    <div className='w-full py-20 flex justify-center items-center gap-1 lg:gap-2'>
+      <div className='h-5 w-5 lg:h-5 lg:w-5 relative'>
+        <Image
+          src='/images/cercleRempliLogo.png'
+          alt='Loading...'
+          width={50}
+          height={50}
+          className='animate-bounce h-full w-full'
+          style={{animationDelay: '0s'}}
+          priority
+          unoptimized
+        />
+      </div>
+      <div className='h-5 w-5 lg:h-5 lg:w-5 relative'>
+        <Image
+          src='/images/cercleRempliLogo.png'
+          alt='Loading...'
+          width={50}
+          height={50}
+          className='animate-bounce h-full w-full'
+          style={{animationDelay: '0.2s'}}
+          priority
+          unoptimized
+        />
+      </div>
+      <div className='h-5 w-5 lg:h-5 lg:w-5 relative'>
+        <Image
+          src='/images/cercleRempliLogo.png'
+          alt='Loading...'
+          width={50}
+          height={50}
+          className='animate-bounce h-full w-full'
+          style={{animationDelay: '0.4s'}}
+          priority
+          unoptimized
+        />
+      </div>
+    </div>
+  )
+}
+
 /* =========================
    DraggableProjectCard (UPDATED with animations)
 ========================= */
@@ -181,6 +222,7 @@ function DraggableProjectCard({
   brushRotation,
   brushColor,
   onOpenModal,
+  onImageReady,
   childrenBrushAndTitle,
 }: {
   item: any
@@ -192,6 +234,7 @@ function DraggableProjectCard({
   brushRotation: (k: string) => number
   brushColor: (id: string) => string
   onOpenModal: () => void
+  onImageReady?: () => void
   childrenBrushAndTitle: React.ReactNode
 }) {
   const offsetFactor = isMobile ? 0.55 : 1
@@ -214,8 +257,6 @@ function DraggableProjectCard({
     y.set(responsiveY)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [responsiveX, responsiveY])
-
-  const dragControls = useDragControls()
 
   // robust click-after-drag guard
   const movedRef = useRef(false)
@@ -269,54 +310,8 @@ function DraggableProjectCard({
         whileHover={{ opacity: 0.98 }}
         transition={{ duration: 0.12, ease: 'easeOut' }}
       >
-        {!isMobile && (
-          <div className='absolute left-1/2 -translate-y-1/2 -translate-x-1/2 top-1/2 z-30 pointer-events-auto'>
-            <div
-              role='button'
-              className='
-        opacity-0 group-hover:opacity-100 transition-opacity duration-150
-        cursor-grab select-none p-1
-        relative
-      '
-              onPointerDown={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                pointerDownRef.current = { x: e.clientX, y: e.clientY }
-                dragControls.start(e)
-              }}
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-              }}
-              aria-label='Move card'
-              tabIndex={-1}
-            >
-              <span className='absolute inset-0 flex items-center justify-center'>
-                <RiDragMove2Fill
-                  size={20}
-                  className='
-            text-white
-            drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]
-            drop-shadow-[0_0_6px_rgba(0,0,0,0.55)]
-            scale-[1.08]
-          '
-                />
-              </span>
-
-              <RiDragMove2Fill
-                size={20}
-                className='
-          relative
-          text-black
-          drop-shadow-[0_0_4px_rgba(255,255,255,0.7)]
-        '
-              />
-            </div>
-          </div>
-        )}
-
         {preview.type === 'image' ? (
-          <CoverImage image={preview.image} />
+          <CoverImage image={preview.image} onReady={onImageReady} />
         ) : (
           // Text preview with post-it background
           <div className='relative w-full my-16 flex items-center justify-center'>
@@ -386,6 +381,8 @@ function DraggableProjectCard({
         href={action.href}
         className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
         onClick={handleActivate}
+        draggable={false}
+        onDragStart={(e) => e.preventDefault()}
         aria-label={item.project.title}
       >
         {CardInner}
@@ -407,8 +404,7 @@ function DraggableProjectCard({
         y: { duration: 0.35, delay: idx * 0.04 },
       }}
       drag={!isMobile}
-      dragControls={dragControls}
-      dragListener={false}
+      dragListener={!isMobile}
       dragElastic={0.18}
       dragMomentum={false}
       whileDrag={{ cursor: 'grabbing', zIndex: 100 }}
@@ -559,6 +555,13 @@ export default function CreativeProjectsList({
     initialCategory || null
   )
   const [isMobile, setIsMobile] = React.useState(false)
+  const [isCategoryLoading, setIsCategoryLoading] = React.useState(false)
+  const [readyImageKeys, setReadyImageKeys] = React.useState<Set<string>>(
+    () => new Set()
+  )
+  const [readyTitleImageKeys, setReadyTitleImageKeys] = React.useState<
+    Set<string>
+  >(() => new Set())
 
   useEffect(() => {
     if (initialCategory) setSelectedCategory(initialCategory)
@@ -623,7 +626,15 @@ export default function CreativeProjectsList({
     return { type: 'none' }
   }
 
-  const brushColors = ['#FFB6C1', '#98D8C8', '#F7DC6F', '#BB8FCE', '#F8B88B']
+  const brushColors = [
+    '#FFB6C1',
+    '#98D8C8',
+    '#F7DC6F',
+    '#BEBBDA',
+    '#F8B88B',
+    '#347980',
+    '#ccc',
+  ]
 
   function hashString(str: string) {
     let hash = 0
@@ -743,7 +754,25 @@ export default function CreativeProjectsList({
     })
   }, [featuredProjects, selectedCategory])
 
+  const expectedImageKeys = useMemo(() => {
+    return filteredProjects
+      .filter((item) => {
+        if (!item?.project) return false
+        const preview = coverOrPreviewForItem(item)
+        return preview.type === 'image'
+      })
+      .map((item) => item._key)
+  }, [filteredProjects])
+
+  const expectedImageKeySet = useMemo(
+    () => new Set(expectedImageKeys),
+    [expectedImageKeys]
+  )
+
   const handleSelectCategory = (id: string | null) => {
+    setIsCategoryLoading(true)
+    setReadyImageKeys(new Set())
+    setReadyTitleImageKeys(new Set())
     try {
       const url = new URL(window.location.href)
       if (id) url.searchParams.set('category', id)
@@ -752,6 +781,51 @@ export default function CreativeProjectsList({
     } catch {}
     setSelectedCategory(selectedCategory === id ? null : id)
   }
+
+  useEffect(() => {
+    if (!isCategoryLoading) return
+
+    if (expectedImageKeys.length === 0) {
+      setIsCategoryLoading(false)
+      return
+    }
+
+    const allReady = expectedImageKeys.every((key) => readyImageKeys.has(key))
+    if (allReady) {
+      setIsCategoryLoading(false)
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      setIsCategoryLoading(false)
+    }, 2500)
+
+    return () => window.clearTimeout(timer)
+  }, [isCategoryLoading, expectedImageKeys, readyImageKeys])
+
+  const handleCardImageReady = React.useCallback(
+    (itemKey: string) => {
+      if (!isCategoryLoading) return
+      if (!expectedImageKeySet.has(itemKey)) return
+
+      setReadyImageKeys((prev) => {
+        if (prev.has(itemKey)) return prev
+        const next = new Set(prev)
+        next.add(itemKey)
+        return next
+      })
+    },
+    [isCategoryLoading, expectedImageKeySet]
+  )
+
+  const handleTitleImageReady = React.useCallback((itemKey: string) => {
+    setReadyTitleImageKeys((prev) => {
+      if (prev.has(itemKey)) return prev
+      const next = new Set(prev)
+      next.add(itemKey)
+      return next
+    })
+  }, [])
 
   const currentCategory = selectedCategory
     ? allCategories.find((c) => c.id === selectedCategory)
@@ -765,7 +839,7 @@ export default function CreativeProjectsList({
     )
   }
 
-  const portableTextToPlain = (content: any): string => {
+  function portableTextToPlain(content: any): string {
     if (!content) return ''
     if (typeof content === 'string') return content
     if (!Array.isArray(content)) return ''
@@ -780,7 +854,7 @@ export default function CreativeProjectsList({
       .trim()
   }
 
-  const getSectionTextExtract = (section: any, index?: number) => {
+  function getSectionTextExtract(section: any, index?: number) {
     if (!section?.content) return undefined
     const textBlocks = section.content.filter(
       (block: any) =>
@@ -794,7 +868,7 @@ export default function CreativeProjectsList({
     return plain || undefined
   }
 
-  const coverOrPreviewForItem = (item: FeaturedProject): PreviewResult => {
+  function coverOrPreviewForItem(item: FeaturedProject): PreviewResult {
     const p = item.project
     if (!p) return { type: 'image', image: undefined }
 
@@ -916,21 +990,28 @@ export default function CreativeProjectsList({
 
       {description && (
         <div className='px-8 mt-24 mb-16 md:hidden'>
-          <div className='text-lg leading-snug font-garabosse-gaillarde'>
+          <div className='text-lg leading-snug font-sans'>
             <StudioWorksPortableText value={description} />
           </div>
         </div>
       )}
 
-      <div
-        className='mt-0 px-2 lg:mt-0 grid grid-cols-2 lg:grid-cols-4 py-40 lg:pt-0 lg:pb-64 pt-0'
-        style={{
-          columnGap: `${colGap}px`,
-          rowGap: `${rowGap}px`,
-        }}
-      >
-        <AnimatePresence mode='popLayout'>
-          {filteredProjects.map((item, idx) => {
+      <div className='relative'>
+        {isCategoryLoading && (
+          <div className='absolute inset-0 z-30 flex items-start justify-center pt-16 pointer-events-none'>
+            <ThreeDotsLoader />
+          </div>
+        )}
+        <div
+          className='mt-0 px-2 lg:mt-0 grid grid-cols-2 lg:grid-cols-4 py-40 lg:pt-0 lg:pb-64 pt-0 transition-opacity duration-150'
+          style={{
+            columnGap: `${colGap}px`,
+            rowGap: `${rowGap}px`,
+            opacity: isCategoryLoading ? 0 : 1,
+          }}
+        >
+          <AnimatePresence mode='popLayout'>
+            {filteredProjects.map((item, idx) => {
             const itemKind = (item as any).kind ?? 'project'
 
             if (itemKind === 'blank') {
@@ -965,6 +1046,7 @@ export default function CreativeProjectsList({
 
             const openModal = () => {
               setModalProject({
+                _id: p._id,
                 title: p.title,
                 titleImageUrl: p.titleImage?.asset?.url,
                 coverImageUrl:
@@ -982,53 +1064,64 @@ export default function CreativeProjectsList({
               })
             }
 
-            return (
-              <DraggableProjectCard
-                key={`${item._key}-${idx}`}
-                item={item}
-                idx={idx}
-                isMobile={isMobile}
-                action={action}
-                preview={preview}
-                brushPosition={brushPosition}
-                brushRotation={brushRotation}
-                brushColor={brushColor}
-                onOpenModal={openModal}
-                childrenBrushAndTitle={
-                  item.project.titleImage?.asset?.url ? (
-                    <div
-                      className={`absolute ${brushPosition(item._key)} z-10`}
-                    >
+              return (
+                <DraggableProjectCard
+                  key={`${item._key}-${idx}`}
+                  item={item}
+                  idx={idx}
+                  isMobile={isMobile}
+                  action={action}
+                  preview={preview}
+                  brushPosition={brushPosition}
+                  brushRotation={brushRotation}
+                  brushColor={brushColor}
+                  onOpenModal={openModal}
+                  onImageReady={() => handleCardImageReady(item._key)}
+                  childrenBrushAndTitle={
+                    item.project.titleImage?.asset?.url ? (
                       <div
-                        className='relative'
-                        style={{ rotate: `${brushRotation(item._key)}deg` }}
+                        className={`absolute ${brushPosition(item._key)} z-10`}
                       >
-                        <RealBrush
-                          seed={`category:${item.project._id}`}
-                          color={brushColor(item.project)}
-                          className='absolute -inset-x-2 bottom-0 h-14 inset-y-1 -z-10'
-                        />
-                        <div className='py-2'>
-                          <Image
-                            src={item.project.titleImage.asset.url}
-                            alt={item.project.title}
-                            width={500}
-                            height={500}
-                            className='object-contain h-12 w-auto'
-                            draggable={false}
-                          />
+                        <div
+                          className='relative'
+                          style={{
+                            rotate: `${brushRotation(item._key)}deg`,
+                            opacity: readyTitleImageKeys.has(item._key) ? 1 : 0,
+                            transition: 'opacity 180ms ease-out',
+                          }}
+                        >
+                          {readyTitleImageKeys.has(item._key) && (
+                            <RealBrush
+                              seed={`category:${item.project._id}`}
+                              color={brushColor(item.project)}
+                              className='absolute -inset-x-2 bottom-0 h-14 inset-y-1 -z-10'
+                            />
+                          )}
+                          <div className='py-2'>
+                            <Image
+                              src={item.project.titleImage.asset.url}
+                              alt={item.project.title}
+                              width={500}
+                              height={500}
+                              className='object-contain h-12 w-auto'
+                              draggable={false}
+                              onLoad={() => handleTitleImageReady(item._key)}
+                              onError={() => handleTitleImageReady(item._key)}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ) : null
-                }
-              />
-            )
-          })}
-        </AnimatePresence>
+                    ) : null
+                  }
+                />
+              )
+            })}
+          </AnimatePresence>
+        </div>
       </div>
 
       <ProjectModal
+        key={modalProject?._id || modalProject?.title || 'empty-modal'}
         project={modalProject}
         onClose={() => setModalProject(null)}
       />

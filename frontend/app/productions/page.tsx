@@ -158,7 +158,7 @@ export default async function ProductionsPage() {
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-24 gap-y-44 relative overflow-visible pb-16 lg:pb-32 lg:pr-32 lg:pl-16'>
             {productionsPage.featuredProjects.map(
               (item: FeaturedProjectItem, index: number) => (
-                <ProductionsProjectCard key={index} item={item} />
+                <ProductionsProjectCard key={index} item={item} priority={index < 6} />
               )
             )}
           </div>

@@ -15,6 +15,7 @@ type Props = {
   priority?: boolean
   overlay?: (ready: boolean) => React.ReactNode
   revealEffect?: 'blur' | 'pixelate' | 'pixelate-blur'
+  onReady?: () => void
 }
 
 type RevealEffect = NonNullable<Props['revealEffect']>
@@ -39,6 +40,7 @@ export function ProgressiveRevealImage({
   priority,
   overlay,
   revealEffect = 'pixelate-blur',
+  onReady,
 }: Props) {
   const [ready, setReady] = React.useState(false)
   const shouldReduceMotion = useReducedMotion()
@@ -142,7 +144,10 @@ export function ProgressiveRevealImage({
             priority={priority}
             placeholder={blurDataURL ? 'blur' : undefined}
             blurDataURL={blurDataURL}
-            onLoad={() => setReady(true)}
+            onLoad={() => {
+              setReady(true)
+              onReady?.()
+            }}
             draggable={false}
             style={{ imageRendering: 'auto' }}
           />
@@ -171,7 +176,11 @@ export function ProgressiveRevealImage({
             priority={priority}
             placeholder={blurDataURL ? 'blur' : undefined}
             blurDataURL={blurDataURL}
-            onLoad={() => setReady(true)}
+            onLoad={() => {
+              setReady(true)
+              onReady?.()
+            }}
+            onError={() => onReady?.()}
             draggable={false}
             style={{
               imageRendering,

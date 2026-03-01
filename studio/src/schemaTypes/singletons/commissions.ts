@@ -32,26 +32,16 @@ export const commissions = defineType({
           type: 'object',
           fields: [
             defineField({
-              name: 'titleImage',
-              title: 'Tool Title Image',
-              type: 'image',
-              description: 'Image for the tool title',
-              options: {
-                hotspot: true,
-              },
-            }),
-            defineField({
-              name: 'subtitle',
-              title: 'Subtitle',
+              name: 'title',
+              title: 'Title',
               type: 'string',
-              description: 'Short subtitle for the tool',
+              description: 'Title for the tool',
             }),
             defineField({
               name: 'description',
               title: 'Description',
-              type: 'text',
-              rows: 3,
-              description: 'Short descriptive text for the tool',
+              type: 'blockContent',
+              description: 'Tool description (supports rich text)',
             }),
             defineField({
               name: 'image',
@@ -85,34 +75,17 @@ export const commissions = defineType({
               validation: (Rule) => Rule.min(-50).max(50),
               initialValue: 0,
             }),
-            defineField({
-              name: 'rotation',
-              title: 'Rotation',
-              type: 'number',
-              description: 'Rotate the card. Range: -15 to 15 degrees',
-              validation: (Rule) => Rule.min(-15).max(15),
-              initialValue: 0,
-            }),
-            defineField({
-              name: 'scale',
-              title: 'Size',
-              type: 'number',
-              description: 'Make it bigger or smaller. Range: 0.8 to 1.2',
-              validation: (Rule) => Rule.min(0.8).max(1.2),
-              initialValue: 1,
-            }),
           ],
           preview: {
             select: {
-              title: 'subtitle',
-              media: 'titleImage',
+              title: 'title',
+              media: 'image',
               offsetY: 'offsetY',
-              rotation: 'rotation',
             },
-            prepare({title, media, offsetY, rotation}) {
+            prepare({title, media, offsetY}) {
               return {
                 title: title || 'Untitled Tool',
-                subtitle: `Y: ${offsetY || 0}px, Rotation: ${rotation || 0}°`,
+                subtitle: `Y: ${offsetY || 0}px`,
                 media,
               }
             },

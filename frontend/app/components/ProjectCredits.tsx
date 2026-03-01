@@ -135,7 +135,7 @@ const tourneeComponents: PortableTextComponents = {
       const text = String(children)
 
       const match = text.match(
-        /^([\d\-\s]+(?:to[\d\-\s]+)?)\s+(.+?)\s+\(([A-Z]{2,})\)$/i
+        /^([\d\-\s]+(?:to[\d\-\s]+)?)\s+(.+?)\s+\(([A-Z]{2,})\)$/i,
       )
 
       if (match) {
@@ -243,7 +243,7 @@ export function ProjectCredits({
                 alt='PRODUCTIONS'
                 width={800}
                 height={215}
-                className='h-8 w-auto mb-4'
+                className='h-7 w-auto mb-4'
               />
 
               <div className='leading-snug overflow-hidden transition-all duration-500 ease-in-out max-h-[400px] group-hover:max-h-[2000px] group-focus:max-h-[2000px] text-sm lg:text-lg ml-0'>
@@ -272,7 +272,7 @@ export function ProjectCredits({
                   alt='PRODUCTIONS'
                   width={800}
                   height={335}
-                  className='h-8 w-auto mb-4'
+                  className='h-7 w-auto mb-4'
                 />
                 <PortableText value={press} components={components} />
               </div>
@@ -294,7 +294,7 @@ export function ProjectCredits({
                   alt='PRODUCTIONS'
                   width={800}
                   height={297}
-                  className='h-8 w-auto mb-4'
+                  className='h-7 w-auto mb-4'
                 />
                 <PortableText value={tournee} components={tourneeComponents} />
               </div>

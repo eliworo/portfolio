@@ -9,6 +9,7 @@ import PaintBrush from './drawings/PaintBrush'
 import RealBrush from './drawings/RealBrush'
 
 type ProductionsProjectCardProps = {
+  priority?: boolean
   item: {
     project: {
       _id: string
@@ -95,8 +96,10 @@ const getPositionClasses = (position?: string | null) => {
 
 export default function ProductionsProjectCard({
   item,
+  priority = false,
 }: ProductionsProjectCardProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const [titleImageReady, setTitleImageReady] = useState(false)
 
   // Move hooks BEFORE the early return
   // Use project ID to get consistent color and rotation
@@ -138,15 +141,13 @@ export default function ProductionsProjectCard({
       }}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
+        initial={false}
         animate={{
-          opacity: 1,
           x: item.offsetX ?? 0,
           y: item.offsetY ?? 0,
           rotate: item.rotation ?? 0,
           scale: item.scale ?? 1,
         }}
-        exit={{ opacity: 0, scale: 0.98 }}
         transition={{ duration: 0.25 }}
         className='cursor-pointer'
         onMouseEnter={() => setIsHovered(true)}
@@ -154,13 +155,17 @@ export default function ProductionsProjectCard({
       >
         <Link href={href} className='block'>
           <div className='relative overflow-visible w-auto h-auto aspect-video'>
-            <CoverImage image={item.project.coverImage} />
+            <CoverImage image={item.project.coverImage} priority={priority} revealEffect='blur' />
 
             {/* Title Image Overlay */}
             {item.project.titleImage?.asset?.url && (
               <div
                 className={`absolute ${positionClasses} z-10`}
-                style={{ rotate: `${brushRotation}deg` }}
+                style={{
+                  rotate: `${brushRotation}deg`,
+                  opacity: titleImageReady ? 1 : 0,
+                  transition: 'opacity 180ms ease-out',
+                }}
               >
                 <Image
                   src={item.project.titleImage.asset.url}
@@ -168,12 +173,16 @@ export default function ProductionsProjectCard({
                   width={500}
                   height={500}
                   className='object-contain h-12 lg:h-18 w-auto'
+                  onLoad={() => setTitleImageReady(true)}
+                  onError={() => setTitleImageReady(true)}
                 />
-                <RealBrush
-                  seed={`category:${item.project._id}`}
-                  color={brushColor}
-                  className='absolute -inset-x-4 bottom-0 h-18 inset-y-0.5 -z-10'
-                />
+                {titleImageReady && (
+                  <RealBrush
+                    seed={`category:${item.project._id}`}
+                    color={brushColor}
+                    className='absolute -inset-x-4 bottom-0 h-18 inset-y-0.5 -z-10'
+                  />
+                )}
               </div>
             )}
           </div>

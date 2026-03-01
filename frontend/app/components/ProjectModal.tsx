@@ -24,6 +24,7 @@ type MediaItem = {
 
 type ProjectModalProps = {
   project: {
+    _id?: string
     title: string
     titleImageUrl?: string
     description?: string

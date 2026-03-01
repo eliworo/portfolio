@@ -1,251 +1,63 @@
 import localFont from 'next/font/local'
 
-/* ------------------------------ AGRANDIR ------------------------------ */
-
-// Regular styles
-export const agrandirRegular = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-Regular.woff2',
-  variable: '--font-agrandir-regular',
+export const ppRadioGrotesk = localFont({
+  src: [
+    {
+      path: '../public/fonts/PP-Radio-Grotesk/PPRadioGrotesk-Ultralight.woff2',
+      weight: '200',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/PP-Radio-Grotesk/PPRadioGrotesk-UltralightItalic.woff2',
+      weight: '200',
+      style: 'italic',
+    },
+    {
+      path: '../public/fonts/PP-Radio-Grotesk/PPRadioGrotesk-Light.woff2',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/PP-Radio-Grotesk/PPRadioGrotesk-LightItalic.woff2',
+      weight: '300',
+      style: 'italic',
+    },
+    {
+      path: '../public/fonts/PP-Radio-Grotesk/PPRadioGrotesk-Regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/PP-Radio-Grotesk/PPRadioGrotesk-RegularItalic.woff2',
+      weight: '400',
+      style: 'italic',
+    },
+    {
+      path: '../public/fonts/PP-Radio-Grotesk/PPRadioGrotesk-Bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/PP-Radio-Grotesk/PPRadioGrotesk-BoldItalic.woff2',
+      weight: '700',
+      style: 'italic',
+    },
+    {
+      path: '../public/fonts/PP-Radio-Grotesk/PPRadioGrotesk-Black.woff2',
+      weight: '900',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/PP-Radio-Grotesk/PPRadioGrotesk-BlackItalic.woff2',
+      weight: '900',
+      style: 'italic',
+    },
+  ],
+  variable: '--font-pp-radio-grotesk',
   display: 'swap',
   preload: true,
 })
-
-export const agrandirBold = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-Bold.woff2',
-  variable: '--font-agrandir-bold',
-  display: 'swap',
-  preload: true,
-})
-
-export const agrandirItalic = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-Italic.woff2',
-  variable: '--font-agrandir-italic',
-  display: 'swap',
-})
-
-// Grand styles
-export const agrandirGrandHeavy = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-GrandHeavy.woff2',
-  variable: '--font-agrandir-grand-heavy',
-  display: 'swap',
-})
-
-export const agrandirGrandItalic = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-GrandItalic.woff2',
-  variable: '--font-agrandir-grand-italic',
-  display: 'swap',
-})
-
-export const agrandirGrandLight = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-GrandLight.woff2',
-  variable: '--font-agrandir-grand-light',
-  display: 'swap',
-})
-
-export const agrandirGrandRegular = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-GrandRegular.woff2',
-  variable: '--font-agrandir-grand-regular',
-  display: 'swap',
-})
-
-// Narrow styles
-export const agrandirNarrowBlack = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-NarrowBlack.woff2',
-  variable: '--font-agrandir-narrow-black',
-  display: 'swap',
-})
-
-export const agrandirNarrowRegular = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-NarrowRegular.woff2',
-  variable: '--font-agrandir-narrow-regular',
-  display: 'swap',
-})
-
-// Tight styles
-export const agrandirTightBlack = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-TightBlack.woff2',
-  variable: '--font-agrandir-tight-black',
-  display: 'swap',
-})
-
-export const agrandirTightRegular = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-TightRegular.woff2',
-  variable: '--font-agrandir-tight-regular',
-  display: 'swap',
-})
-
-export const agrandirTightThin = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-TightThin.woff2',
-  variable: '--font-agrandir-tight-thin',
-  display: 'swap',
-})
-
-// Thin styles
-export const agrandirThinItalic = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-ThinItalic.woff2',
-  variable: '--font-agrandir-thin-italic',
-  display: 'swap',
-})
-
-// Wide styles
-export const agrandirWideBlackItalic = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-WideBlackItalic.woff2',
-  variable: '--font-agrandir-wide-black-italic',
-  display: 'swap',
-})
-
-export const agrandirWideLight = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandir-WideLight.woff2',
-  variable: '--font-agrandir-wide-light',
-  display: 'swap',
-})
-
-// Text variants
-export const agrandirTextBold = localFont({
-  src: '../public/fonts/Agrandir/PPAgrandirText-Bold.woff2',
-  variable: '--font-agrandir-text-bold',
-  display: 'swap',
-})
-
-// Collection for convenience
-export const agrandir = {
-  regular: agrandirRegular,
-  bold: agrandirBold,
-  italic: agrandirItalic,
-  grandHeavy: agrandirGrandHeavy,
-  grandItalic: agrandirGrandItalic,
-  grandLight: agrandirGrandLight,
-  grandRegular: agrandirGrandRegular,
-  narrowBlack: agrandirNarrowBlack,
-  narrowRegular: agrandirNarrowRegular,
-  tightBlack: agrandirTightBlack,
-  tightRegular: agrandirTightRegular,
-  tightThin: agrandirTightThin,
-  thinItalic: agrandirThinItalic,
-  wideBlackItalic: agrandirWideBlackItalic,
-  wideLight: agrandirWideLight,
-  textBold: agrandirTextBold,
-}
-
-/* -------------------------------- RADER -------------------------------- */
-
-export const raderRegular = localFont({
-  src: '../public/fonts/Rader/PPRader-Regular.woff2',
-  variable: '--font-rader-regular',
-  display: 'swap',
-  preload: true,
-})
-
-export const raderMedium = localFont({
-  src: '../public/fonts/Rader/PPRader-Medium.woff2',
-  variable: '--font-rader-medium',
-  display: 'swap',
-  preload: true,
-})
-
-export const raderBold = localFont({
-  src: '../public/fonts/Rader/PPRader-Bold.woff2',
-  variable: '--font-rader-bold',
-  display: 'swap',
-  preload: true,
-})
-
-export const raderItalic = localFont({
-  src: '../public/fonts/Rader/PPRader-Italic.woff2',
-  variable: '--font-rader-italic',
-  display: 'swap',
-})
-
-export const raderMediumItalic = localFont({
-  src: '../public/fonts/Rader/PPRader-MediumItalic.woff2',
-  variable: '--font-rader-medium-italic',
-  display: 'swap',
-})
-
-export const raderBoldItalic = localFont({
-  src: '../public/fonts/Rader/PPRader-BoldItalic.woff2',
-  variable: '--font-rader-bold-italic',
-  display: 'swap',
-})
-
-export const rader = {
-  regular: raderRegular,
-  medium: raderMedium,
-  bold: raderBold,
-  italic: raderItalic,
-  mediumItalic: raderMediumItalic,
-  boldItalic: raderBoldItalic,
-}
-
-/* ---------------------------- RIGHT GROTESK ---------------------------- */
-
-export const rightGroteskNarrowMedium = localFont({
-  src: '../public/fonts/Right-Grotesk/PPRightGrotesk-NarrowMedium.woff2',
-  variable: '--font-right-grotesk-narrow-medium',
-  display: 'swap',
-  preload: true,
-})
-
-export const rightGrotesk = {
-  narrowMedium: rightGroteskNarrowMedium,
-}
-
-/* ------------------------------ GARABOSSE ------------------------------ */
-
-export const garabosseParangon = localFont({
-  src: '../public/fonts/Garabosse/Garabosse-Parangon.woff',
-  variable: '--font-garabosse-parangon',
-  display: 'swap',
-})
-
-export const garabosseGaillarde = localFont({
-  src: '../public/fonts/Garabosse/Garabosse-Gaillarde.woff',
-  variable: '--font-garabosse-gaillarde',
-  display: 'swap',
-})
-
-export const garabossePerle = localFont({
-  src: '../public/fonts/Garabosse/Garabosse-Perle.woff',
-  variable: '--font-garabosse-perle',
-  display: 'swap',
-})
-
-/* ------------------------- Variables helper (all) ------------------------ */
 
 export function getFontVariables() {
-  return [
-    // Agrandir
-    agrandirRegular.variable,
-    agrandirBold.variable,
-    agrandirItalic.variable,
-    agrandirGrandHeavy.variable,
-    agrandirGrandItalic.variable,
-    agrandirGrandLight.variable,
-    agrandirGrandRegular.variable,
-    agrandirNarrowBlack.variable,
-    agrandirNarrowRegular.variable,
-    agrandirTightBlack.variable,
-    agrandirTightRegular.variable,
-    agrandirTightThin.variable,
-    agrandirThinItalic.variable,
-    agrandirWideBlackItalic.variable,
-    agrandirWideLight.variable,
-    agrandirTextBold.variable,
-
-    // Rader
-    raderRegular.variable,
-    raderMedium.variable,
-    raderBold.variable,
-    raderItalic.variable,
-    raderMediumItalic.variable,
-    raderBoldItalic.variable,
-
-    // Right Grotesk
-    rightGroteskNarrowMedium.variable,
-
-    // Garabosse
-    garabosseParangon.variable,
-    garabosseGaillarde.variable,
-    garabossePerle.variable,
-  ].join(' ')
+  return [ppRadioGrotesk.variable].join(' ')
 }
