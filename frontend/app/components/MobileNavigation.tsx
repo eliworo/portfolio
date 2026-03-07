@@ -60,7 +60,7 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
 
       <button
         onClick={toggleMenu}
-        className='fixed top-8 right-4 z-50 flex justify-center items-center w-14 h-12'
+        className='fixed top-10 right-4 z-50 flex justify-center items-center w-14 h-12'
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
       >
         <div className='relative w-12 h-12'>
@@ -70,7 +70,7 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
               alt='Open menu'
               width={600}
               height={600}
-              className='absolute inset-0 m-auto object-contain h-12 w-12'
+              className='absolute inset-0 m-auto object-contain h-12 w-12 -scale-x-100'
             />
           ) : (
             <Image
