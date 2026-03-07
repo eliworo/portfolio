@@ -204,10 +204,11 @@ export default defineConfig({
               title: 'title',
               slug: 'slug.current',
               projectKind: 'projectKind',
+              projectSize: 'projectSize',
               visible: 'visible',
             },
             resolve: (doc) => {
-              if (!doc?.visible || !doc?.slug) {
+              if (!doc?.visible) {
                 return {locations: []}
               }
 
@@ -216,25 +217,31 @@ export default defineConfig({
               // Professional projects appear on productions page
               if (doc.projectKind === 'professional') {
                 locations.push({
-                  title: doc.title || 'Untitled',
-                  href: `/productions/${doc.slug}`,
-                })
-                locations.push({
                   title: 'Productions (List)',
                   href: '/productions',
                 })
+                if (doc.slug) {
+                  locations.push({
+                    title: doc.title || 'Untitled',
+                    href: `/productions/${doc.slug}`,
+                  })
+                }
               }
 
-              // Personal projects appear on studio-works page
+              // Personal projects always appear in studio-works list.
               if (doc.projectKind === 'personal') {
-                locations.push({
-                  title: doc.title || 'Untitled',
-                  href: `/studio-works/${doc.slug}`,
-                })
                 locations.push({
                   title: 'Studio Works (List)',
                   href: '/studio-works',
                 })
+
+                // Only large personal projects have a dedicated detail page.
+                if (doc.projectSize === 'large' && doc.slug) {
+                  locations.push({
+                    title: doc.title || 'Untitled',
+                    href: `/studio-works/${doc.slug}`,
+                  })
+                }
               }
 
               return {

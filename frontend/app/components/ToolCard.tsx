@@ -24,11 +24,15 @@ export default function ToolCard({ tool }: { tool: Tool }) {
   const portableComponents: Partial<PortableTextReactComponents> = {
     block: {
       normal: ({ children }) => (
-        <p className='text-black text-base xl:text-lg leading-snug'>{children}</p>
+        <p className='mb-4 last:mb-0 text-black text-base xl:text-lg leading-snug whitespace-pre-line'>
+          {children}
+        </p>
       ),
     },
     marks: {
-      strong: ({ children }) => <strong className='font-semibold'>{children}</strong>,
+      strong: ({ children }) => (
+        <strong className='font-semibold'>{children}</strong>
+      ),
     },
   }
 
@@ -64,7 +68,7 @@ export default function ToolCard({ tool }: { tool: Tool }) {
           as='h3'
           seed={`tool-title:${tool.title}`} // deterministic per tool
           color='#D9D9D9'
-          className='mt-4 font-right-grotesk-narrow-medium text-lg xl:text-2xl text-black px-3'
+          className='mt-2 font-right-grotesk-narrow-medium text-xl xl:text-3xl text-black px-4'
           brushClassName='absolute -inset-x-2 -inset-y-2 -z-10 opacity-90'
           brushStyle={{
             height: '1.15em',
@@ -79,13 +83,16 @@ export default function ToolCard({ tool }: { tool: Tool }) {
 
       {/* Description */}
       {tool.description && (
-        <div className='drop-shadow-xs mt-2 px-3'>
+        <div className='drop-shadow-xs mt-2 xl:mt-4 px-4'>
           {typeof tool.description === 'string' ? (
-            <p className='text-black text-base xl:text-lg leading-snug'>
+            <p className='text-black text-base xl:text-lg leading-snug whitespace-pre-line'>
               {tool.description}
             </p>
           ) : (
-            <PortableText value={tool.description} components={portableComponents} />
+            <PortableText
+              value={tool.description}
+              components={portableComponents}
+            />
           )}
         </div>
       )}

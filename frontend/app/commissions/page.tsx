@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { PortableText } from '@portabletext/react'
 import { sanityFetch } from '@/sanity/lib/live'
 import { aboutPageQuery, commissionsPageQuery } from '@/sanity/lib/queries'
 import type { CommissionsPageQueryResult } from '@/sanity.types'
@@ -6,6 +7,56 @@ import ToolCard from '@/app/components/ToolCard'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
 import ContactNav from '../components/ContactNav'
+import PortableLinkMark from '@/app/components/portable/PortableLinkMark'
+import BrushStrongMark from '@/app/components/portable/BrushStrongMark'
+
+function toPlainText(blocks: any): string | undefined {
+  if (!Array.isArray(blocks)) {
+    return undefined
+  }
+
+  const text = blocks
+    .filter((block) => block?._type === 'block' && Array.isArray(block.children))
+    .map((block) =>
+      block.children
+        .filter((child: any) => child?._type === 'span' && typeof child.text === 'string')
+        .map((child: any) => child.text)
+        .join('')
+    )
+    .join(' ')
+    .trim()
+
+  return text || undefined
+}
+
+const quotePortableComponents = {
+  block: {
+    normal: ({ children }: { children?: React.ReactNode }) => (
+      <p className='mb-4 last:mb-0 whitespace-pre-line text-lg xl:text-2xl leading-snug'>
+        {children ?? null}
+      </p>
+    ),
+    blockquote: ({ children }: { children?: React.ReactNode }) => (
+      <blockquote className='mb-4 last:mb-0 whitespace-pre-line text-lg xl:text-2xl leading-snug italic'>
+        {children ?? null}
+      </blockquote>
+    ),
+  },
+  marks: {
+    strong: ({ children }: { children?: React.ReactNode }) => (
+      <BrushStrongMark seed='commissions-quote-strong'>
+        {children ?? null}
+      </BrushStrongMark>
+    ),
+    link: ({
+      children,
+      value,
+    }: {
+      children?: React.ReactNode
+      value?: any
+    }) => <PortableLinkMark value={value}>{children ?? null}</PortableLinkMark>,
+  },
+}
 
 export async function generateMetadata(
   _props: any,
@@ -20,7 +71,7 @@ export async function generateMetadata(
 
   return {
     title: 'Commissions',
-    description: commissionsPage?.quote,
+    description: toPlainText(commissionsPage?.quote),
     openGraph: {
       images: ogImage ? [ogImage, ...previousImages] : previousImages,
     },
@@ -60,7 +111,7 @@ export default async function CommissionsPage() {
           )}
 
           {/* Quote: sits UNDER the title, but starts later (shift right) */}
-          {commissionsPage.quote && (
+          {Array.isArray(commissionsPage.quote) && commissionsPage.quote.length > 0 && (
             <div
               className='
                 mt-6
@@ -70,9 +121,10 @@ export default async function CommissionsPage() {
                 xl:max-w-[70ch]
               '
             >
-              <p className='whitespace-pre-line text-lg xl:text-2xl leading-snug'>
-                {commissionsPage.quote}
-              </p>
+              <PortableText
+                value={commissionsPage.quote}
+                components={quotePortableComponents}
+              />
             </div>
           )}
         </div>

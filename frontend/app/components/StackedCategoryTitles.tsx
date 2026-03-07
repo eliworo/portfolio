@@ -1,8 +1,12 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import ReactDOM from 'react-dom'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
+import { AnimatePresence, motion } from 'motion/react'
 import RealBrush from './drawings/RealBrush'
+import HorizontalLine from './lines/HorizontalLine'
+import VerticalLine from './lines/VerticalLine'
 
 /** =========================================
  * Types
@@ -47,7 +51,7 @@ function hashString(str: string) {
 }
 
 /** One brush color only */
-const BRUSH_COLOR = '#9AB1FF'
+const BRUSH_COLOR = '#D9D9D9'
 
 /**
  * Single knob for sizing.
@@ -61,6 +65,7 @@ const TOP_PAD = Math.round(20 * SCALE)
 const BOTTOM_PAD = Math.round(20 * SCALE)
 const BRUSH_H_PX = Math.round(56 * SCALE) // h-14 is ~56px
 const IMG_MAX_H_PX = Math.round(55 * SCALE) // old lg max-h ~55px (close enough)
+const MOBILE_BRUSH_H_PX = Math.round(BRUSH_H_PX * 0.62)
 
 /** =========================================
  * Component
@@ -77,6 +82,13 @@ export default function StackedCategoryTitles({
   hideGroupTitle,
 }: StackedCategoryTitlesProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
+  const mobileContentRef = useRef<HTMLDivElement>(null)
+  const mobileHandleRef = useRef<HTMLButtonElement>(null)
+  const [mobileContentWidth, setMobileContentWidth] = useState(0)
+  const [mobileHandleWidth, setMobileHandleWidth] = useState(0)
+  const [mobileMeasured, setMobileMeasured] = useState(false)
 
   const getCategoryRotation = (id: string) => {
     const hash = hashString(id + 'rotation')
@@ -106,6 +118,46 @@ export default function StackedCategoryTitles({
   const canUseStacked = Boolean(images.studio && images.works)
   const effectiveVariant: TitleVariant =
     titleVariant === 'stacked' && canUseStacked ? 'stacked' : 'horizontal'
+  const mobileHideOffset = mobileMeasured
+    ? Math.max(0, mobileContentWidth - mobileHandleWidth + 10)
+    : 1000
+
+  useEffect(() => {
+    if (!mobileContentRef.current || !mobileHandleRef.current) return
+
+    const updateWidths = () => {
+      if (mobileContentRef.current && mobileHandleRef.current) {
+        setMobileContentWidth(mobileContentRef.current.offsetWidth)
+        setMobileHandleWidth(mobileHandleRef.current.offsetWidth)
+        setMobileMeasured(true)
+      }
+    }
+
+    const timer = setTimeout(updateWidths, 10)
+    const observer = new ResizeObserver(updateWidths)
+    observer.observe(mobileContentRef.current)
+    observer.observe(mobileHandleRef.current)
+
+    return () => {
+      clearTimeout(timer)
+      observer.disconnect()
+    }
+  }, [categories, selectedCategory])
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return
+
+    const onPointerDown = (e: PointerEvent) => {
+      const menuEl = mobileMenuRef.current
+      if (!menuEl) return
+      if (!menuEl.contains(e.target as Node)) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('pointerdown', onPointerDown, true)
+    return () => document.removeEventListener('pointerdown', onPointerDown, true)
+  }, [isMobileMenuOpen])
 
   return (
     <>
@@ -272,6 +324,133 @@ export default function StackedCategoryTitles({
           })}
         </div>
       </div>
+
+      {/* Mobile slide-out category nav (contact-style) */}
+      <motion.div
+        className='lg:hidden fixed bottom-4 right-4 z-40 flex items-end pointer-events-none'
+        initial={{ x: mobileHideOffset }}
+        animate={{ x: isMobileMenuOpen ? 0 : mobileHideOffset }}
+        transition={{ duration: 0.5, ease: [0.76, 0, 0.24, 1] }}
+      >
+        <MobileBlurBackdrop show={isMobileMenuOpen} />
+        <div
+          ref={(node) => {
+            mobileContentRef.current = node
+            mobileMenuRef.current = node
+          }}
+          className='flex items-end pointer-events-auto'
+        >
+          <button
+            ref={mobileHandleRef}
+            type='button'
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            className='flex flex-shrink-0 -mr-1 pt-2 pl-2 relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+            aria-expanded={isMobileMenuOpen}
+            aria-label='Toggle category navigation'
+          >
+            <div className='relative flex items-center gap-2'>
+              <RealBrush
+                seed='category:mobile-handle'
+                color={BRUSH_COLOR}
+                className='absolute -inset-x-3 -z-10'
+                style={{ height: 34, top: '52%', transform: 'translateY(-50%)' }}
+              />
+              <Image
+                src='/images/ByCategory.png'
+                alt='By Category'
+                width={400}
+                height={400}
+                className='object-contain h-8 w-auto select-none pointer-events-none'
+              />
+            </div>
+            <HorizontalLine className='w-10' theme={{ fill: 'black' }} />
+          </button>
+
+          <ul className='space-y-0 relative ml-2 min-w-[200px] pointer-events-auto'>
+            <div className='absolute left-0 top-0 h-full'>
+              <VerticalLine className='h-full' theme={{ fill: 'black' }} />
+            </div>
+            {categories.map((category) => {
+              const isActive = selectedCategory === category.id
+              return (
+                <li key={category.id}>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      onSelectCategory(isActive ? null : category.id)
+                      setIsMobileMenuOpen(false)
+                    }}
+                    aria-pressed={isActive}
+                    className='relative block w-fit ml-6 px-2 py-0.5 whitespace-nowrap cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+                  >
+                    {isActive && (
+                      <div
+                        className='absolute inset-x-0 bottom-0 flex items-end justify-center z-0 pointer-events-none'
+                        style={{ height: '100%' }}
+                      >
+                        <RealBrush
+                          seed={`category:${category.id}:mobile`}
+                          color={BRUSH_COLOR}
+                          className='absolute -inset-x-1 bottom-0'
+                          style={{ height: MOBILE_BRUSH_H_PX }}
+                        />
+                      </div>
+                    )}
+                    <span className='relative z-10 inline-flex items-center'>
+                      {category.titleImageUrl ? (
+                        <Image
+                          src={category.titleImageUrl}
+                          alt={category.title}
+                          width={220}
+                          height={56}
+                          className='object-contain h-[26px] w-auto'
+                        />
+                      ) : (
+                        <span className='text-[15px] font-right-grotesk-narrow-medium leading-none'>
+                          {category.title}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </motion.div>
     </>
+  )
+}
+
+function useMounted() {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  return mounted
+}
+
+function MobileBlurBackdrop({ show }: { show: boolean }) {
+  const mounted = useMounted()
+  if (!mounted) return null
+
+  return ReactDOM.createPortal(
+    <AnimatePresence>
+      {show ? (
+        <motion.div
+          key='project-category-mobile-backdrop'
+          className='fixed inset-0 z-30'
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1] }}
+          style={{
+            background: 'rgba(255,255,255,0.30)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            pointerEvents: 'none',
+          }}
+        />
+      ) : null}
+    </AnimatePresence>,
+    document.body
   )
 }

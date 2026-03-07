@@ -7,11 +7,17 @@ export const studioWorks = defineType({
   title: 'Studio Works',
   type: 'document',
   icon: StackCompactIcon,
+  groups: [
+    {name: 'content', title: 'Content', default: true},
+    {name: 'titles', title: 'Title Images'},
+    {name: 'layout', title: 'Layout'},
+  ],
   fields: [
     defineField({
       name: 'titleImage',
       title: 'Studio Works Title Image',
       type: 'image',
+      group: 'titles',
       validation: (rule) => rule.required(),
       options: {
         hotspot: true,
@@ -28,6 +34,7 @@ export const studioWorks = defineType({
       name: 'titleImageStudio',
       title: 'Title Image (Stacked) — STUDIO',
       type: 'image',
+      group: 'titles',
       options: {hotspot: true},
       fields: [{name: 'alt', type: 'string', title: 'Alternative text'}],
     }),
@@ -36,6 +43,7 @@ export const studioWorks = defineType({
       name: 'titleImageWorks',
       title: 'Title Image (Stacked) — WORKS',
       type: 'image',
+      group: 'titles',
       options: {hotspot: true},
       fields: [{name: 'alt', type: 'string', title: 'Alternative text'}],
     }),
@@ -44,6 +52,7 @@ export const studioWorks = defineType({
       name: 'description',
       title: 'Introduction Text',
       type: 'array',
+      group: 'content',
       of: [
         {
           type: 'block',
@@ -66,6 +75,7 @@ export const studioWorks = defineType({
       name: 'featuredProjects',
       title: 'Projects to Display',
       type: 'array',
+      group: 'content',
       description:
         'Curate personal projects or specific category sections from professional/large personal projects. Position each item freely.',
       of: [
@@ -262,6 +272,7 @@ export const studioWorks = defineType({
       name: 'gridSpacing',
       title: 'Grid Spacing (Desktop)',
       type: 'object',
+      group: 'layout',
       fields: [
         defineField({
           name: 'columnGap',

@@ -63,27 +63,25 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
         className='fixed top-8 right-4 z-50 flex justify-center items-center w-14 h-12'
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
       >
-        {!isOpen ? (
-          <div className='relative w-12 h-auto'>
+        <div className='relative w-12 h-12'>
+          {!isOpen ? (
             <Image
-              src='/images/hamburger-1.png'
+              src='/images/hamburger.png'
               alt='Open menu'
               width={600}
               height={600}
-              className='object-contain w-auto h-12 -ml-2'
+              className='absolute inset-0 m-auto object-contain h-12 w-12'
             />
-          </div>
-        ) : (
-          <div className='relative w-14 h-auto'>
+          ) : (
             <Image
               src='/images/close.png'
               alt='Close menu'
               width={400}
               height={400}
-              className='object-contain w-auto h-12'
+              className='absolute inset-0 m-auto object-contain h-12 w-12'
             />
-          </div>
-        )}
+          )}
+        </div>
       </button>
       {/* <button
         onClick={toggleMenu}

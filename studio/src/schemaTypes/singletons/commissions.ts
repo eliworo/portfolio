@@ -19,9 +19,78 @@ export const commissions = defineType({
     defineField({
       name: 'quote',
       title: 'Quote',
-      type: 'text',
-      rows: 4,
-      description: 'A short quote or sentence to display at the top of the page.',
+      type: 'array',
+      description: 'Rich text quote displayed at the top of the page.',
+      of: [
+        {
+          type: 'block',
+          styles: [
+            {title: 'Normal', value: 'normal'},
+            {title: 'Quote', value: 'blockquote'},
+          ],
+          marks: {
+            decorators: [
+              {title: 'Strong', value: 'strong'},
+              {title: 'Emphasis', value: 'em'},
+            ],
+            annotations: [
+              {
+                name: 'link',
+                type: 'object',
+                title: 'Link',
+                fields: [
+                  {
+                    name: 'linkType',
+                    title: 'Link Type',
+                    type: 'string',
+                    initialValue: 'external',
+                    options: {
+                      list: [
+                        {title: 'Internal', value: 'internal'},
+                        {title: 'External', value: 'external'},
+                      ],
+                      layout: 'radio',
+                    },
+                  },
+                  {
+                    name: 'internalLink',
+                    title: 'Internal slug',
+                    description: 'Examples: about, productions, posts/my-post',
+                    type: 'string',
+                    hidden: ({parent}: any) => parent?.linkType !== 'internal',
+                    validation: (Rule) =>
+                      Rule.custom((value, context: any) => {
+                        if (context.parent?.linkType === 'internal' && !value) {
+                          return 'Internal slug is required when Link Type is Internal'
+                        }
+                        return true
+                      }),
+                  },
+                  {
+                    name: 'href',
+                    title: 'URL',
+                    type: 'url',
+                    hidden: ({parent}: any) => parent?.linkType !== 'external',
+                    validation: (Rule) =>
+                      Rule.custom((value, context: any) => {
+                        if (context.parent?.linkType === 'external' && !value) {
+                          return 'URL is required when Link Type is External'
+                        }
+                        return true
+                      }),
+                  },
+                  {
+                    name: 'openInNewTab',
+                    title: 'Open in new tab',
+                    type: 'boolean',
+                    initialValue: false,
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      ],
     }),
     defineField({
       name: 'tools',

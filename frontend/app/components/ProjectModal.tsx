@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
@@ -8,8 +8,14 @@ import { PortableText } from '@portabletext/react'
 type WritingSlide = {
   _key: string
   type: 'text' | 'image'
+  title?: string
+  titleWeight?: 'normal' | 'bold'
+  titleSize?: 'normal' | 'large'
   content?: string
   imageUrl?: string
+  imageWidth?: number
+  imageHeight?: number
+  imageBlurDataURL?: string
   caption?: string
   alt?: string
 }
@@ -20,6 +26,9 @@ type MediaItem = {
   alt?: string
   title?: string
   posterUrl?: string
+  width?: number
+  height?: number
+  blurDataURL?: string
 }
 
 type ProjectModalProps = {
@@ -31,7 +40,14 @@ type ProjectModalProps = {
     year?: string
     content?: any
     coverImage?: {
-      asset?: { _id?: string; url?: string }
+      asset?: {
+        _id?: string
+        url?: string
+        metadata?: {
+          dimensions?: { width?: number; height?: number }
+          lqip?: string
+        }
+      }
       crop?: Record<string, number>
       hotspot?: Record<string, number>
       alt?: string
@@ -39,7 +55,14 @@ type ProjectModalProps = {
     images?: Array<
       | {
           _type: 'image'
-          asset?: { _id?: string; url?: string }
+          asset?: {
+            _id?: string
+            url?: string
+            metadata?: {
+              dimensions?: { width?: number; height?: number }
+              lqip?: string
+            }
+          }
           crop?: Record<string, number>
           hotspot?: Record<string, number>
           alt?: string
@@ -61,9 +84,20 @@ type ProjectModalProps = {
     writingContent?: Array<{
       _type: string
       _key: string
+      title?: string
+      titleWeight?: 'normal' | 'bold'
+      titleSize?: 'normal' | 'large'
       content?: string
       image?: {
-        asset?: { _id?: string; _ref?: string; url?: string }
+        asset?: {
+          _id?: string
+          _ref?: string
+          url?: string
+          metadata?: {
+            dimensions?: { width?: number; height?: number }
+            lqip?: string
+          }
+        }
         crop?: Record<string, number>
         hotspot?: Record<string, number>
         alt?: string
@@ -78,6 +112,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [allMedia, setAllMedia] = useState<MediaItem[]>([])
   const [writingSlides, setWritingSlides] = useState<WritingSlide[]>([])
+  const [isCurrentMediaReady, setIsCurrentMediaReady] = useState(false)
 
   useEffect(() => {
     if (!project) return
@@ -89,6 +124,9 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             return {
               _key: block._key,
               type: 'text' as const,
+              title: block.title,
+              titleWeight: block.titleWeight,
+              titleSize: block.titleSize,
               content: block.content,
             }
           }
@@ -96,7 +134,13 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             return {
               _key: block._key,
               type: 'image' as const,
+              title: block.title,
+              titleWeight: block.titleWeight,
+              titleSize: block.titleSize,
               imageUrl: block.image.asset.url,
+              imageWidth: block.image.asset.metadata?.dimensions?.width,
+              imageHeight: block.image.asset.metadata?.dimensions?.height,
+              imageBlurDataURL: block.image.asset.metadata?.lqip,
               caption: block.caption,
               alt: block.image.alt || '',
             }
@@ -121,6 +165,9 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
         url: project.coverImage.asset.url,
         alt: project.coverImage.alt || project.title,
         title: undefined, // Cover image doesn't have a separate title
+        width: project.coverImage.asset.metadata?.dimensions?.width,
+        height: project.coverImage.asset.metadata?.dimensions?.height,
+        blurDataURL: project.coverImage.asset.metadata?.lqip,
       })
     }
 
@@ -140,6 +187,9 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             url: item.asset.url,
             alt: item.alt || project.title,
             title: item.title,
+            width: item.asset.metadata?.dimensions?.width,
+            height: item.asset.metadata?.dimensions?.height,
+            blurDataURL: item.asset.metadata?.lqip,
           })
         }
       })
@@ -155,6 +205,9 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                 type: 'image',
                 url: img.asset.url,
                 alt: img.alt || '',
+                width: img.asset.metadata?.dimensions?.width,
+                height: img.asset.metadata?.dimensions?.height,
+                blurDataURL: img.asset.metadata?.lqip,
               })
             }
           })
@@ -165,6 +218,9 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                 type: 'image',
                 url: img.asset.url,
                 alt: img.alt || '',
+                width: img.asset.metadata?.dimensions?.width,
+                height: img.asset.metadata?.dimensions?.height,
+                blurDataURL: img.asset.metadata?.lqip,
               })
             }
           })
@@ -198,11 +254,29 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
   }, [project])
 
   const isWriting = project?.projectSubtype === 'writing'
-  const isDoubleLayout =
+  const isDoubleLayoutSetting =
     project?.writingLayout?.replace(/[^\w]/g, '') === 'double'
+  const [isMobileViewport, setIsMobileViewport] = useState(false)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 1023px)')
+    const updateViewport = () => {
+      setIsMobileViewport(mediaQuery.matches)
+    }
+
+    updateViewport()
+    mediaQuery.addEventListener('change', updateViewport)
+
+    return () => {
+      mediaQuery.removeEventListener('change', updateViewport)
+    }
+  }, [])
+
+  const useDoubleLayout = isDoubleLayoutSetting && !isMobileViewport
+  const previousUseDoubleLayout = useRef(useDoubleLayout)
 
   const writingSpreads = useMemo(() => {
-    if (!isWriting || !isDoubleLayout) return []
+    if (!isWriting || !useDoubleLayout) return []
     const spreads: Array<{ left?: WritingSlide; right?: WritingSlide }> = []
     for (let i = 0; i < writingSlides.length; i += 2) {
       spreads.push({
@@ -211,15 +285,29 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
       })
     }
     return spreads
-  }, [isWriting, isDoubleLayout, writingSlides])
+  }, [isWriting, useDoubleLayout, writingSlides])
 
   if (!project) return null
 
   const totalSlides = isWriting
-    ? isDoubleLayout
+    ? useDoubleLayout
       ? writingSpreads.length
       : writingSlides.length
     : allMedia.length
+
+  useEffect(() => {
+    if (!isWriting) return
+    if (previousUseDoubleLayout.current === useDoubleLayout) return
+
+    setCurrentIndex((prev) => {
+      if (useDoubleLayout) {
+        return Math.floor(prev / 2)
+      }
+      return Math.min(prev * 2, Math.max(0, writingSlides.length - 1))
+    })
+
+    previousUseDoubleLayout.current = useDoubleLayout
+  }, [isWriting, useDoubleLayout, writingSlides.length])
 
   const selectSlide = (index: number) => {
     setCurrentIndex(index)
@@ -227,21 +315,57 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
 
   const nextSlide = () => {
     if (totalSlides <= 1) return
-    setCurrentIndex((prev) => (prev + 1) % totalSlides)
+    setCurrentIndex((prev) => Math.min(prev + 1, totalSlides - 1))
   }
 
   const prevSlide = () => {
     if (totalSlides <= 1) return
-    setCurrentIndex((prev) => (prev - 1 + totalSlides) % totalSlides)
+    setCurrentIndex((prev) => Math.max(prev - 1, 0))
   }
 
-  const PostItFrame = ({ children }: { children: React.ReactNode }) => {
+  const ModalBlurImage = ({
+    src,
+    alt,
+    width,
+    height,
+    blurDataURL,
+    className,
+    onLoaded,
+  }: {
+    src: string
+    alt: string
+    width?: number
+    height?: number
+    blurDataURL?: string
+    className: string
+    onLoaded?: () => void
+  }) => {
+    const FALLBACK_BLUR_DATA_URL =
+      'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjZWVlZWVlIi8+PC9zdmc+'
+
+    return (
+      <div className='overflow-hidden'>
+        <Image
+          src={src}
+          alt={alt}
+          width={width || 1600}
+          height={height || 1200}
+          className={className}
+          placeholder='blur'
+          blurDataURL={blurDataURL || FALLBACK_BLUR_DATA_URL}
+          onLoad={onLoaded}
+          onError={onLoaded}
+        />
+      </div>
+    )
+  }
+
+  const PaperFrame = ({ children }: { children: React.ReactNode }) => {
     return (
       <div className='relative w-[300px] sm:w-[360px] md:w-[420px]'>
-        {/* Frame image */}
         <div className='relative aspect-[4/5]'>
           <Image
-            src='/images/postitLogo2.png'
+            src='/images/feuillePapierLogo1FondBlanc.png'
             alt=''
             fill
             className='object-fill'
@@ -250,8 +374,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
           />
         </div>
 
-        {/* Content overlay */}
-        <div className='absolute inset-0 flex items-center justify-center p-10 sm:p-12 md:px-20 xl:py-20 xl:pb-24'>
+        <div className='absolute inset-0 flex items-center justify-center p-10 sm:p-12 md:px-20 md:py-10 xl:py-12 xl:pb-14'>
           <div className='w-full h-full overflow-hidden flex items-start justify-center'>
             {children}
           </div>
@@ -260,42 +383,62 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
     )
   }
 
-  const renderWritingTextSlide = (text?: string) => (
-    <PostItFrame>
-      <div className='relative w-full h-full'>
-        {/* Scroll area */}
-        <div className='h-full overflow-y-auto scrollbar-hide pr-1 pt-8'>
-          <p className='text-xs sm:text-sm md:text-base leading-snug text-black whitespace-pre-wrap'>
-            {text}
+  const titleClassName = (slide?: WritingSlide) => {
+    const weightClass =
+      slide?.titleWeight === 'bold' ? 'font-semibold' : 'font-normal'
+    const sizeClass =
+      slide?.titleSize === 'large'
+        ? 'text-base sm:text-lg md:text-xl'
+        : 'text-sm sm:text-base md:text-lg'
+    return `${weightClass} ${sizeClass}`
+  }
+
+  const renderWritingTextSlide = (slide?: WritingSlide) => (
+    <PaperFrame>
+      <div className='relative w-full h-full overflow-hidden'>
+        <div className='h-full overflow-hidden pt-2'>
+          {slide?.title && (
+            <h3
+              className={`mb-4 leading-tight text-black ${titleClassName(slide)}`}
+            >
+              {slide.title}
+            </h3>
+          )}
+          <p className='text-xs sm:text-sm md:text-base leading-snug text-black whitespace-pre-wrap overflow-hidden'>
+            {slide?.content}
           </p>
-          <div className='h-6' />
         </div>
-
-        {/* Top fade */}
-        <div className='pointer-events-none absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-white to-transparent' />
-
-        {/* Bottom fade */}
-        <div className='pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent' />
       </div>
-    </PostItFrame>
+    </PaperFrame>
   )
 
   const renderWritingImageSlide = (slide: WritingSlide) => (
-    <PostItFrame>
-      <div className='relative w-full h-full'>
-        <Image
-          src={slide.imageUrl!}
-          alt={slide.alt || project.title}
-          fill
-          className='object-contain'
-        />
-        {slide.caption && (
-          <div className='absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded text-xs'>
-            {slide.caption}
-          </div>
-        )}
-      </div>
-    </PostItFrame>
+    <div className='flex flex-col items-center'>
+      <PaperFrame>
+        <div className='relative w-full h-full'>
+          {slide.title && (
+            <h3
+              className={`absolute top-2 left-0 right-0 text-center leading-tight text-black z-10 ${titleClassName(slide)}`}
+            >
+              {slide.title}
+            </h3>
+          )}
+          <ModalBlurImage
+            src={slide.imageUrl!}
+            alt={slide.alt || project.title}
+            width={slide.imageWidth}
+            height={slide.imageHeight}
+            blurDataURL={slide.imageBlurDataURL}
+            className='max-h-[45dvh] lg:max-h-[52dvh] w-auto h-auto object-contain'
+          />
+        </div>
+      </PaperFrame>
+      {slide.caption && (
+        <figcaption className='mt-2 pl-1 text-xs lg:text-sm text-gray-600 leading-snug text-left w-full max-w-[420px]'>
+          {slide.caption}
+        </figcaption>
+      )}
+    </div>
   )
 
   // const renderTextBlock = (text?: string) => (
@@ -320,7 +463,8 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
   //   </div>
   // )
 
-  const renderTextBlock = (text?: string) => renderWritingTextSlide(text)
+  const renderTextBlock = (slide?: WritingSlide) =>
+    renderWritingTextSlide(slide)
   const renderImageBlock = (slide: WritingSlide) =>
     renderWritingImageSlide(slide)
 
@@ -329,21 +473,25 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
       return <div className='opacity-0 select-none h-full' aria-hidden />
     }
     return slide.type === 'text'
-      ? renderTextBlock(slide.content)
+      ? renderTextBlock(slide)
       : renderImageBlock(slide)
   }
 
   const paginationItems = isWriting
-    ? isDoubleLayout
+    ? useDoubleLayout
       ? writingSpreads
       : writingSlides
     : allMedia
 
-  const currentSingleSlide = !isDoubleLayout
+  const currentSingleSlide = !useDoubleLayout
     ? writingSlides[currentIndex]
     : null
-  const currentSpread = isDoubleLayout ? writingSpreads[currentIndex] : null
+  const currentSpread = useDoubleLayout ? writingSpreads[currentIndex] : null
   const currentMedia = !isWriting ? allMedia[currentIndex] : null
+
+  useEffect(() => {
+    setIsCurrentMediaReady(false)
+  }, [currentIndex, project?._id, isWriting])
 
   return (
     <AnimatePresence>
@@ -367,24 +515,24 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
           />
         </button>
         <motion.div
-          className='relative bg-white/75 backdrop-blur-md rounded-lg w-full h-full p-2 lg:p-0 overflow-hidden'
+          className='relative bg-white/75 backdrop-blur-md w-full h-full p-2 lg:p-0 overflow-hidden'
           initial={{ scale: 0.9, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.9, y: 20 }}
           onClick={(e) => e.stopPropagation()}
         >
           <div className='flex flex-col h-full max-h-[100vh] overflow-hidden'>
-            <div className='flex-1 overflow-y-auto flex flex-col pb-0 items-center justify-center'>
+            <div className='flex-1 overflow-y-auto flex flex-col pb-4 items-center'>
               {isWriting && paginationItems.length > 0 && (
                 <div
                   className={`relative w-full ${
-                    isDoubleLayout ? 'max-w-5xl' : 'max-w-3xl'
-                  } max-h-[55vh] h-[55vh] rounded-lg flex items-center justify-center`}
+                    useDoubleLayout ? 'max-w-5xl' : 'max-w-3xl'
+                  } max-h-[52dvh] h-[52dvh] lg:max-h-[58dvh] lg:h-[58dvh] flex items-center justify-center mt-6`}
                 >
                   <AnimatePresence mode='wait'>
                     <motion.div
                       key={
-                        isDoubleLayout
+                        useDoubleLayout
                           ? `spread-${currentIndex}`
                           : `slide-${currentSingleSlide?._key ?? currentIndex}`
                       }
@@ -394,20 +542,20 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      {isDoubleLayout && currentSpread ? (
-                        <div className='flex gap-6 sm:gap-8 px-4 sm:px-8 py-10 w-full h-full overflow-y-auto'>
-                          <div className='flex-1 pr-4 sm:pr-8'>
+                      {useDoubleLayout && currentSpread ? (
+                        <div className='flex gap-1 sm:gap-2 px-2 sm:px-4 py-3 sm:py-4 w-full h-full overflow-hidden'>
+                          <div className='flex-1'>
                             {renderPageBlock(currentSpread.left)}
                           </div>
-                          <div className='flex-1 pl-4 sm:pl-8'>
+                          <div className='flex-1'>
                             {renderPageBlock(currentSpread.right)}
                           </div>
                         </div>
                       ) : (
                         currentSingleSlide && (
-                          <div className='px-6 sm:px-8 py-12 max-w-2xl w-full h-full overflow-y-auto'>
+                          <div className='px-4 sm:px-6 py-3 sm:py-4 max-w-2xl w-full h-full overflow-hidden flex items-center justify-center mx-auto'>
                             {currentSingleSlide.type === 'text'
-                              ? renderTextBlock(currentSingleSlide.content)
+                              ? renderTextBlock(currentSingleSlide)
                               : renderImageBlock(currentSingleSlide)}
                           </div>
                         )
@@ -418,7 +566,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               )}
 
               {!isWriting && allMedia.length > 0 && currentMedia && (
-                <div className='relative w-full max-h-[70vh] h-[70vh] rounded-lg overflow-hidden flex flex-col items-center justify-center'>
+                <div className='relative w-full max-h-[58dvh] h-[58dvh] lg:max-h-[66dvh] lg:h-[66dvh] overflow-visible flex flex-col items-center justify-center mt-6'>
                   <AnimatePresence mode='wait'>
                     <motion.div
                       key={currentIndex}
@@ -428,72 +576,87 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      {currentMedia.type === 'image' ? (
-                        <Image
-                          src={currentMedia.url}
-                          alt={currentMedia.alt || project.title}
-                          fill
-                          className='object-contain'
-                        />
-                      ) : (
-                        <video
-                          src={currentMedia.url}
-                          controls
-                          className='w-auto h-full object-contain'
-                          poster={currentMedia.posterUrl}
-                        >
-                          Your browser does not support the video tag.
-                        </video>
-                      )}
+                      <div className='w-full flex items-center justify-center'>
+                        <div className='inline-flex flex-col items-start max-w-[92vw] lg:max-w-[1100px]'>
+                        {currentMedia.type === 'image' ? (
+                          <ModalBlurImage
+                            src={currentMedia.url}
+                            alt={currentMedia.alt || project.title}
+                            width={currentMedia.width}
+                            height={currentMedia.height}
+                            blurDataURL={currentMedia.blurDataURL}
+                            className='max-h-[58dvh] lg:max-h-[66dvh] w-auto h-auto object-contain'
+                            onLoaded={() => setIsCurrentMediaReady(true)}
+                          />
+                        ) : (
+                          <video
+                            src={currentMedia.url}
+                            controls
+                            className='max-h-[58dvh] lg:max-h-[66dvh] w-auto h-auto object-contain'
+                            poster={currentMedia.posterUrl}
+                            onLoadedData={() => setIsCurrentMediaReady(true)}
+                            onCanPlay={() => setIsCurrentMediaReady(true)}
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        )}
+                        {currentMedia.title && (
+                          <figcaption
+                            className={`mt-2 pl-1 text-xs lg:text-sm text-gray-600 leading-snug text-left transition-opacity duration-200 ${
+                              isCurrentMediaReady ? 'opacity-100' : 'opacity-0'
+                            }`}
+                          >
+                            {currentMedia.title}
+                          </figcaption>
+                        )}
+                        </div>
+                      </div>
                     </motion.div>
                   </AnimatePresence>
-                  {currentMedia.title && (
-                    <div className='mt-3 text-center'>
-                      <p className='text-sm text-gray-700 italic'>
-                        {currentMedia.title}
-                      </p>
-                    </div>
-                  )}
                 </div>
               )}
               {totalSlides > 1 && (
-                <div className='flex items-center gap-6 py-2 mt-16 relative'>
+                <div className='flex items-center gap-4 py-1 mt-3 sm:mt-4 relative'>
                   {/* Counter */}
-                  <div className='text-lg xl:text-2xl font-rader-medium'>
+                  <div className='text-lg lg:text-xl xl:text-2xl font-rader-medium'>
                     {currentIndex + 1}/{totalSlides}
                   </div>
 
                   {/* Navigation arrows */}
-                  <button
-                    onClick={prevSlide}
-                    className='absolute -left-22 top-1/2 -translate-y-1/2'
-                    aria-label='Previous'
-                  >
-                    <Image
-                      src='/images/arrowLeftLogo.png'
-                      alt='Previous'
-                      width={600}
-                      height={600}
-                      className='object-contain h-8 w-auto select-none pointer-events-none'
-                    />
-                  </button>
-                  <button
-                    onClick={nextSlide}
-                    className='absolute -right-22 top-1/2 -translate-y-1/2'
-                    aria-label='Next'
-                  >
-                    <Image
-                      src='/images/arrowRightLogo.png'
-                      alt='Next'
-                      width={600}
-                      height={600}
-                      className='object-contain h-8 w-auto select-none pointer-events-none'
-                    />
-                  </button>
+                  {currentIndex > 0 && (
+                    <button
+                      onClick={prevSlide}
+                      className='absolute -left-16 lg:-left-22 top-1/2 -translate-y-1/2'
+                      aria-label='Previous'
+                    >
+                      <Image
+                        src='/images/arrowLeftLogo.png'
+                        alt='Previous'
+                        width={600}
+                        height={600}
+                        className='object-contain h-6 sm:h-7 lg:h-8 w-auto select-none pointer-events-none'
+                      />
+                    </button>
+                  )}
+                  {currentIndex < totalSlides - 1 && (
+                    <button
+                      onClick={nextSlide}
+                      className='absolute -right-16 lg:-right-22 top-1/2 -translate-y-1/2'
+                      aria-label='Next'
+                    >
+                      <Image
+                        src='/images/arrowRightLogo.png'
+                        alt='Next'
+                        width={600}
+                        height={600}
+                        className='object-contain h-6 sm:h-7 lg:h-8 w-auto select-none pointer-events-none'
+                      />
+                    </button>
+                  )}
                 </div>
               )}
 
-              <div className='flex justify-center items-center w-full my-8 mb-4'>
+              <div className='flex justify-center items-center w-full mt-5 mb-2 px-2'>
                 <h1 className='text-3xl font-right-grotesk-narrow-medium text-center'>
                   {project.title}
                   {project.year && (
@@ -502,7 +665,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                 </h1>
               </div>
               {project.description && (
-                <p className='text-sm xl:text-2xl leading-snug px-2 max-w-3xl font-normal'>
+                <p className='text-sm xl:text-2xl leading-snug px-2 max-w-3xl font-normal mb-2'>
                   {project.description}
                 </p>
               )}
@@ -529,7 +692,9 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                       },
                       block: {
                         normal: ({ children }: any) => (
-                          <p className='mb-3 text-sm'>{children}</p>
+                          <p className='mb-3 text-sm whitespace-pre-line'>
+                            {children}
+                          </p>
                         ),
                       },
                     }}

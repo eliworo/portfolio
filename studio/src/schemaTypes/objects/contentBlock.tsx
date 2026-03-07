@@ -549,7 +549,21 @@ export const videoBlock = defineType({
       title: 'Video URL',
       type: 'url',
       description: 'YouTube, Vimeo, or direct video URL',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) =>
+        Rule.custom((value, context) => {
+          const parent = context.parent as {videoFile?: unknown} | undefined
+          if (value || parent?.videoFile) return true
+          return 'Add a Video URL or upload a Video File'
+        }),
+    }),
+    defineField({
+      name: 'videoFile',
+      title: 'Video File',
+      type: 'file',
+      options: {
+        accept: 'video/*',
+      },
+      description: 'Upload a video file instead of using a URL',
     }),
     defineField({
       name: 'caption',
@@ -575,11 +589,12 @@ export const videoBlock = defineType({
     select: {
       url: 'url',
       caption: 'caption',
+      hasVideoFile: 'videoFile.asset',
     },
-    prepare({url, caption}) {
+    prepare({url, caption, hasVideoFile}) {
       return {
         title: caption || 'Video',
-        subtitle: url,
+        subtitle: url || (hasVideoFile ? 'Uploaded video file' : 'No source selected'),
         media: PlayIcon,
       }
     },
@@ -616,6 +631,25 @@ export const mediaWithMedia = defineType({
           title: 'Video URL',
           type: 'url',
           description: 'YouTube, Vimeo, or direct video URL',
+          hidden: ({parent}) => parent?.mediaType !== 'video',
+          validation: (Rule) =>
+            Rule.custom((value, context) => {
+              const parent = context.parent as
+                | {mediaType?: string; videoFile?: unknown}
+                | undefined
+              if (parent?.mediaType !== 'video') return true
+              if (value || parent?.videoFile) return true
+              return 'Add a Video URL or upload a Video File'
+            }),
+        },
+        {
+          name: 'videoFile',
+          title: 'Video File',
+          type: 'file',
+          options: {
+            accept: 'video/*',
+          },
+          description: 'Upload a video file instead of using a URL',
           hidden: ({parent}) => parent?.mediaType !== 'video',
         },
         {
@@ -701,6 +735,25 @@ export const mediaWithMedia = defineType({
           title: 'Video URL',
           type: 'url',
           description: 'YouTube, Vimeo, or direct video URL',
+          hidden: ({parent}) => parent?.mediaType !== 'video',
+          validation: (Rule) =>
+            Rule.custom((value, context) => {
+              const parent = context.parent as
+                | {mediaType?: string; videoFile?: unknown}
+                | undefined
+              if (parent?.mediaType !== 'video') return true
+              if (value || parent?.videoFile) return true
+              return 'Add a Video URL or upload a Video File'
+            }),
+        },
+        {
+          name: 'videoFile',
+          title: 'Video File',
+          type: 'file',
+          options: {
+            accept: 'video/*',
+          },
+          description: 'Upload a video file instead of using a URL',
           hidden: ({parent}) => parent?.mediaType !== 'video',
         },
         {

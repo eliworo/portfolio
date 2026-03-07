@@ -1,5 +1,4 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { sanityFetch } from '@/sanity/lib/live'
 import { productionsPageQuery, projectQuery } from '@/sanity/lib/queries'
@@ -29,6 +28,7 @@ type Project = {
   title: string
   titleImage?: { asset?: { url?: string | null } } | null
   description?: string
+  ticketsUrl?: string
   projectKind?: string
   projectTypeSlug?: string
   categorySections?: CategorySection[]
@@ -41,7 +41,7 @@ type Project = {
 
 export async function generateMetadata(
   { params }: { params: Promise<{ projectSlug: string }> },
-  parent: ResolvingMetadata
+  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const { projectSlug } = await params
 
@@ -90,7 +90,7 @@ export default async function ProductionsProjectPage({
 
   const featuredProjects = productionsPage?.featuredProjects || []
   const currentIndex = featuredProjects.findIndex(
-    (item: any) => item.project.slug.current === projectSlug
+    (item: any) => item.project.slug.current === projectSlug,
   )
 
   const prevProject =
@@ -150,31 +150,39 @@ export default async function ProductionsProjectPage({
         {/* HEADER: title image + description in FLOW */}
 
         <header className='mb-10 lg:mb-16'>
-          <div className='fixed right-8 top-[13vh] z-10'>
-            <div className='relative inline-block px-2 py-1'>
-              {/* Black brush background */}
-              <RealBrush
-                seed='tickets-brush'
-                color='#000'
-                className='absolute -inset-x-1 z-0'
-                style={{
-                  height: '130%',
-                  top: '45%',
-                  transform: 'translateY(-50%)',
-                }}
-              />
-              {/* Tickets logo on top */}
-              <Image
-                src='/images/ticketsLogo-blanc.png'
-                alt='Previous'
-                width={800}
-                height={269}
-                className='h-8 lg:h-8 w-auto relative z-10'
-                draggable={false}
-                priority
-              />
+          {project.ticketsUrl && (
+            <div className='fixed right-8 top-22 lg:top-8 xl:right-16 z-10'>
+              <a
+                href={project.ticketsUrl}
+                target='_blank'
+                rel='noopener noreferrer'
+                aria-label='Open tickets'
+                className='relative inline-block px-2 py-1 opacity-80 hover:opacity-100 transition-opacity'
+              >
+                {/* Black brush background */}
+                <RealBrush
+                  seed='tickets-brush'
+                  color='#000'
+                  className='absolute -inset-x-1 z-0'
+                  style={{
+                    height: '130%',
+                    top: '45%',
+                    transform: 'translateY(-50%)',
+                  }}
+                />
+                {/* Tickets logo on top */}
+                <Image
+                  src='/images/ticketsLogo-blanc.png'
+                  alt='Tickets'
+                  width={800}
+                  height={269}
+                  className='h-6 lg:h-7 w-auto relative z-10'
+                  draggable={false}
+                  priority
+                />
+              </a>
             </div>
-          </div>
+          )}
           <div className='lg:grid lg:grid-cols-12 lg:gap-x-10 lg:items-start'>
             {/* Title image */}
             {project?.titleImage?.asset?.url && (

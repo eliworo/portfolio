@@ -11,6 +11,25 @@ import { assertValidCategoryOrRedirect } from './_lib/validateCategory'
 import StudioWorksTitleBlock from './StudioWorksTitleBlock'
 import { deriveCategoryMapFromFeatured } from './_lib/deriveCategoryMap'
 
+function toPlainText(blocks: any): string | undefined {
+  if (!Array.isArray(blocks)) {
+    return undefined
+  }
+
+  const text = blocks
+    .filter((block) => block?._type === 'block' && Array.isArray(block.children))
+    .map((block) =>
+      block.children
+        .filter((child: any) => child?._type === 'span' && typeof child.text === 'string')
+        .map((child: any) => child.text)
+        .join('')
+    )
+    .join(' ')
+    .trim()
+
+  return text || undefined
+}
+
 export async function generateMetadata(
   _props: any,
   parent: ResolvingMetadata
@@ -25,7 +44,7 @@ export async function generateMetadata(
 
   return {
     title: studioWorks?.title || 'Studio Works',
-    description: studioWorks?.description,
+    description: toPlainText(studioWorks?.description),
     openGraph: {
       images: ogImage ? [ogImage, ...previousImages] : previousImages,
     },

@@ -105,10 +105,14 @@ type FeaturedProject = {
     year?: string
     content?: any[]
     previewType?: 'image' | 'text'
+    previewCustomText?: string
     textExtractIndex?: number
     writingContent?: Array<{
       _type: string
       _key: string
+      title?: string
+      titleWeight?: 'normal' | 'bold'
+      titleSize?: 'normal' | 'large'
       content?: string
       image?: { asset?: { url?: string }; alt?: string }
       caption?: string
@@ -313,13 +317,12 @@ function DraggableProjectCard({
         {preview.type === 'image' ? (
           <CoverImage image={preview.image} onReady={onImageReady} />
         ) : (
-          // Text preview with post-it background
+          // Text preview with paper background
           <div className='relative w-full my-16 flex items-center justify-center'>
             <div className='relative w-[280px] md:w-[320px]'>
-              {/* Post-it background image - fixed aspect ratio */}
               <div className='relative aspect-[4/5]'>
                 <Image
-                  src='/images/postitLogo2.png'
+                  src='/images/feuillePapierLogo1FondBlanc.png'
                   alt=''
                   fill
                   className='object-fill'
@@ -328,10 +331,9 @@ function DraggableProjectCard({
                 />
               </div>
 
-              {/* Text content overlay - absolutely positioned to match image bounds */}
               <div className='absolute inset-0 flex items-center justify-center p-10 md:py-18 md:px-16'>
                 <div className='w-full h-full flex items-center justify-center overflow-hidden'>
-                  <p className='text-xs md:text-sm leading-snug text-black whitespace-pre-line max-h-full overflow-y-auto scrollbar-hide'>
+                  <p className='text-xs md:text-sm leading-snug text-black whitespace-pre-line max-h-full overflow-hidden'>
                     {preview.content}
                   </p>
                 </div>
@@ -873,11 +875,19 @@ export default function CreativeProjectsList({
     if (!p) return { type: 'image', image: undefined }
 
     if (isPersonalKind(p) && p.projectSubtype === 'writing') {
-      if (p.previewType === 'text' && p.writingContent && p.textExtractIndex) {
+      if (p.previewType === 'text') {
+        const manual = stripInvisible(p.previewCustomText)
+        if (manual) {
+          return { type: 'text', content: manual }
+        }
+      }
+
+      if (p.previewType === 'text' && p.writingContent) {
         const textBlocks = p.writingContent.filter(
           (block) => block._type === 'writingTextBlock'
         )
-        const selectedBlock = textBlocks[p.textExtractIndex - 1]
+        const targetIndex = Math.max(0, (p.textExtractIndex ?? 1) - 1)
+        const selectedBlock = textBlocks[targetIndex] || textBlocks[0]
         if (selectedBlock?.content) {
           return { type: 'text', content: selectedBlock.content }
         }

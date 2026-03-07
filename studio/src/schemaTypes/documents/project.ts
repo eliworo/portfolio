@@ -119,6 +119,18 @@ export const project = defineType({
       description: 'e.g. 2023 or 2020–2022',
     }),
     defineField({
+      name: 'material',
+      title: 'Material',
+      type: 'string',
+      description: 'Optional default material for this whole project.',
+    }),
+    defineField({
+      name: 'dimensions',
+      title: 'Dimensions',
+      type: 'string',
+      description: 'Optional default dimensions for this whole project.',
+    }),
+    defineField({
       name: 'categories',
       title: 'Categories',
       type: 'array',
@@ -133,6 +145,18 @@ export const project = defineType({
       rows: 3,
       description: 'Brief intro or blurb for the project',
       validation: (rule) => rule.max(220),
+    }),
+    defineField({
+      name: 'ticketsUrl',
+      title: 'Tickets URL',
+      type: 'url',
+      description: 'Optional external link for tickets (shown on project page when set).',
+      hidden: ({parent}) => parent?.projectKind !== 'professional',
+      validation: (rule) =>
+        rule.uri({
+          allowRelative: false,
+          scheme: ['http', 'https'],
+        }),
     }),
 
     defineField({
@@ -158,7 +182,7 @@ export const project = defineType({
       options: {
         list: [
           {title: 'Cover Image', value: 'image'},
-          {title: 'Text Extract', value: 'text'},
+          {title: 'Text Extract / Custom Text', value: 'text'},
         ],
         layout: 'radio',
       },
@@ -185,6 +209,21 @@ export const project = defineType({
           }
           return true
         }),
+    }),
+    defineField({
+      name: 'previewCustomText',
+      title: 'Custom Cover Text',
+      type: 'text',
+      rows: 4,
+      description:
+        'Optional text shown on the project cover. If empty, text is extracted from Writing Content.',
+      hidden: ({parent}) =>
+        !(
+          parent?.projectKind === 'personal' &&
+          parent?.projectSize === 'small' &&
+          parent?.projectSubtype === 'writing' &&
+          parent?.previewType === 'text'
+        ),
     }),
     defineField({
       name: 'coverImage',
@@ -284,15 +323,20 @@ export const project = defineType({
               projectSize?: string
               projectSubtype?: string
               previewType?: string
+              previewCustomText?: string
             }
+            const hasCustomText =
+              typeof parent?.previewCustomText === 'string' &&
+              parent.previewCustomText.trim().length > 0
             if (
               parent?.projectKind === 'personal' &&
               parent?.projectSize === 'small' &&
               parent?.projectSubtype === 'writing' &&
               parent?.previewType === 'text' &&
+              !hasCustomText &&
               !value
             ) {
-              return 'Text extract block number is required when using text preview'
+              return 'Provide custom cover text or choose a text block number'
             }
             return true
           })
@@ -411,12 +455,69 @@ export const project = defineType({
           title: 'Text Block',
           fields: [
             {
+              name: 'title',
+              title: 'Title (optional)',
+              type: 'string',
+            },
+            {
+              name: 'titleWeight',
+              title: 'Title Weight',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'Normal', value: 'normal'},
+                  {title: 'Bold', value: 'bold'},
+                ],
+                layout: 'radio',
+              },
+              initialValue: 'normal',
+            },
+            {
+              name: 'titleSize',
+              title: 'Title Size',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'Normal', value: 'normal'},
+                  {title: 'Large', value: 'large'},
+                ],
+                layout: 'radio',
+              },
+              initialValue: 'normal',
+            },
+            {
               name: 'content',
               title: 'Text Content',
               type: 'text',
               rows: 10,
               validation: (rule) =>
-                rule.max(1000).error('Keep text blocks under 1000 characters (about 10 lines)'),
+                rule
+                  .custom((value) => {
+                    if (!value) return true
+                    const logicalLines = value.split(/\r?\n/)
+                    const lineCount = logicalLines.length
+                    const approxCharsPerLine = 38
+                    const estimatedWrappedLines = logicalLines.reduce(
+                      (sum, rawLine) => {
+                        const normalized = rawLine.trim().replace(/\s+/g, ' ')
+                        if (!normalized) return sum + 1
+                        return sum + Math.ceil(normalized.length / approxCharsPerLine)
+                      },
+                      0
+                    )
+
+                    if (estimatedWrappedLines > 17) {
+                      return `Over recommended limit: approximately ${estimatedWrappedLines} visual lines (target is 17 max)`
+                    }
+                    if (lineCount > 22) {
+                      return 'Over recommended limit: more than 22 typed lines may overflow on some screens'
+                    }
+                    if (value.length > 1000) {
+                      return 'Over recommended limit: more than 1000 characters may overflow on some screens'
+                    }
+                    return true
+                  })
+                  .warning(),
             },
           ],
           preview: {
@@ -436,6 +537,37 @@ export const project = defineType({
           name: 'writingImageBlock',
           title: 'Image',
           fields: [
+            {
+              name: 'title',
+              title: 'Title (optional)',
+              type: 'string',
+            },
+            {
+              name: 'titleWeight',
+              title: 'Title Weight',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'Normal', value: 'normal'},
+                  {title: 'Bold', value: 'bold'},
+                ],
+                layout: 'radio',
+              },
+              initialValue: 'normal',
+            },
+            {
+              name: 'titleSize',
+              title: 'Title Size',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'Normal', value: 'normal'},
+                  {title: 'Large', value: 'large'},
+                ],
+                layout: 'radio',
+              },
+              initialValue: 'normal',
+            },
             {
               name: 'image',
               title: 'Image',

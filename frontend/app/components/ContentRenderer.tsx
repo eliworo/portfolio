@@ -5,13 +5,13 @@ import { cleanBlock } from '@/utils/CleanInvisible'
 import { Image } from 'next-sanity/image'
 import CoverImage from './CoverImage'
 import NextImage from 'next/image'
-import Link from 'next/link'
 import CarouselGalleryClient from './CarouselGalleryClient'
 import ImageGalleryGrid from './ImageGalleryGrid'
 import BrushFrame from './drawings/BrushFrame'
 import BrushFrameRaster from './drawings/BrushFrameRaster'
-import RealBrush from './drawings/RealBrush'
 import VerticalLine from './lines/VerticalLine'
+import PortableLinkMark from '@/app/components/portable/PortableLinkMark'
+import BrushStrongMark from '@/app/components/portable/BrushStrongMark'
 
 type ContentBlock =
   | TextBlock
@@ -35,6 +35,12 @@ interface MediaWithMedia {
     mediaType: 'video' | 'image'
     // Video fields
     url?: string
+    videoFile?: {
+      asset?: {
+        url?: string
+        mimeType?: string
+      }
+    }
     caption?: string
     aspectRatio?: string
     // Image fields
@@ -51,6 +57,12 @@ interface MediaWithMedia {
     mediaType: 'video' | 'image'
     // Video fields
     url?: string
+    videoFile?: {
+      asset?: {
+        url?: string
+        mimeType?: string
+      }
+    }
     caption?: string
     aspectRatio?: string
     // Image fields
@@ -117,9 +129,84 @@ interface TextWithImage {
 
 interface VideoBlock {
   _type: 'videoBlock'
-  url: string
+  url?: string
+  videoFile?: {
+    asset?: {
+      url?: string
+      mimeType?: string
+    }
+  }
   caption?: string
   aspectRatio: string
+}
+
+const aspectRatioMap: Record<string, string> = {
+  '16:9': 'aspect-video',
+  '4:3': 'aspect-[4/3]',
+  '1:1': 'aspect-square',
+  '9:16': 'aspect-[9/16]',
+}
+
+const isEmbedProviderUrl = (url: string) =>
+  url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')
+
+const getEmbedUrl = (url: string) => {
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    const videoId = url.includes('youtu.be')
+      ? url.split('youtu.be/')[1]
+      : new URL(url).searchParams.get('v')
+    return `https://www.youtube.com/embed/${videoId}`
+  }
+  if (url.includes('vimeo.com')) {
+    const videoId = url.split('vimeo.com/')[1]
+    return `https://player.vimeo.com/video/${videoId}`
+  }
+  return url
+}
+
+function renderVideoMedia({
+  url,
+  videoFileUrl,
+  caption,
+  aspectRatio,
+}: {
+  url?: string
+  videoFileUrl?: string
+  caption?: string
+  aspectRatio?: string
+}) {
+  const hasVideoFile = Boolean(videoFileUrl)
+  const resolvedUrl = videoFileUrl || url
+  if (!resolvedUrl) return null
+
+  const ratioClass = aspectRatioMap[aspectRatio || '16:9'] || 'aspect-video'
+  const renderAsEmbed = !hasVideoFile && !!url && isEmbedProviderUrl(url)
+
+  return (
+    <figure className='w-full mx-auto'>
+      <div className={`relative w-full ${ratioClass}`}>
+        {renderAsEmbed ? (
+          <iframe
+            src={getEmbedUrl(url!)}
+            className='absolute inset-0 w-full h-full'
+            allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+            allowFullScreen
+          />
+        ) : (
+          <video
+            src={resolvedUrl}
+            className='absolute inset-0 w-full h-full object-cover'
+            controls
+            playsInline
+            preload='metadata'
+          >
+            Your browser does not support the video tag.
+          </video>
+        )}
+      </div>
+      {caption && <figcaption className='text-sm text-gray-600 mt-3 text-left'>{caption}</figcaption>}
+    </figure>
+  )
 }
 
 export function ContentRenderer({ content }: { content: ContentBlock[] }) {
@@ -162,27 +249,6 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
     rightLarger: 'md:grid-cols-[2fr_3fr]',
   }
 
-  const getEmbedUrl = (url: string) => {
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const videoId = url.includes('youtu.be')
-        ? url.split('youtu.be/')[1]
-        : new URL(url).searchParams.get('v')
-      return `https://www.youtube.com/embed/${videoId}`
-    }
-    if (url.includes('vimeo.com')) {
-      const videoId = url.split('vimeo.com/')[1]
-      return `https://player.vimeo.com/video/${videoId}`
-    }
-    return url
-  }
-
-  const aspectRatioMap: Record<string, string> = {
-    '16:9': 'aspect-video',
-    '4:3': 'aspect-[4/3]',
-    '1:1': 'aspect-square',
-    '9:16': 'aspect-[9/16]',
-  }
-
   const isCollage = (block as any).collageMode === true
 
   // Same idea as your ImageBlockRenderer: deterministic offsets
@@ -218,24 +284,14 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
             : undefined
         }
       >
-        {block.leftMedia?.mediaType === 'video' && block.leftMedia?.url ? (
-          <figure className='w-full mx-auto'>
-            <div
-              className={`relative w-full ${aspectRatioMap[block.leftMedia?.aspectRatio || '16:9']}`}
-            >
-              <iframe
-                src={getEmbedUrl(block.leftMedia.url)}
-                className='absolute inset-0 w-full h-full'
-                allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
-                allowFullScreen
-              />
-            </div>
-            {block.leftMedia?.caption && (
-              <figcaption className='text-sm text-gray-600 mt-3 text-left'>
-                {block.leftMedia.caption}
-              </figcaption>
-            )}
-          </figure>
+        {block.leftMedia?.mediaType === 'video' &&
+        (block.leftMedia?.url || block.leftMedia?.videoFile?.asset?.url) ? (
+          renderVideoMedia({
+            url: block.leftMedia.url,
+            videoFileUrl: block.leftMedia.videoFile?.asset?.url,
+            caption: block.leftMedia.caption,
+            aspectRatio: block.leftMedia.aspectRatio,
+          })
         ) : block.leftMedia?.image ? (
           <figure className='w-full leading-none h-fit relative group'>
             <CoverImage image={block.leftMedia.image} />
@@ -272,24 +328,14 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
             : undefined
         }
       >
-        {block.rightMedia?.mediaType === 'video' && block.rightMedia?.url ? (
-          <figure className='w-full mx-auto'>
-            <div
-              className={`relative w-full ${aspectRatioMap[block.rightMedia?.aspectRatio || '16:9']}`}
-            >
-              <iframe
-                src={getEmbedUrl(block.rightMedia.url)}
-                className='absolute inset-0 w-full h-full'
-                allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
-                allowFullScreen
-              />
-            </div>
-            {block.rightMedia?.caption && (
-              <figcaption className='text-sm text-gray-600 mt-3 text-left'>
-                {block.rightMedia.caption}
-              </figcaption>
-            )}
-          </figure>
+        {block.rightMedia?.mediaType === 'video' &&
+        (block.rightMedia?.url || block.rightMedia?.videoFile?.asset?.url) ? (
+          renderVideoMedia({
+            url: block.rightMedia.url,
+            videoFileUrl: block.rightMedia.videoFile?.asset?.url,
+            caption: block.rightMedia.caption,
+            aspectRatio: block.rightMedia.aspectRatio,
+          })
         ) : block.rightMedia?.image ? (
           <figure className='w-full leading-none h-fit relative group'>
             <CoverImage image={block.rightMedia.image} />
@@ -383,9 +429,9 @@ function TextBlockRenderer({ block }: { block: TextBlock }) {
           },
           marks: {
             strong: ({ children }) => (
-              <BrushStrong seed='strong' color='#D9D9D9'>
+              <BrushStrongMark seed='strong' color='#D9D9D9'>
                 {children}
-              </BrushStrong>
+              </BrushStrongMark>
             ),
             em: ({ children }) => (
               <em className='font-rader-italic'>{children}</em>
@@ -393,32 +439,9 @@ function TextBlockRenderer({ block }: { block: TextBlock }) {
             underline: ({ children }) => (
               <span className='underline'>{children}</span>
             ),
-            link: ({ children, value }) => {
-              const isInternal = value?.linkType === 'internal'
-              const href = isInternal ? value?.internalLink : value?.href
-              const openInNewTab = value?.openInNewTab
-
-              if (!href) return <span>{children}</span>
-
-              if (isInternal) {
-                return (
-                  <Link href={href} className='underline'>
-                    {children}
-                  </Link>
-                )
-              }
-
-              return (
-                <a
-                  href={href}
-                  className='underline'
-                  target={openInNewTab ? '_blank' : undefined}
-                  rel={openInNewTab ? 'noopener noreferrer' : undefined}
-                >
-                  {children}
-                </a>
-              )
-            },
+            link: ({ children, value }) => (
+              <PortableLinkMark value={value as any}>{children}</PortableLinkMark>
+            ),
           },
         }}
       />
@@ -697,66 +720,38 @@ function TextWithImageRenderer({ block }: { block: TextWithImage }) {
         )}
       </figure>
       <div className='flex-1 text-sm xl:text-lg leading-snug'>
-        <PortableText value={block.text} />
+        <PortableText
+          value={block.text}
+          components={{
+            block: {
+              normal: ({ children }) => (
+                <p className='mb-4 last:mb-0 whitespace-pre-line'>{children}</p>
+              ),
+            },
+            marks: {
+              strong: ({ children }) => (
+                <BrushStrongMark seed='text-with-image-strong' color='#D9D9D9'>
+                  {children}
+                </BrushStrongMark>
+              ),
+              link: ({ children, value }) => (
+                <PortableLinkMark value={value as any}>{children}</PortableLinkMark>
+              ),
+            },
+          }}
+        />
       </div>
     </div>
   )
 }
 
 function VideoBlockRenderer({ block }: { block: VideoBlock }) {
-  const getEmbedUrl = (url: string) => {
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const videoId = url.includes('youtu.be')
-        ? url.split('youtu.be/')[1]
-        : new URL(url).searchParams.get('v')
-      return `https://www.youtube.com/embed/${videoId}`
-    }
-    if (url.includes('vimeo.com')) {
-      const videoId = url.split('vimeo.com/')[1]
-      return `https://player.vimeo.com/video/${videoId}`
-    }
-    return url
-  }
-
-  const aspectRatioMap: Record<string, string> = {
-    '16:9': 'aspect-video',
-    '4:3': 'aspect-[4/3]',
-    '1:1': 'aspect-square',
-    '9:16': 'aspect-[9/16]',
-  }
-
-  return (
-    <figure className='w-full mx-auto'>
-      <div
-        className={`relative w-full ${aspectRatioMap[block.aspectRatio] || 'aspect-video'}`}
-      >
-        <iframe
-          src={getEmbedUrl(block.url)}
-          className='absolute inset-0 w-full h-full'
-          allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
-          allowFullScreen
-        />
-
-        {/* <BrushFrameRaster
-          top={['/images/brush/top-1.png', '/images/brush/top-1.png']}
-          right={['/images/brush/top-1.png', '/images/brush/top-1.png']}
-          bottom={['/images/brush/top-1.png', '/images/brush/top-1.png']}
-          left={['/images/brush/top-1.png', '/images/brush/top-1.png']}
-          thicknessPx={54}
-          bleedPx={30}
-          opacity={1}
-          blendMode='multiply'
-          jitterPx={2}
-        /> */}
-      </div>
-
-      {block.caption && (
-        <figcaption className='text-sm text-gray-600 mt-3 text-left'>
-          {block.caption}
-        </figcaption>
-      )}
-    </figure>
-  )
+  return renderVideoMedia({
+    url: block.url,
+    videoFileUrl: block.videoFile?.asset?.url,
+    caption: block.caption,
+    aspectRatio: block.aspectRatio,
+  })
 }
 
 function HeadingBlockRenderer({ block }: { block: HeadingBlock }) {
@@ -781,34 +776,5 @@ function HeadingBlockRenderer({ block }: { block: HeadingBlock }) {
         {block.text}
       </Tag>
     </div>
-  )
-}
-function BrushStrong({
-  children,
-  seed,
-  color = '#D9D9D9',
-}: {
-  children: React.ReactNode
-  seed: string
-  color?: string
-}) {
-  // Keep it inline, stable, and baseline-friendly
-  return (
-    <strong>
-      <span className='relative inline-block align-baseline leading-[1.05]'>
-        <RealBrush
-          as='span'
-          seed={seed}
-          color={color}
-          className='absolute -inset-x-2 -z-10 opacity-90'
-          style={{
-            height: '1.05em',
-            top: '72%',
-            transform: 'translateY(-50%)',
-          }}
-        />
-        <span className='relative z-10'>{children}</span>
-      </span>
-    </strong>
   )
 }

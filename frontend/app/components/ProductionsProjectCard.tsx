@@ -5,7 +5,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'motion/react'
 import CoverImage from './CoverImage'
-import PaintBrush from './drawings/PaintBrush'
 import RealBrush from './drawings/RealBrush'
 
 type ProductionsProjectCardProps = {
@@ -161,28 +160,34 @@ export default function ProductionsProjectCard({
             {item.project.titleImage?.asset?.url && (
               <div
                 className={`absolute ${positionClasses} z-10`}
+              >
+                <div
+                  className='relative'
                 style={{
                   rotate: `${brushRotation}deg`,
                   opacity: titleImageReady ? 1 : 0,
                   transition: 'opacity 180ms ease-out',
                 }}
-              >
-                <Image
-                  src={item.project.titleImage.asset.url}
-                  alt={item.project.title || 'Project'}
-                  width={500}
-                  height={500}
-                  className='object-contain h-12 lg:h-18 w-auto'
-                  onLoad={() => setTitleImageReady(true)}
-                  onError={() => setTitleImageReady(true)}
-                />
-                {titleImageReady && (
-                  <RealBrush
-                    seed={`category:${item.project._id}`}
-                    color={brushColor}
-                    className='absolute -inset-x-4 bottom-0 h-18 inset-y-0.5 -z-10'
-                  />
-                )}
+                >
+                  {titleImageReady && (
+                    <RealBrush
+                      seed={`category:${item.project._id}`}
+                      color={brushColor}
+                      className='absolute -inset-x-2 bottom-0 h-14 inset-y-1 -z-10'
+                    />
+                  )}
+                  <div className='py-2'>
+                    <Image
+                      src={item.project.titleImage.asset.url}
+                      alt={item.project.title || 'Project'}
+                      width={500}
+                      height={500}
+                      className='object-contain h-12 w-auto'
+                      onLoad={() => setTitleImageReady(true)}
+                      onError={() => setTitleImageReady(true)}
+                    />
+                  </div>
+                </div>
               </div>
             )}
           </div>

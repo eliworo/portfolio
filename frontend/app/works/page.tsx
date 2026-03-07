@@ -7,7 +7,9 @@ import {
   studioWorksQuery,
 } from '@/sanity/lib/queries'
 import { Metadata, ResolvingMetadata } from 'next'
-import { linkResolver, resolveOpenGraphImage } from '@/sanity/lib/utils'
+import { resolveOpenGraphImage } from '@/sanity/lib/utils'
+import PortableLinkMark from '@/app/components/portable/PortableLinkMark'
+import BrushStrongMark from '@/app/components/portable/BrushStrongMark'
 
 export async function generateMetadata(
   _props: any,
@@ -59,6 +61,14 @@ export default async function WorksPage() {
         <p className='mb-4 whitespace-pre-line'>{children}</p>
       ),
     },
+    marks: {
+      strong: ({ children }) => (
+        <BrushStrongMark seed='works-intro-strong'>{children}</BrushStrongMark>
+      ),
+      link: ({ children, value }) => (
+        <PortableLinkMark value={value as any}>{children}</PortableLinkMark>
+      ),
+    },
   }
 
   const previewPortableComponents: PortableTextComponents = {
@@ -68,24 +78,12 @@ export default async function WorksPage() {
       ),
     },
     marks: {
-      link: ({ children, value }) => {
-        const href = linkResolver(value as any)
-
-        if (!href) return <span>{children}</span>
-
-        const openInNewTab = Boolean(value?.openInNewTab)
-
-        return (
-          <a
-            href={href}
-            className='underline underline-offset-2'
-            target={openInNewTab ? '_blank' : undefined}
-            rel={openInNewTab ? 'noopener noreferrer' : undefined}
-          >
-            {children}
-          </a>
-        )
-      },
+      strong: ({ children }) => (
+        <BrushStrongMark seed='works-preview-strong'>{children}</BrushStrongMark>
+      ),
+      link: ({ children, value }) => (
+        <PortableLinkMark value={value as any}>{children}</PortableLinkMark>
+      ),
     },
   }
 
@@ -124,7 +122,7 @@ export default async function WorksPage() {
       </header>
 
       <section className='relative px-4 xl:px-20 mb-20 mt-8 xl:mt-12'>
-        <div className='w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 xl:max-w-[1400px] xl:ml-40'>
+        <div className='w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-2 xl:max-w-[1400px] xl:ml-40'>
           {/* Productions */}
           <div className='block group hover:opacity-95 transition-opacity rounded-md'>
             <div className='h-full flex flex-col'>

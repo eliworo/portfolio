@@ -37,13 +37,83 @@ export const about = defineType({
     defineField({
       name: 'quote',
       title: 'Quote',
-      type: 'text',
-      rows: 4,
-      description: 'A short quote or short sentence to display before the biography.',
+      type: 'array',
+      description: 'Rich text quote shown before the biography.',
+      of: [
+        {
+          type: 'block',
+          styles: [
+            {title: 'Normal', value: 'normal'},
+            {title: 'Quote', value: 'blockquote'},
+          ],
+          marks: {
+            decorators: [
+              {title: 'Strong', value: 'strong'},
+              {title: 'Emphasis', value: 'em'},
+            ],
+            annotations: [
+              {
+                name: 'link',
+                type: 'object',
+                title: 'Link',
+                fields: [
+                  {
+                    name: 'linkType',
+                    title: 'Link Type',
+                    type: 'string',
+                    initialValue: 'external',
+                    options: {
+                      list: [
+                        {title: 'Internal', value: 'internal'},
+                        {title: 'External', value: 'external'},
+                      ],
+                      layout: 'radio',
+                    },
+                  },
+                  {
+                    name: 'internalLink',
+                    title: 'Internal slug',
+                    description: 'Examples: about, productions, posts/my-post',
+                    type: 'string',
+                    hidden: ({parent}: any) => parent?.linkType !== 'internal',
+                    validation: (Rule) =>
+                      Rule.custom((value, context: any) => {
+                        if (context.parent?.linkType === 'internal' && !value) {
+                          return 'Internal slug is required when Link Type is Internal'
+                        }
+                        return true
+                      }),
+                  },
+                  {
+                    name: 'href',
+                    title: 'URL',
+                    type: 'url',
+                    hidden: ({parent}: any) => parent?.linkType !== 'external',
+                    validation: (Rule) =>
+                      Rule.custom((value, context: any) => {
+                        if (context.parent?.linkType === 'external' && !value) {
+                          return 'URL is required when Link Type is External'
+                        }
+                        return true
+                      }),
+                  },
+                  {
+                    name: 'openInNewTab',
+                    title: 'Open in new tab',
+                    type: 'boolean',
+                    initialValue: false,
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      ],
     }),
     defineField({
-      name: 'bio',
-      title: 'Biography',
+      name: 'bioTop',
+      title: 'Biography (Top)',
+      description: 'First biography section, shown alongside the profile image.',
       type: 'array',
       of: [
         {
@@ -67,9 +137,148 @@ export const about = defineType({
                 title: 'Link',
                 fields: [
                   {
+                    name: 'linkType',
+                    title: 'Link Type',
+                    type: 'string',
+                    initialValue: 'external',
+                    options: {
+                      list: [
+                        {title: 'Internal', value: 'internal'},
+                        {title: 'External', value: 'external'},
+                      ],
+                      layout: 'radio',
+                    },
+                  },
+                  {
+                    name: 'internalLink',
+                    title: 'Internal slug',
+                    description: 'Examples: about, productions, posts/my-post',
+                    type: 'string',
+                    hidden: ({parent}: any) => parent?.linkType !== 'internal',
+                    validation: (Rule) =>
+                      Rule.custom((value, context: any) => {
+                        if (context.parent?.linkType === 'internal' && !value) {
+                          return 'Internal slug is required when Link Type is Internal'
+                        }
+                        return true
+                      }),
+                  },
+                  {
                     name: 'href',
-                    type: 'url',
                     title: 'URL',
+                    type: 'url',
+                    hidden: ({parent}: any) => parent?.linkType !== 'external',
+                    validation: (Rule) =>
+                      Rule.custom((value, context: any) => {
+                        if (context.parent?.linkType === 'external' && !value) {
+                          return 'URL is required when Link Type is External'
+                        }
+                        return true
+                      }),
+                  },
+                  {
+                    name: 'openInNewTab',
+                    title: 'Open in new tab',
+                    type: 'boolean',
+                    initialValue: false,
+                  },
+                ],
+              },
+            ],
+          },
+        },
+        {
+          type: 'image',
+          options: {
+            hotspot: true,
+          },
+          fields: [
+            {
+              name: 'caption',
+              type: 'string',
+              title: 'Caption',
+            },
+            {
+              name: 'alt',
+              type: 'string',
+              title: 'Alternative text',
+              description: 'Important for SEO and accessibility.',
+            },
+          ],
+        },
+      ],
+    }),
+    defineField({
+      name: 'bioBottom',
+      title: 'Biography (Bottom)',
+      description: 'Second biography section, shown under the profile image.',
+      type: 'array',
+      of: [
+        {
+          type: 'block',
+          styles: [
+            {title: 'Normal', value: 'normal'},
+            {title: 'H1', value: 'h1'},
+            {title: 'H2', value: 'h2'},
+            {title: 'H3', value: 'h3'},
+            {title: 'Quote', value: 'blockquote'},
+          ],
+          marks: {
+            decorators: [
+              {title: 'Strong', value: 'strong'},
+              {title: 'Emphasis', value: 'em'},
+            ],
+            annotations: [
+              {
+                name: 'link',
+                type: 'object',
+                title: 'Link',
+                fields: [
+                  {
+                    name: 'linkType',
+                    title: 'Link Type',
+                    type: 'string',
+                    initialValue: 'external',
+                    options: {
+                      list: [
+                        {title: 'Internal', value: 'internal'},
+                        {title: 'External', value: 'external'},
+                      ],
+                      layout: 'radio',
+                    },
+                  },
+                  {
+                    name: 'internalLink',
+                    title: 'Internal slug',
+                    description: 'Examples: about, productions, posts/my-post',
+                    type: 'string',
+                    hidden: ({parent}: any) => parent?.linkType !== 'internal',
+                    validation: (Rule) =>
+                      Rule.custom((value, context: any) => {
+                        if (context.parent?.linkType === 'internal' && !value) {
+                          return 'Internal slug is required when Link Type is Internal'
+                        }
+                        return true
+                      }),
+                  },
+                  {
+                    name: 'href',
+                    title: 'URL',
+                    type: 'url',
+                    hidden: ({parent}: any) => parent?.linkType !== 'external',
+                    validation: (Rule) =>
+                      Rule.custom((value, context: any) => {
+                        if (context.parent?.linkType === 'external' && !value) {
+                          return 'URL is required when Link Type is External'
+                        }
+                        return true
+                      }),
+                  },
+                  {
+                    name: 'openInNewTab',
+                    title: 'Open in new tab',
+                    type: 'boolean',
+                    initialValue: false,
                   },
                 ],
               },

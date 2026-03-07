@@ -2,11 +2,12 @@ import React from 'react'
 import { PortableText } from '@portabletext/react'
 import CategoryPortableLink from '../CategoryPortableLink'
 import { BrushMark } from './BrushMark'
+import PortableLinkMark from './PortableLinkMark'
 
-function StrongMark({ children }: { children: React.ReactNode }) {
+function StrongMark({ children }: { children?: React.ReactNode }) {
   return (
     <BrushMark seed='strong' color='#ccc'>
-      {children}
+      {children ?? null}
     </BrushMark>
   )
 }
@@ -15,7 +16,7 @@ function LinkMark({
   children,
   value,
 }: {
-  children: React.ReactNode
+  children?: React.ReactNode
   value?: { href?: string }
 }) {
   const href = value?.href || '#'
@@ -29,26 +30,20 @@ function LinkMark({
         seed={`category-link-${category}`}
         scrollToId='studio-works-grid'
       >
-        {children}
+        {children ?? null}
       </CategoryPortableLink>
     )
   }
 
-  const isExternal = /^https?:\/\//i.test(href)
-
-  return (
-    <a
-      href={href}
-      target={isExternal ? '_blank' : undefined}
-      rel={isExternal ? 'noopener noreferrer' : undefined}
-      className='underline decoration-2 underline-offset-4 hover:bg-yellow-100 transition-colors visited:opacity-60'
-    >
-      {children}
-    </a>
-  )
+  return <PortableLinkMark value={value}>{children ?? null}</PortableLinkMark>
 }
 
 const components = {
+  block: {
+    normal: ({ children }: { children?: React.ReactNode }) => (
+      <p className='whitespace-pre-line'>{children ?? null}</p>
+    ),
+  },
   marks: {
     strong: StrongMark,
     link: LinkMark,

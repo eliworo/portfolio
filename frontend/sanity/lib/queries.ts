@@ -331,13 +331,31 @@ export const projectGroupQuery =
             _key,
             images[]{asset->{_id, url}, alt}
           },
-          _type == "videoBlock" => { _type, _key, url, caption, aspectRatio },
+          _type == "videoBlock" => {
+            _type,
+            _key,
+            url,
+            caption,
+            aspectRatio,
+            videoFile {
+              asset-> {
+                url,
+                mimeType
+              }
+            }
+          },
           _type == "mediaWithMedia" => {
           _type,
           _key,
           leftMedia {
             mediaType,
             url,
+            videoFile {
+              asset-> {
+                url,
+                mimeType
+              }
+            },
             caption,
             aspectRatio,
             image {
@@ -357,6 +375,12 @@ export const projectGroupQuery =
           rightMedia {
             mediaType,
             url,
+            videoFile {
+              asset-> {
+                url,
+                mimeType
+              }
+            },
             caption,
             aspectRatio,
             image {
@@ -421,7 +445,10 @@ export const projectQuery = defineQuery(`
     title,
     slug,
     year,
+    material,
+    dimensions,
     description,
+    ticketsUrl,
     projectKind,
     projectSize,
     projectSubtype,
@@ -513,7 +540,13 @@ export const projectQuery = defineQuery(`
       _type == "videoBlock" => {
         url,
         caption,
-        aspectRatio
+        aspectRatio,
+        videoFile {
+          asset-> {
+            url,
+            mimeType
+          }
+        }
       },
       _type == "mediaWithMedia" => {
       _type,
@@ -521,6 +554,12 @@ export const projectQuery = defineQuery(`
       leftMedia {
         mediaType,
         url,
+        videoFile {
+          asset-> {
+            url,
+            mimeType
+          }
+        },
         caption,
         aspectRatio,
         image {
@@ -540,6 +579,12 @@ export const projectQuery = defineQuery(`
       rightMedia {
         mediaType,
         url,
+        videoFile {
+          asset-> {
+            url,
+            mimeType
+          }
+        },
         caption,
         aspectRatio,
         image {
@@ -648,7 +693,13 @@ export const projectQuery = defineQuery(`
         _type == "videoBlock" => {
           url,
           caption,
-          aspectRatio
+          aspectRatio,
+          videoFile {
+            asset-> {
+              url,
+              mimeType
+            }
+          }
         },
         _type == "mediaWithMedia" => {
           _type,
@@ -656,6 +707,12 @@ export const projectQuery = defineQuery(`
           leftMedia {
             mediaType,
             url,
+            videoFile {
+              asset-> {
+                url,
+                mimeType
+              }
+            },
             caption,
             aspectRatio,
             image {
@@ -675,6 +732,12 @@ export const projectQuery = defineQuery(`
           rightMedia {
             mediaType,
             url,
+            videoFile {
+              asset-> {
+                url,
+                mimeType
+              }
+            },
             caption,
             aspectRatio,
             image {
@@ -715,6 +778,8 @@ export const projectsListQuery = defineQuery(`
     title,
     slug,
     year,
+    material,
+    dimensions,
     description,
     coverImage {
       asset-> {
@@ -746,6 +811,8 @@ export const allProjectsByCategoryQuery = defineQuery(`{
     "slug": slug.current,
     projectKind,
     year,
+    material,
+    dimensions,
     coverImage {
       asset-> {
         url
@@ -858,7 +925,8 @@ const aboutFields = /* groq */ `
     }
   },
   quote,
-  bio,
+  bioTop,
+  bioBottom,
   cv{
     asset->{
       url
@@ -993,7 +1061,14 @@ const projectFields = /* groq */ `
   projectSubtype,
   titleImage { asset->{ url } },
   coverImage {
-    asset->{ _id, url },
+    asset->{
+      _id,
+      url,
+      metadata {
+        dimensions { width, height },
+        lqip
+      }
+    },
     crop,
     hotspot,
     alt
@@ -1001,7 +1076,14 @@ const projectFields = /* groq */ `
  images[] {
     _type,
     _type == "image" => {
-      asset->{ _id, url },
+      asset->{
+        _id,
+        url,
+        metadata {
+          dimensions { width, height },
+          lqip
+        }
+      },
       crop,
       hotspot,
       alt,
@@ -1019,6 +1101,8 @@ const projectFields = /* groq */ `
   },
   description,
   year,
+  material,
+  dimensions,
   categories[]->{
     _id,
     title,
@@ -1030,10 +1114,25 @@ const projectFields = /* groq */ `
   writingContent[] {
     _type,
     _key,
-    _type == "writingTextBlock" => { content },
+    _type == "writingTextBlock" => {
+      title,
+      titleWeight,
+      titleSize,
+      content
+    },
     _type == "writingImageBlock" => {
+      title,
+      titleWeight,
+      titleSize,
       image {
-        asset->{ _id, url },
+        asset->{
+          _id,
+          url,
+          metadata {
+            dimensions { width, height },
+            lqip
+          }
+        },
         crop,
         hotspot,
         alt
@@ -1042,6 +1141,7 @@ const projectFields = /* groq */ `
     }
   },
   previewType,
+  previewCustomText,
   textExtractIndex,
   categorySections[] {
     _key,
@@ -1069,7 +1169,14 @@ const projectFields = /* groq */ `
       },
       _type == "imageBlock" => {
         images[] {
-          asset->{ _id, url },
+          asset->{
+            _id,
+            url,
+            metadata {
+              dimensions { width, height },
+              lqip
+            }
+          },
           crop,
           hotspot,
           alt
@@ -1077,7 +1184,14 @@ const projectFields = /* groq */ `
       },
       _type == "imageGallery" => {
         images[] {
-          asset->{ _id, url },
+          asset->{
+            _id,
+            url,
+            metadata {
+              dimensions { width, height },
+              lqip
+            }
+          },
           crop,
           hotspot,
           alt

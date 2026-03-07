@@ -14,7 +14,17 @@ export const categorySection = defineType({
       type: 'reference',
       to: [{type: 'category'}],
       description: 'The category this section relates to',
-      validation: (rule) => rule.required(),
+      validation: (rule) =>
+        rule.custom((value, context: any) => {
+          const doc = context.document as {projectKind?: string; projectSize?: string}
+
+          // Do not block small personal modal projects if old category sections remain.
+          if (doc?.projectKind === 'personal' && doc?.projectSize === 'small') {
+            return true
+          }
+
+          return value ? true : 'Category is required'
+        }),
       // components: {
       //   input: CategorySync,
       // },
@@ -44,7 +54,17 @@ export const categorySection = defineType({
             layout: 'radio',
           },
           initialValue: 'image',
-          validation: (rule) => rule.required(),
+          validation: (rule) =>
+            rule.custom((value, context: any) => {
+              const doc = context.document as {projectKind?: string; projectSize?: string}
+
+              // Do not block small personal modal projects if old category sections remain.
+              if (doc?.projectKind === 'personal' && doc?.projectSize === 'small') {
+                return true
+              }
+
+              return value ? true : 'Preview Type is required'
+            }),
         }),
         defineField({
           name: 'image',

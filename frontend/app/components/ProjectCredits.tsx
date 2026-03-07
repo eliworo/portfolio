@@ -1,35 +1,15 @@
 'use client'
 
 import { PortableText, PortableTextComponents } from '@portabletext/react'
-import Link from 'next/link'
 import { PortableTextBlock } from 'sanity'
 import RealBrush from './drawings/RealBrush'
 import Image from 'next/image'
+import PortableLinkMark from '@/app/components/portable/PortableLinkMark'
 
 interface ProjectCreditsProps {
   credits?: PortableTextBlock[] | null
   press?: PortableTextBlock[] | null
   tournee?: PortableTextBlock[] | null
-}
-
-// Hand-drawn arrow for external links
-function HandArrowIcon() {
-  return (
-    <svg
-      className='inline-block w-3.5 h-3.5 ml-0.5 -translate-y-px opacity-70'
-      viewBox='0 0 16 16'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M3 13C4 12 7 9 11 5M11 5V10M11 5H6'
-        stroke='currentColor'
-        strokeWidth='1.4'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </svg>
-  )
 }
 
 const components: PortableTextComponents = {
@@ -57,36 +37,9 @@ const components: PortableTextComponents = {
     // ),
     em: ({ children }) => <em>{children}</em>,
     underline: ({ children }) => <span className='underline'>{children}</span>,
-    link: ({ value, children }) => {
-      const isInternal = value?.linkType === 'internal'
-      const href = isInternal ? value?.internalLink : value?.href
-      const openInNewTab = value?.openInNewTab
-
-      if (!href) return <span>{children}</span>
-
-      const baseClasses =
-        'text-black no-underline border-b border-black border-dashed hover:opacity-70 transition-opacity'
-
-      if (isInternal) {
-        return (
-          <Link href={href} className={baseClasses}>
-            {children}
-          </Link>
-        )
-      }
-
-      return (
-        <a
-          href={href}
-          className={baseClasses}
-          target={openInNewTab ? '_blank' : undefined}
-          rel={openInNewTab ? 'noopener noreferrer' : undefined}
-        >
-          {children}
-          {openInNewTab && <HandArrowIcon />}
-        </a>
-      )
-    },
+    link: ({ value, children }) => (
+      <PortableLinkMark value={value as any}>{children}</PortableLinkMark>
+    ),
   },
   list: {
     bullet: ({ children }) => (

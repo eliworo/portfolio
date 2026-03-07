@@ -6,6 +6,27 @@ import type { AboutPageQueryResult } from '@/sanity.types'
 import ContactNav from '@/app/components/ContactNav'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
+import PortableLinkMark from '@/app/components/portable/PortableLinkMark'
+import BrushStrongMark from '@/app/components/portable/BrushStrongMark'
+
+function toPlainText(blocks: any): string | undefined {
+  if (!Array.isArray(blocks)) {
+    return undefined
+  }
+
+  const text = blocks
+    .filter((block) => block?._type === 'block' && Array.isArray(block.children))
+    .map((block) =>
+      block.children
+        .filter((child: any) => child?._type === 'span' && typeof child.text === 'string')
+        .map((child: any) => child.text)
+        .join('')
+    )
+    .join(' ')
+    .trim()
+
+  return text || undefined
+}
 
 export async function generateMetadata(
   _props: any,
@@ -20,11 +41,7 @@ export async function generateMetadata(
 
   return {
     title: 'About',
-    description: aboutPage?.bio
-      ? typeof aboutPage.bio === 'string'
-        ? aboutPage.bio
-        : undefined
-      : undefined,
+    description: toPlainText(aboutPage?.bioTop),
     openGraph: {
       images: ogImage ? [ogImage, ...previousImages] : previousImages,
     },
@@ -42,24 +59,28 @@ export default async function AboutPage() {
     return null
   }
 
-  // 1. SPLIT THE BIO LOGIC
-  const bioBlocks = Array.isArray(aboutPage.bio) ? aboutPage.bio : []
-  const bioPart1 = bioBlocks.slice(0, 4)
-  const bioPart2 = bioBlocks.slice(4)
-
-  // 2. DEFINE SHARED STYLING
   const portableTextComponents = {
     block: {
       normal: ({ children }: any) => (
         <p className='mb-4 lg:mb-8 whitespace-pre-line'>{children}</p>
       ),
     },
+    marks: {
+      strong: ({ children }: { children: React.ReactNode }) => (
+        <BrushStrongMark seed='about-strong'>{children}</BrushStrongMark>
+      ),
+      link: ({
+        children,
+        value,
+      }: {
+        children: React.ReactNode
+        value?: any
+      }) => <PortableLinkMark value={value}>{children}</PortableLinkMark>,
+    },
   }
 
-  // 3. DEFINE ARTEOS CONTENT (To avoid code duplication)
   const ArteosContent = () => (
     <>
-      {/* Logo */}
       {aboutPage.arteosLogo?.asset?.url && (
         <div className='absolute -left-2 -top-14 lg:left-auto lg:top-auto lg:relative z-10'>
           <Image
@@ -71,7 +92,6 @@ export default async function AboutPage() {
           />
         </div>
       )}
-      {/* Description Box */}
       <div className='bg-black rounded-[2px] px-6 lg:px-6 py-6 lg:py-8 relative lg:absolute lg:left-44 lg:top-16 w-[65vw] lg:max-w-[17vw] ml-28 lg:ml-0 mt-40 lg:mt-0'>
         <div className='max-w-full lg:max-w-74 bg-white text-black rounded-[2px] -rotate-6 p-4'>
           <p className='text-sm lg:text-base leading-snug'>
@@ -84,9 +104,9 @@ export default async function AboutPage() {
 
   return (
     <main className='w-full min-h-screen relative overflow-hidden'>
-      {aboutPage.quote && (
+      {Array.isArray(aboutPage.quote) && aboutPage.quote.length > 0 && (
         <div className='text-base lg:text-2xl leading-snug lg:max-w-[60vw] lg:ml-132 mt-70 mb-8 lg:mb-0 px-8 pl-20 lg:px-8 lg:mt-32'>
-          <p>&ldquo;{aboutPage.quote}&rdquo;</p>
+          <PortableText value={aboutPage.quote} components={portableTextComponents} />
         </div>
       )}
       {aboutPage.logo?.asset?.url && (
@@ -102,9 +122,7 @@ export default async function AboutPage() {
       )}
 
       <div className='lg:container mx-auto lg:px-8 lg:py-24 relative'>
-        {/* TOP SECTION: 2 COLUMNS */}
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-16 items-start'>
-          {/* LEFT COL: IMAGE */}
           <div className='relative'>
             {aboutPage.profileImage?.asset?.url && (
               <div className='relative -ml-24 lg:-mt-16 lg:ml-8 group'>
@@ -124,37 +142,31 @@ export default async function AboutPage() {
             )}
           </div>
 
-          {/* RIGHT COL: BIO PART 1 */}
           <div className='space-y-12 -mt-124 px-4 lg:mt-0 lg:-ml-80 z-10 w-full lg:max-w-[30vw]'>
-            {bioPart1.length > 0 && (
+            {Array.isArray(aboutPage.bioTop) && aboutPage.bioTop.length > 0 && (
               <div className='text-sm lg:text-xl max-w-none leading-snug pl-34 lg:px-0'>
                 <PortableText
-                  value={bioPart1}
+                  value={aboutPage.bioTop}
                   components={portableTextComponents}
                 />
               </div>
             )}
 
-            {/* ARTEOS (DESKTOP ONLY) */}
-            {/* Added 'hidden lg:block' to hide this instance on mobile */}
             <div className='hidden lg:block relative lg:absolute lg:right-60 lg:top-16 lg:mt-0 -mt-16'>
               <ArteosContent />
             </div>
           </div>
         </div>
 
-        {/* BIO PART 2 (Flows underneath image) */}
-        {bioPart2.length > 0 && (
+        {Array.isArray(aboutPage.bioBottom) && aboutPage.bioBottom.length > 0 && (
           <div className='mt-0 lg:mt-16 px-16 lg:px-64 lg:max-w-7xl max-w-none w-full text-sm lg:text-xl leading-snug'>
             <PortableText
-              value={bioPart2}
+              value={aboutPage.bioBottom}
               components={portableTextComponents}
             />
           </div>
         )}
 
-        {/* ARTEOS (MOBILE ONLY) */}
-        {/* Added this block: 'block lg:hidden' shows it only on mobile, placed after everything */}
         <div className='block lg:hidden relative mt-16 mb-24 max-w-[90vw] mx-auto'>
           <ArteosContent />
         </div>
