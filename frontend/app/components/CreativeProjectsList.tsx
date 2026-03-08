@@ -14,6 +14,7 @@ import { urlForImage } from '@/sanity/lib/utils'
 import StackedCategoryTitles from './StackedCategoryTitles'
 import RealBrush from './drawings/RealBrush'
 import StudioWorksPortableText from './portable/StudioWorksPortableText'
+import ThreeDotsLoader from './ThreeDotsLoader'
 
 /* =========================
    helpers (keep as-is)
@@ -165,49 +166,6 @@ type CardAction =
 
 const isModifiedClick = (e: React.MouseEvent) =>
   e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1
-
-function ThreeDotsLoader() {
-  return (
-    <div className='w-full py-20 flex justify-center items-center gap-1 lg:gap-2'>
-      <div className='h-5 w-5 lg:h-5 lg:w-5 relative'>
-        <Image
-          src='/images/cercleRempliLogo.png'
-          alt='Loading...'
-          width={50}
-          height={50}
-          className='animate-bounce h-full w-full'
-          style={{ animationDelay: '0s' }}
-          priority
-          unoptimized
-        />
-      </div>
-      <div className='h-5 w-5 lg:h-5 lg:w-5 relative'>
-        <Image
-          src='/images/cercleRempliLogo.png'
-          alt='Loading...'
-          width={50}
-          height={50}
-          className='animate-bounce h-full w-full'
-          style={{ animationDelay: '0.2s' }}
-          priority
-          unoptimized
-        />
-      </div>
-      <div className='h-5 w-5 lg:h-5 lg:w-5 relative'>
-        <Image
-          src='/images/cercleRempliLogo.png'
-          alt='Loading...'
-          width={50}
-          height={50}
-          className='animate-bounce h-full w-full'
-          style={{ animationDelay: '0.4s' }}
-          priority
-          unoptimized
-        />
-      </div>
-    </div>
-  )
-}
 
 /* =========================
    DraggableProjectCard (UPDATED with animations)
@@ -661,24 +619,23 @@ export default function CreativeProjectsList({
 
   const brushPosition = (itemKey: string, isMobileLayout = false) => {
     const hash = hashString(itemKey + 'position')
-    const positions = isMobileLayout
-      ? [
-          'top-3 left-2',
-          'top-3 right-2',
-          'top-1/2 -translate-y-1/2 left-2',
-          'top-1/2 -translate-y-1/2 right-2',
-          'bottom-3 left-2',
-          'bottom-3 right-2',
-        ]
-      : [
-          'top-4 -left-8',
-          'top-4 -right-8',
-          'top-1/2 -translate-y-1/2 -left-8',
-          'top-1/2 -translate-y-1/2 -right-8',
-          'bottom-4 -left-8',
-          'bottom-4 -right-8',
-        ]
-    return positions[hash % positions.length]
+    if (isMobileLayout) {
+      return [
+        { top: -5, left: -5 },
+        { top: -5, right: -5 },
+        { bottom: -5, left: -5 },
+        { bottom: -5, right: -5 },
+      ][hash % 4]
+    }
+
+    return [
+      { top: 16, left: -32 },
+      { top: 16, right: -32 },
+      { top: '50%', left: -32, transform: 'translateY(-50%)' },
+      { top: '50%', right: -32, transform: 'translateY(-50%)' },
+      { bottom: 16, left: -32 },
+      { bottom: 16, right: -32 },
+    ][hash % 6]
   }
 
   const allCategories = useMemo(() => {
@@ -1019,7 +976,7 @@ export default function CreativeProjectsList({
       <div className='relative'>
         {isCategoryLoading && (
           <div className='absolute inset-0 z-30 flex items-start justify-center pt-16 pointer-events-none'>
-            <ThreeDotsLoader />
+            <ThreeDotsLoader className='w-full py-20' />
           </div>
         )}
         <div
@@ -1102,7 +1059,11 @@ export default function CreativeProjectsList({
                   childrenBrushAndTitle={
                     item.project.titleImage?.asset?.url ? (
                       <div
-                        className={`absolute ${brushPosition(item._key, isMobile)} z-10 max-w-[calc(100%-1rem)]`}
+                        className='absolute z-10 w-max'
+                        style={{
+                          ...brushPosition(item._key, isMobile),
+                          maxWidth: isMobile ? 'calc(100% + 10px)' : 'calc(100% - 1rem)',
+                        }}
                       >
                         <div
                           className='relative origin-left scale-75 md:scale-100'

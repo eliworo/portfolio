@@ -5,7 +5,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
 import RealBrush from './drawings/RealBrush'
-import HorizontalLine from './lines/HorizontalLine'
 import VerticalLine from './lines/VerticalLine'
 
 /** =========================================
@@ -32,6 +31,7 @@ export interface StackedCategoryTitlesProps {
   titleVariant?: TitleVariant
   groupTitle?: string
   hideGroupTitle?: boolean
+  showAllCategories?: boolean
   categories: CategoryItem[]
   selectedCategory: string | null
   onSelectCategory: (id: string | null) => void
@@ -65,7 +65,7 @@ const TOP_PAD = Math.round(20 * SCALE)
 const BOTTOM_PAD = Math.round(20 * SCALE)
 const BRUSH_H_PX = Math.round(56 * SCALE) // h-14 is ~56px
 const IMG_MAX_H_PX = Math.round(55 * SCALE) // old lg max-h ~55px (close enough)
-const MOBILE_BRUSH_H_PX = Math.round(BRUSH_H_PX * 0.62)
+const MOBILE_BRUSH_H_PX = Math.round(BRUSH_H_PX * 1)
 
 /** =========================================
  * Component
@@ -80,10 +80,10 @@ export default function StackedCategoryTitles({
   selectedCategory,
   onSelectCategory,
   hideGroupTitle,
+  showAllCategories = true,
 }: StackedCategoryTitlesProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const mobileMenuRef = useRef<HTMLDivElement>(null)
   const mobileContentRef = useRef<HTMLDivElement>(null)
   const mobileHandleRef = useRef<HTMLButtonElement>(null)
   const [mobileContentWidth, setMobileContentWidth] = useState(0)
@@ -103,6 +103,8 @@ export default function StackedCategoryTitles({
   }
 
   const navCategories = useMemo(() => {
+    if (!showAllCategories) return categories
+
     return [
       {
         id: '__all__',
@@ -111,7 +113,7 @@ export default function StackedCategoryTitles({
       },
       ...categories,
     ]
-  }, [categories])
+  }, [categories, showAllCategories])
 
   // Give the stack a real height so the panel isn’t 0px tall
   const stackHeight = useMemo(() => {
@@ -154,22 +156,6 @@ export default function StackedCategoryTitles({
       observer.disconnect()
     }
   }, [categories, selectedCategory])
-
-  useEffect(() => {
-    if (!isMobileMenuOpen) return
-
-    const onPointerDown = (e: PointerEvent) => {
-      const menuEl = mobileMenuRef.current
-      if (!menuEl) return
-      if (!menuEl.contains(e.target as Node)) {
-        setIsMobileMenuOpen(false)
-      }
-    }
-
-    document.addEventListener('pointerdown', onPointerDown, true)
-    return () =>
-      document.removeEventListener('pointerdown', onPointerDown, true)
-  }, [isMobileMenuOpen])
 
   return (
     <>
@@ -350,19 +336,19 @@ export default function StackedCategoryTitles({
         animate={{ x: isMobileMenuOpen ? 0 : mobileHideOffset }}
         transition={{ duration: 0.5, ease: [0.76, 0, 0.24, 1] }}
       >
-        <MobileBlurBackdrop show={isMobileMenuOpen} />
+        <MobileBlurBackdrop
+          show={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
+        />
         <div
-          ref={(node) => {
-            mobileContentRef.current = node
-            mobileMenuRef.current = node
-          }}
-          className='flex items-end pointer-events-auto'
+          ref={mobileContentRef}
+          className='flex items-end pointer-events-none'
         >
           <button
             ref={mobileHandleRef}
             type='button'
             onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-            className='flex flex-shrink-0 -mr-1 pt-2 pl-2 relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+            className='flex flex-shrink-0 -mr-1 pt-2 pl-2 relative cursor-pointer pointer-events-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
             aria-expanded={isMobileMenuOpen}
             aria-label='Toggle category navigation'
           >
@@ -385,12 +371,24 @@ export default function StackedCategoryTitles({
                 className='object-contain h-8 w-auto select-none pointer-events-none'
               />
             </div>
-            <HorizontalLine className='w-10' theme={{ fill: 'black' }} />
+            <span className='relative ml-1 h-2 mt-3 w-10 pointer-events-none'>
+              <Image
+                src='/images/brushMenuHorizontal.png'
+                alt=''
+                fill
+                className='object-fill -rotate-8'
+              />
+            </span>
           </button>
 
-          <ul className='space-y-0 relative ml-2 min-w-[200px] pointer-events-auto'>
-            <div className='absolute left-0 top-0 h-full'>
-              <VerticalLine className='h-full' theme={{ fill: 'black' }} />
+          <ul className='space-y-0 relative ml-2 min-w-[200px]'>
+            <div className='absolute left-0 top-0 h-full w-[18px] pointer-events-none'>
+              <Image
+                src='/images/brushMenu.png'
+                alt=''
+                fill
+                className='object-fill object-top'
+              />
             </div>
             {navCategories.map((category) => {
               const isAllCategories = category.id === '__all__'
@@ -408,29 +406,26 @@ export default function StackedCategoryTitles({
                       setIsMobileMenuOpen(false)
                     }}
                     aria-pressed={isActive}
-                    className='relative block w-fit ml-6 px-2 py-0.5 whitespace-nowrap cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+                    className='relative block w-full text-left pl-6 pr-2 py-0.5 -mt-1.5 whitespace-nowrap cursor-pointer pointer-events-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
                   >
-                    {isActive && (
-                      <div
-                        className='absolute inset-x-0 bottom-0 flex items-end justify-center z-0 pointer-events-none'
-                        style={{ height: '100%' }}
-                      >
-                        <RealBrush
-                          seed={`category:${category.id}:mobile`}
-                          color={BRUSH_COLOR}
-                          className='absolute -inset-x-1 bottom-0'
-                          style={{ height: MOBILE_BRUSH_H_PX }}
-                        />
-                      </div>
-                    )}
                     <span className='relative z-10 inline-flex items-center'>
+                      {isActive && (
+                        <span className='absolute left-1/2 bottom-0 -z-10 flex w-[calc(100%+14px)] -translate-x-1/2 translate-y-[4%] items-end justify-center pointer-events-none'>
+                          <RealBrush
+                            seed={`category:${category.id}:mobile`}
+                            color={BRUSH_COLOR}
+                            className='w-full'
+                            style={{ height: MOBILE_BRUSH_H_PX }}
+                          />
+                        </span>
+                      )}
                       {category.titleImageUrl ? (
                         <Image
                           src={category.titleImageUrl}
                           alt={category.title}
                           width={220}
                           height={56}
-                          className='object-contain h-[26px] w-auto'
+                          className='object-contain h-[32px] w-auto'
                         />
                       ) : (
                         <span className='text-[15px] font-right-grotesk-narrow-medium leading-none'>
@@ -455,7 +450,13 @@ function useMounted() {
   return mounted
 }
 
-function MobileBlurBackdrop({ show }: { show: boolean }) {
+function MobileBlurBackdrop({
+  show,
+  onClose,
+}: {
+  show: boolean
+  onClose: () => void
+}) {
   const mounted = useMounted()
   if (!mounted) return null
 
@@ -465,6 +466,7 @@ function MobileBlurBackdrop({ show }: { show: boolean }) {
         <motion.div
           key='project-category-mobile-backdrop'
           className='fixed inset-0 z-30'
+          onClick={onClose}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -473,7 +475,7 @@ function MobileBlurBackdrop({ show }: { show: boolean }) {
             background: 'rgba(255,255,255,0.30)',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
-            pointerEvents: 'none',
+            pointerEvents: 'auto',
           }}
         />
       ) : null}

@@ -209,6 +209,7 @@ export default function ProjectSectionsStackedNavClient({
   return (
     <StackedCategoryTitles
       hideGroupTitle
+      showAllCategories={false}
       titleVariant={titleVariant}
       groupTitleImages={groupTitleImages}
       categories={categories}

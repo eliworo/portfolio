@@ -15,12 +15,17 @@ function toPlainText(blocks: any): string | undefined {
   }
 
   const text = blocks
-    .filter((block) => block?._type === 'block' && Array.isArray(block.children))
+    .filter(
+      (block) => block?._type === 'block' && Array.isArray(block.children),
+    )
     .map((block) =>
       block.children
-        .filter((child: any) => child?._type === 'span' && typeof child.text === 'string')
+        .filter(
+          (child: any) =>
+            child?._type === 'span' && typeof child.text === 'string',
+        )
         .map((child: any) => child.text)
-        .join('')
+        .join(''),
     )
     .join(' ')
     .trim()
@@ -30,7 +35,7 @@ function toPlainText(blocks: any): string | undefined {
 
 export async function generateMetadata(
   _props: any,
-  parent: ResolvingMetadata
+  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const { data: aboutPage } = await sanityFetch({
     query: aboutPageQuery,
@@ -92,7 +97,7 @@ export default async function AboutPage() {
           />
         </div>
       )}
-      <div className='bg-black rounded-[2px] px-6 lg:px-6 py-6 lg:py-8 relative lg:absolute lg:left-44 lg:top-16 w-[65vw] lg:max-w-[17vw] ml-28 lg:ml-0 mt-40 lg:mt-0'>
+      <div className='bg-black rounded-[2px] px-6 lg:px-6 py-6 lg:py-8 relative lg:absolute lg:left-44 lg:top-16 w-[65vw] lg:max-w-[17vw] ml-28 lg:ml-0 mt-28 lg:mt-0'>
         <div className='max-w-full lg:max-w-74 bg-white text-black rounded-[2px] -rotate-6 p-4'>
           <p className='text-sm lg:text-base leading-snug'>
             {aboutPage.arteosDescription}
@@ -106,7 +111,10 @@ export default async function AboutPage() {
     <main className='w-full min-h-screen relative overflow-hidden'>
       {Array.isArray(aboutPage.quote) && aboutPage.quote.length > 0 && (
         <div className='text-base lg:text-2xl leading-snug lg:max-w-[60vw] lg:ml-132 mt-70 mb-8 lg:mb-0 px-8 pl-20 lg:px-8 lg:mt-32'>
-          <PortableText value={aboutPage.quote} components={portableTextComponents} />
+          <PortableText
+            value={aboutPage.quote}
+            components={portableTextComponents}
+          />
         </div>
       )}
       {aboutPage.logo?.asset?.url && (
@@ -152,20 +160,21 @@ export default async function AboutPage() {
               </div>
             )}
 
-            <div className='hidden lg:block relative lg:absolute lg:right-60 lg:top-16 lg:mt-0 -mt-16'>
+            <div className='hidden lg:block relative lg:absolute lg:right-60 lg:top-16 lg:mt-0 -mt-24'>
               <ArteosContent />
             </div>
           </div>
         </div>
 
-        {Array.isArray(aboutPage.bioBottom) && aboutPage.bioBottom.length > 0 && (
-          <div className='mt-0 lg:mt-16 px-16 lg:px-64 lg:max-w-7xl max-w-none w-full text-sm lg:text-xl leading-snug'>
-            <PortableText
-              value={aboutPage.bioBottom}
-              components={portableTextComponents}
-            />
-          </div>
-        )}
+        {Array.isArray(aboutPage.bioBottom) &&
+          aboutPage.bioBottom.length > 0 && (
+            <div className='mt-0 lg:mt-16 px-16 lg:px-64 lg:max-w-7xl max-w-none w-full text-sm lg:text-xl leading-snug'>
+              <PortableText
+                value={aboutPage.bioBottom}
+                components={portableTextComponents}
+              />
+            </div>
+          )}
 
         <div className='block lg:hidden relative mt-16 mb-24 max-w-[90vw] mx-auto'>
           <ArteosContent />

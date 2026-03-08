@@ -280,32 +280,36 @@ export default function CategoryNav({
             {navItems.map((item) => (
               <li className='ml-6' key={item.id}>
                 <div className='relative inline-block'>
-                  {(activeItem === item.id ||
-                    (!activeItem && item.id === '__all__')) && (
-                    <PaintBrush
-                      className='absolute bottom-0 left-1/2 transform -translate-x-1/2 -z-10 w-full h-8'
-                      theme={{ fill: '#9AB1FF' }}
-                    />
-                  )}
                   <button
-                    className={`block w-fit px-2 py-1 text-sm transition-colors cursor-pointer whitespace-nowrap ${
+                    className={`relative inline-flex w-fit items-center px-2 py-1 text-sm transition-colors cursor-pointer whitespace-nowrap ${
                       activeItem === item.id ||
                       (!activeItem && item.id === '__all__')
-                        ? 'text-white relative z-10'
+                        ? 'z-10'
                         : ''
                     }`}
                     onClick={(e) => handleItemClick(item, e)}
                   >
+                    {(activeItem === item.id ||
+                      (!activeItem && item.id === '__all__')) && (
+                      <span className='absolute left-1/2 bottom-0 -z-10 h-7 w-[calc(100%+18px)] -translate-x-1/2 pointer-events-none'>
+                        <Image
+                          src='/images/brushMenu.png'
+                          alt=''
+                          fill
+                          className='object-fill'
+                        />
+                      </span>
+                    )}
                     {item.titleImageUrl ? (
                       <Image
                         src={item.titleImageUrl}
                         alt={item.title}
                         width={200}
                         height={200}
-                        className='object-contain h-8 w-auto'
+                        className='object-contain h-8 w-auto relative z-10'
                       />
                     ) : (
-                      item.title
+                      <span className='relative z-10'>{item.title}</span>
                     )}
                   </button>
                 </div>
