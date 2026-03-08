@@ -177,7 +177,6 @@ function DraggableProjectCard({
   isMobile,
   action,
   preview,
-  brushPosition,
   brushRotation,
   brushColor,
   onOpenModal,
@@ -189,7 +188,6 @@ function DraggableProjectCard({
   isMobile: boolean
   action: CardAction
   preview: Preview
-  brushPosition: (k: string) => string
   brushRotation: (k: string) => number
   brushColor: (id: string) => string
   onOpenModal: () => void
@@ -1051,7 +1049,6 @@ export default function CreativeProjectsList({
                   isMobile={isMobile}
                   action={action}
                   preview={preview}
-                  brushPosition={brushPosition}
                   brushRotation={brushRotation}
                   brushColor={brushColor}
                   onOpenModal={openModal}
