@@ -3,11 +3,7 @@
 import React, { useEffect, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import {
-  motion,
-  AnimatePresence,
-  useMotionValue,
-} from 'motion/react'
+import { motion, AnimatePresence, useMotionValue } from 'motion/react'
 
 import PaintBrush from './drawings/PaintBrush'
 import ProjectModal from './ProjectModal'
@@ -30,7 +26,7 @@ const normalizeCategoryKey = (key: string) =>
   stripInvisible(key).substring(0, 12)
 
 const hasProject = (
-  item: FeaturedProject
+  item: FeaturedProject,
 ): item is FeaturedProject & {
   project: NonNullable<FeaturedProject['project']>
 } => Boolean(item.project)
@@ -53,7 +49,7 @@ type SanityImageSource = {
 const hasImageAsset = (image?: SanityImageSource) =>
   Boolean(
     image?.asset &&
-    (image.asset._ref || image.asset._id || image.asset._type === 'reference')
+    (image.asset._ref || image.asset._id || image.asset._type === 'reference'),
   )
 
 const normalizeImageSource = (image?: SanityImageSource) => {
@@ -93,6 +89,7 @@ type FeaturedProject = {
   project?: {
     _id: string
     title: string
+    titleStyle?: 'normal' | 'bold' | 'large' | 'largeBold'
     slug: { current: string }
     projectKind: 'professional' | 'personal'
     projectSize?: 'small' | 'large'
@@ -102,6 +99,7 @@ type FeaturedProject = {
     coverImage?: SanityImageSource
     images?: Array<SanityImageSource & { title?: string }>
     description?: string
+    descriptionRich?: any[]
     year?: string
     content?: any[]
     previewType?: 'image' | 'text'
@@ -110,9 +108,8 @@ type FeaturedProject = {
     writingContent?: Array<{
       _type: string
       _key: string
-      title?: string
-      titleWeight?: 'normal' | 'bold'
-      titleSize?: 'normal' | 'large'
+      verticalAlign?: 'top' | 'center' | 'bottom'
+      contentRich?: any[]
       content?: string
       image?: { asset?: { url?: string }; alt?: string }
       caption?: string
@@ -179,7 +176,7 @@ function ThreeDotsLoader() {
           width={50}
           height={50}
           className='animate-bounce h-full w-full'
-          style={{animationDelay: '0s'}}
+          style={{ animationDelay: '0s' }}
           priority
           unoptimized
         />
@@ -191,7 +188,7 @@ function ThreeDotsLoader() {
           width={50}
           height={50}
           className='animate-bounce h-full w-full'
-          style={{animationDelay: '0.2s'}}
+          style={{ animationDelay: '0.2s' }}
           priority
           unoptimized
         />
@@ -203,7 +200,7 @@ function ThreeDotsLoader() {
           width={50}
           height={50}
           className='animate-bounce h-full w-full'
-          style={{animationDelay: '0.4s'}}
+          style={{ animationDelay: '0.4s' }}
           priority
           unoptimized
         />
@@ -241,8 +238,8 @@ function DraggableProjectCard({
   onImageReady?: () => void
   childrenBrushAndTitle: React.ReactNode
 }) {
-  const offsetFactor = isMobile ? 0.55 : 1
-  const rotationFactor = isMobile ? 0.7 : 1
+  const offsetFactor = isMobile ? 0.35 : 1
+  const rotationFactor = isMobile ? 0.6 : 1
 
   const responsiveX = (item.offsetX ?? 0) * offsetFactor
   const responsiveY = (item.offsetY ?? 0) * offsetFactor
@@ -250,7 +247,7 @@ function DraggableProjectCard({
 
   // CMS scale should affect the image/preview only — NOT the brush or caption
   const responsiveScale = isMobile
-    ? 1 - (1 - (item.scale ?? 1)) * 0.6
+    ? 1 - (1 - (item.scale ?? 1)) * 0.45
     : (item.scale ?? 1)
 
   const x = useMotionValue(responsiveX)
@@ -476,15 +473,15 @@ function BlankSpacer({
   isMobile: boolean
   idx: number
 }) {
-  const offsetFactor = isMobile ? 0.55 : 1
-  const rotationFactor = isMobile ? 0.7 : 1
+  const offsetFactor = isMobile ? 0.35 : 1
+  const rotationFactor = isMobile ? 0.6 : 1
 
   const responsiveX = (item.offsetX ?? 0) * offsetFactor
   const responsiveY = (item.offsetY ?? 0) * offsetFactor
   const responsiveRotation = (item.rotation ?? 0) * rotationFactor
 
   const responsiveScale = isMobile
-    ? 1 - (1 - (item.scale ?? 1)) * 0.6
+    ? 1 - (1 - (item.scale ?? 1)) * 0.45
     : (item.scale ?? 1)
 
   const x = useMotionValue(responsiveX)
@@ -554,12 +551,12 @@ export default function CreativeProjectsList({
 }) {
   const [modalProject, setModalProject] = React.useState<any>(null)
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(
-    initialCategory || null
+    initialCategory || null,
   )
   const [isMobile, setIsMobile] = React.useState(false)
   const [isCategoryLoading, setIsCategoryLoading] = React.useState(false)
   const [readyImageKeys, setReadyImageKeys] = React.useState<Set<string>>(
-    () => new Set()
+    () => new Set(),
   )
   const [readyTitleImageKeys, setReadyTitleImageKeys] = React.useState<
     Set<string>
@@ -662,16 +659,25 @@ export default function CreativeProjectsList({
     return (hash % 7) - 6 // keep your range
   }
 
-  const brushPosition = (itemKey: string) => {
+  const brushPosition = (itemKey: string, isMobileLayout = false) => {
     const hash = hashString(itemKey + 'position')
-    const positions = [
-      'top-4 -left-8',
-      'top-4 -right-8',
-      'top-1/2 -translate-y-1/2 -left-8',
-      'top-1/2 -translate-y-1/2 -right-8',
-      'bottom-4 -left-8',
-      'bottom-4 -right-8',
-    ]
+    const positions = isMobileLayout
+      ? [
+          'top-3 left-2',
+          'top-3 right-2',
+          'top-1/2 -translate-y-1/2 left-2',
+          'top-1/2 -translate-y-1/2 right-2',
+          'bottom-3 left-2',
+          'bottom-3 right-2',
+        ]
+      : [
+          'top-4 -left-8',
+          'top-4 -right-8',
+          'top-1/2 -translate-y-1/2 -left-8',
+          'top-1/2 -translate-y-1/2 -right-8',
+          'bottom-4 -left-8',
+          'bottom-4 -right-8',
+        ]
     return positions[hash % positions.length]
   }
 
@@ -689,7 +695,7 @@ export default function CreativeProjectsList({
         ) {
           const coreKey = normalizeCategoryKey(item.categorySectionKey)
           const sec = p.categorySections?.find((s) =>
-            s._key.startsWith(coreKey)
+            s._key.startsWith(coreKey),
           )
           if (sec?.category?.slug?.current) {
             categories.push([
@@ -737,7 +743,7 @@ export default function CreativeProjectsList({
 
       if (isPersonalKind(p) && p.projectSize !== 'large') {
         return p.categories?.some(
-          (cat) => cat.slug.current === selectedCategory
+          (cat) => cat.slug.current === selectedCategory,
         )
       }
 
@@ -768,7 +774,7 @@ export default function CreativeProjectsList({
 
   const expectedImageKeySet = useMemo(
     () => new Set(expectedImageKeys),
-    [expectedImageKeys]
+    [expectedImageKeys],
   )
 
   const handleSelectCategory = (id: string | null) => {
@@ -781,6 +787,7 @@ export default function CreativeProjectsList({
       else url.searchParams.delete('category')
       window.history.replaceState({}, '', url.toString())
     } catch {}
+    window.scrollTo({ top: 0, behavior: 'smooth' })
     setSelectedCategory(selectedCategory === id ? null : id)
   }
 
@@ -817,7 +824,7 @@ export default function CreativeProjectsList({
         return next
       })
     },
-    [isCategoryLoading, expectedImageKeySet]
+    [isCategoryLoading, expectedImageKeySet],
   )
 
   const handleTitleImageReady = React.useCallback((itemKey: string) => {
@@ -849,7 +856,7 @@ export default function CreativeProjectsList({
       .map((block: any) =>
         Array.isArray(block?.children)
           ? block.children.map((child: any) => child?.text || '').join('')
-          : block?.text || ''
+          : block?.text || '',
       )
       .join('\n')
       .replace(/\s+\n/g, '\n')
@@ -860,7 +867,7 @@ export default function CreativeProjectsList({
     if (!section?.content) return undefined
     const textBlocks = section.content.filter(
       (block: any) =>
-        block?._type === 'textBlock' || block?._type === 'textWithImage'
+        block?._type === 'textBlock' || block?._type === 'textWithImage',
     )
     if (!textBlocks.length) return undefined
     const idx = Math.max(0, (index ?? 1) - 1)
@@ -884,12 +891,15 @@ export default function CreativeProjectsList({
 
       if (p.previewType === 'text' && p.writingContent) {
         const textBlocks = p.writingContent.filter(
-          (block) => block._type === 'writingTextBlock'
+          (block) => block._type === 'writingTextBlock',
         )
         const targetIndex = Math.max(0, (p.textExtractIndex ?? 1) - 1)
         const selectedBlock = textBlocks[targetIndex] || textBlocks[0]
-        if (selectedBlock?.content) {
-          return { type: 'text', content: selectedBlock.content }
+        const extracted = portableTextToPlain(
+          selectedBlock?.contentRich || selectedBlock?.content,
+        )
+        if (extracted) {
+          return { type: 'text', content: extracted }
         }
       }
       if (p.coverImage) return { type: 'image', image: p.coverImage }
@@ -921,13 +931,13 @@ export default function CreativeProjectsList({
 
       if (previewMode === 'text') {
         const manual = stripInvisible(
-          sec.preview?.textOverride || sec.preview?.text
+          sec.preview?.textOverride || sec.preview?.text,
         )
         if (manual) return { type: 'text', content: manual }
 
         const extracted = getSectionTextExtract(
           sec,
-          sec.preview?.textExtractIndex
+          sec.preview?.textExtractIndex,
         )
         if (extracted) return { type: 'text', content: extracted }
       }
@@ -944,7 +954,7 @@ export default function CreativeProjectsList({
             block?.images?.length
           ) {
             const firstImage = block.images.find((img: SanityImageSource) =>
-              hasImageAsset(img)
+              hasImageAsset(img),
             )
             if (firstImage) return { type: 'image', image: firstImage }
           }
@@ -999,7 +1009,7 @@ export default function CreativeProjectsList({
       )}
 
       {description && (
-        <div className='px-8 mt-24 mb-16 md:hidden'>
+        <div className='px-8 mt-18 mb-16 md:hidden'>
           <div className='text-lg leading-snug font-sans'>
             <StudioWorksPortableText value={description} />
           </div>
@@ -1013,7 +1023,7 @@ export default function CreativeProjectsList({
           </div>
         )}
         <div
-          className='mt-0 px-2 lg:mt-0 grid grid-cols-2 lg:grid-cols-4 py-40 lg:pt-0 lg:pb-64 pt-0 transition-opacity duration-150'
+          className='mt-0 px-4 sm:px-3 md:px-2 lg:px-2 grid grid-cols-2 md:grid-cols-4 py-40 md:py-24 lg:pb-64 pt-0 xl:py-16 transition-opacity duration-150'
           style={{
             columnGap: `${colGap}px`,
             rowGap: `${rowGap}px`,
@@ -1022,57 +1032,59 @@ export default function CreativeProjectsList({
         >
           <AnimatePresence mode='popLayout'>
             {filteredProjects.map((item, idx) => {
-            const itemKind = (item as any).kind ?? 'project'
+              const itemKind = (item as any).kind ?? 'project'
 
-            if (itemKind === 'blank') {
-              return (
-                <BlankSpacer
-                  key={item._key}
-                  item={item}
-                  isMobile={isMobile}
-                  idx={idx}
-                />
-              )
-            }
-
-            if (!item?.project) return null
-            const p = item.project
-
-            let preview = coverOrPreviewForItem(item)
-            if (preview.type === 'image' && !hasImageAsset(preview.image)) {
-              if (
-                isPersonalKind(item.project) &&
-                item.project.projectSize !== 'large'
-              ) {
-                return null
+              if (itemKind === 'blank') {
+                return (
+                  <BlankSpacer
+                    key={item._key}
+                    item={item}
+                    isMobile={isMobile}
+                    idx={idx}
+                  />
+                )
               }
-              preview = {
-                type: 'text',
-                content: item.project.title || 'Project',
+
+              if (!item?.project) return null
+              const p = item.project
+
+              let preview = coverOrPreviewForItem(item)
+              if (preview.type === 'image' && !hasImageAsset(preview.image)) {
+                if (
+                  isPersonalKind(item.project) &&
+                  item.project.projectSize !== 'large'
+                ) {
+                  return null
+                }
+                preview = {
+                  type: 'text',
+                  content: item.project.title || 'Project',
+                }
               }
-            }
 
-            const action = getCardAction(item)
+              const action = getCardAction(item)
 
-            const openModal = () => {
-              setModalProject({
-                _id: p._id,
-                title: p.title,
-                titleImageUrl: p.titleImage?.asset?.url,
-                coverImageUrl:
-                  preview.type === 'image'
-                    ? buildImageUrl(preview.image)
-                    : undefined,
-                coverImage: p.coverImage,
-                description: p.description,
-                content: p.content,
-                writingContent: p.writingContent,
-                writingLayout: p.writingLayout,
-                images: p.images,
-                year: p.year,
-                projectSubtype: p.projectSubtype,
-              })
-            }
+              const openModal = () => {
+                setModalProject({
+                  _id: p._id,
+                  title: p.title,
+                  titleStyle: p.titleStyle,
+                  titleImageUrl: p.titleImage?.asset?.url,
+                  coverImageUrl:
+                    preview.type === 'image'
+                      ? buildImageUrl(preview.image)
+                      : undefined,
+                  coverImage: p.coverImage,
+                  description: p.description,
+                  descriptionRich: p.descriptionRich,
+                  content: p.content,
+                  writingContent: p.writingContent,
+                  writingLayout: p.writingLayout,
+                  images: p.images,
+                  year: p.year,
+                  projectSubtype: p.projectSubtype,
+                })
+              }
 
               return (
                 <DraggableProjectCard
@@ -1090,10 +1102,10 @@ export default function CreativeProjectsList({
                   childrenBrushAndTitle={
                     item.project.titleImage?.asset?.url ? (
                       <div
-                        className={`absolute ${brushPosition(item._key)} z-10`}
+                        className={`absolute ${brushPosition(item._key, isMobile)} z-10 max-w-[calc(100%-1rem)]`}
                       >
                         <div
-                          className='relative'
+                          className='relative origin-left scale-75 md:scale-100'
                           style={{
                             rotate: `${brushRotation(item._key)}deg`,
                             opacity: readyTitleImageKeys.has(item._key) ? 1 : 0,

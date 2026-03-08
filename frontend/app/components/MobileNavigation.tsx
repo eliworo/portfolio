@@ -70,7 +70,7 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
               alt='Open menu'
               width={600}
               height={600}
-              className='absolute inset-0 m-auto object-contain h-12 w-12 -scale-x-100'
+              className='absolute inset-0 m-auto object-contain h-12 w-12'
             />
           ) : (
             <Image

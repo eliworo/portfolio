@@ -6,11 +6,15 @@ import Image from 'next/image'
 import { motion, AnimatePresence } from 'motion/react'
 import HorizontalLine from './lines/HorizontalLine'
 import VerticalLine from './lines/VerticalLine'
+import RealBrush from './drawings/RealBrush'
 import { NavigationImagesQueryResult } from '@/sanity.types'
 
 type NavigationProps = {
   navImages: NavigationImagesQueryResult
 }
+
+const NAV_BRUSH_COLOR = '#D9D9D9'
+const NAV_BRUSH_HEIGHT_PX = 42
 
 function buildNavStructure(navImages: NavigationProps['navImages']) {
   const mainCategories = [
@@ -45,7 +49,7 @@ export default function Navigation({ navImages }: NavigationProps) {
   const [showMenu, setShowMenu] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [activeSubCategory, setActiveSubCategory] = useState<string | null>(
-    null
+    null,
   )
 
   const menuRef = useRef<HTMLDivElement>(null)
@@ -80,6 +84,54 @@ export default function Navigation({ navImages }: NavigationProps) {
         duration: 0.2,
       },
     },
+  }
+
+  function renderNavLabel({
+    imageUrl,
+    title,
+    seed,
+    isActive,
+  }: {
+    imageUrl?: string | null
+    title: string
+    seed: string
+    isActive: boolean
+  }) {
+    return (
+      <span className='relative inline-block w-fit'>
+        {isActive && (
+          <span
+            className='absolute inset-x-0 bottom-0 flex items-end justify-center z-0 pointer-events-none'
+            style={{ height: '110%' }}
+          >
+            <RealBrush
+              seed={`nav:${seed}`}
+              color={NAV_BRUSH_COLOR}
+              className='absolute -inset-x-2 bottom-0'
+              style={{
+                height: NAV_BRUSH_HEIGHT_PX,
+              }}
+            />
+          </span>
+        )}
+
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={title}
+            width={150}
+            height={50}
+            style={{
+              width: 'auto',
+              maxHeight: '35px',
+            }}
+            className='relative z-10 object-contain'
+          />
+        ) : (
+          <span className='relative z-10 text-lg font-medium'>{title}</span>
+        )}
+      </span>
+    )
   }
 
   return (
@@ -166,7 +218,7 @@ export default function Navigation({ navImages }: NavigationProps) {
                         return (
                           <li key={category.title} className='relative w-fit'>
                             <div
-                              className={`cursor-pointer hover:opacity-90 transition-opacity`}
+                              className='group cursor-pointer transition-opacity hover:opacity-90'
                               onMouseEnter={() =>
                                 setActiveCategory(category.title)
                               }
@@ -175,29 +227,12 @@ export default function Navigation({ navImages }: NavigationProps) {
                                 href={category.slug}
                                 onClick={handleCloseMenu}
                               >
-                                {imageUrl ? (
-                                  <Image
-                                    src={imageUrl}
-                                    alt={category.title}
-                                    width={150}
-                                    height={50}
-                                    style={{
-                                      width: 'auto',
-                                      maxHeight: '35px',
-                                    }}
-                                    className='object-contain'
-                                  />
-                                ) : (
-                                  <span
-                                    className={`text-lg font-medium ${
-                                      activeCategory === category.title
-                                        ? 'font-bold'
-                                        : ''
-                                    }`}
-                                  >
-                                    {category.title}
-                                  </span>
-                                )}
+                                {renderNavLabel({
+                                  imageUrl,
+                                  title: category.title,
+                                  seed: category.title,
+                                  isActive: activeCategory === category.title,
+                                })}
                               </Link>
                             </div>
 
@@ -238,10 +273,10 @@ export default function Navigation({ navImages }: NavigationProps) {
                                                 className='relative w-fit'
                                               >
                                                 <div
-                                                  className={`cursor-pointer hover:opacity-90 transition-opacity`}
+                                                  className='group cursor-pointer transition-opacity hover:opacity-90'
                                                   onMouseEnter={() =>
                                                     setActiveSubCategory(
-                                                      subCategory.title ?? null
+                                                      subCategory.title ?? null,
                                                     )
                                                   }
                                                 >
@@ -249,41 +284,22 @@ export default function Navigation({ navImages }: NavigationProps) {
                                                     href={subCategory.slug}
                                                     onClick={handleCloseMenu}
                                                   >
-                                                    {hasImage ? (
-                                                      <Image
-                                                        src={
-                                                          subCategory.titleImage
-                                                            ?.asset?.url || ''
-                                                        }
-                                                        alt={
-                                                          subCategory.title ||
-                                                          ''
-                                                        }
-                                                        width={150}
-                                                        height={50}
-                                                        style={{
-                                                          width: 'auto',
-                                                          maxHeight: '35px',
-                                                        }}
-                                                        className='object-contain'
-                                                      />
-                                                    ) : (
-                                                      <span
-                                                        className={`text-lg font-medium ${
-                                                          activeSubCategory ===
-                                                          subCategory.title
-                                                            ? 'font-bold'
-                                                            : ''
-                                                        }`}
-                                                      >
-                                                        {subCategory.title}
-                                                      </span>
-                                                    )}
+                                                    {renderNavLabel({
+                                                      imageUrl:
+                                                        subCategory.titleImage
+                                                          ?.asset?.url,
+                                                      title:
+                                                        subCategory.title || '',
+                                                      seed: `${category.title}:${subCategory.title || 'item'}`,
+                                                      isActive:
+                                                        activeSubCategory ===
+                                                        subCategory.title,
+                                                    })}
                                                   </Link>
                                                 </div>
                                               </li>
                                             )
-                                          }
+                                          },
                                         )}
                                       </ul>
                                     </motion.div>

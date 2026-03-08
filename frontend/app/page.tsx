@@ -9,8 +9,16 @@ import ContactNav from './components/ContactNav'
 
 export default async function Page() {
   const [{ data: homepage }, { data: aboutPage }] = await Promise.all([
-    sanityFetch({ query: homepageQuery }),
-    sanityFetch({ query: aboutPageQuery }),
+    sanityFetch({
+      query: homepageQuery,
+      // The homepage is heavily animated and draggable; stega markup here
+      // causes noisy Visual Editing behavior in draft mode.
+      stega: false,
+    }),
+    sanityFetch({
+      query: aboutPageQuery,
+      stega: false,
+    }),
   ])
 
   // Get video settings with defaults

@@ -463,7 +463,8 @@ export const projectQuery = defineQuery(`
       asset-> {
         url
       },
-      alt
+      alt,
+      caption
     },
     content[] {
       _type,
@@ -1071,7 +1072,8 @@ const projectFields = /* groq */ `
     },
     crop,
     hotspot,
-    alt
+    alt,
+    caption
   },
  images[] {
     _type,
@@ -1087,6 +1089,7 @@ const projectFields = /* groq */ `
       crop,
       hotspot,
       alt,
+      "caption": coalesce(caption, title),
       title
     },
     _type == "videoItem" => {
@@ -1100,30 +1103,43 @@ const projectFields = /* groq */ `
     }
   },
   description,
+  descriptionRich[]{
+    ...,
+    children[]{
+      ...,
+    },
+    markDefs[]{
+      ...,
+    }
+  },
+  titleStyle,
   year,
-  material,
-  dimensions,
   categories[]->{
     _id,
     title,
     slug{current},
     titleImage { asset->{ url } }
   },
-  content,
   writingLayout,
   writingContent[] {
     _type,
     _key,
     _type == "writingTextBlock" => {
-      title,
-      titleWeight,
-      titleSize,
+      verticalAlign,
+      contentRich[]{
+        ...,
+        children[]{
+          ...,
+        },
+        markDefs[]{
+          ...,
+        }
+      },
       content
     },
     _type == "writingImageBlock" => {
       title,
-      titleWeight,
-      titleSize,
+      verticalAlign,
       image {
         asset->{
           _id,
@@ -1211,12 +1227,7 @@ const projectFields = /* groq */ `
         verticalAlignment
       }
     }
-  },
-  credits,
-  press,
-  tournee,
-  publishedAt,
-  visible
+  }
 `
 
 export const studioWorksQuery = /* groq */ `

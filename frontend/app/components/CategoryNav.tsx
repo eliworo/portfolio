@@ -54,7 +54,19 @@ export default function CategoryNav({
   const [titleWidth, setTitleWidth] = useState(0)
   const [isMeasured, setIsMeasured] = useState(false)
 
-  const navItems = useMemo(() => items ?? categories ?? [], [items, categories])
+  const baseNavItems = useMemo(() => items ?? categories ?? [], [items, categories])
+  const navItems = useMemo(() => {
+    if (!isStudioWorks) return baseNavItems
+
+    return [
+      {
+        id: '__all__',
+        title: 'All categories',
+        titleImageUrl: '/images/AllCategoriesLogo.png',
+      },
+      ...baseNavItems,
+    ]
+  }, [baseNavItems, isStudioWorks])
   const onSelect = useMemo(
     () => onSelectItem ?? onSelectCategory,
     [onSelectItem, onSelectCategory]
@@ -118,12 +130,19 @@ export default function CategoryNav({
     (item: any, e: React.MouseEvent) => {
       e.preventDefault()
 
+      const isAllCategories = item.id === '__all__'
+      const nextId = isAllCategories ? null : item.id
+
       if (onSelect) {
-        if (item.id === activeItem) {
+        if (isAllCategories) {
           onSelect(null)
-          setActiveItem(null)
+          setActiveItem('__all__')
+        } else if (item.id === activeItem) {
+          onSelect(null)
+          setActiveItem('__all__')
         } else {
-          onSelect(item.id)
+          onSelect(nextId)
+          setActiveItem(nextId)
         }
       } else if (isProjectPage) {
         const element = document.getElementById(item.id)
@@ -134,7 +153,7 @@ export default function CategoryNav({
       } else if (isProductionsPage) {
         router.push(`/productions/${item.slug}`)
       } else if (isStudioWorks) {
-        router.push(`/${groupSlug}/c/${item.id}`)
+        router.push(isAllCategories ? `/${groupSlug}` : `/${groupSlug}/c/${item.id}`)
       } else if (item.slug) {
         router.push(`/${groupSlug}/${item.slug}`)
       }
@@ -261,7 +280,8 @@ export default function CategoryNav({
             {navItems.map((item) => (
               <li className='ml-6' key={item.id}>
                 <div className='relative inline-block'>
-                  {activeItem === item.id && (
+                  {(activeItem === item.id ||
+                    (!activeItem && item.id === '__all__')) && (
                     <PaintBrush
                       className='absolute bottom-0 left-1/2 transform -translate-x-1/2 -z-10 w-full h-8'
                       theme={{ fill: '#9AB1FF' }}
@@ -269,7 +289,10 @@ export default function CategoryNav({
                   )}
                   <button
                     className={`block w-fit px-2 py-1 text-sm transition-colors cursor-pointer whitespace-nowrap ${
-                      activeItem === item.id ? 'text-white relative z-10' : ''
+                      activeItem === item.id ||
+                      (!activeItem && item.id === '__all__')
+                        ? 'text-white relative z-10'
+                        : ''
                     }`}
                     onClick={(e) => handleItemClick(item, e)}
                   >

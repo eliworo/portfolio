@@ -102,10 +102,21 @@ export default function StackedCategoryTitles({
     return { x: xOffset, y: yOffset }
   }
 
+  const navCategories = useMemo(() => {
+    return [
+      {
+        id: '__all__',
+        title: 'All categories',
+        titleImageUrl: '/images/AllCategoriesLogo.png',
+      },
+      ...categories,
+    ]
+  }, [categories])
+
   // Give the stack a real height so the panel isn’t 0px tall
   const stackHeight = useMemo(() => {
-    return TOP_PAD + categories.length * ITEM_GAP + BOTTOM_PAD
-  }, [categories.length])
+    return TOP_PAD + navCategories.length * ITEM_GAP + BOTTOM_PAD
+  }, [navCategories.length])
 
   // Resolve images with safe fallback to legacy prop
   const images: GroupTitleImages = useMemo(() => {
@@ -156,7 +167,8 @@ export default function StackedCategoryTitles({
     }
 
     document.addEventListener('pointerdown', onPointerDown, true)
-    return () => document.removeEventListener('pointerdown', onPointerDown, true)
+    return () =>
+      document.removeEventListener('pointerdown', onPointerDown, true)
   }, [isMobileMenuOpen])
 
   return (
@@ -168,13 +180,14 @@ export default function StackedCategoryTitles({
         <div
           className='
     px-4 lg:px-0
-    relative lg:absolute
-    mt-14 sm:mt-20 lg:mt-0
-    -rotate-3 lg:rotate-0
-    left-auto lg:left-22
-    top-auto lg:top-16
-    w-[85vw] lg:w-[40vw]
-    mx-auto lg:mx-0
+    relative md:max-lg:absolute lg:absolute
+    mt-32 ml-12 sm:mt-20 md:max-lg:mt-0 lg:mt-0
+    -rotate-3 md:max-lg:rotate-0 lg:rotate-0
+    left-auto md:max-lg:left-8 lg:left-22
+    top-auto md:max-lg:top-16 lg:top-16
+    w-[85vw] md:max-lg:w-[30vw] lg:w-[40vw]
+    md:max-lg:max-w-[320px]
+    mx-auto md:max-lg:mx-0 lg:mx-0
     z-20
     pointer-events-none
   '
@@ -183,9 +196,8 @@ export default function StackedCategoryTitles({
           <div className='mb-8 lg:mb-12'>
             {effectiveVariant === 'stacked' ? (
               <div
-                className='relative'
+                className='relative w-full max-w-[680px]'
                 style={{
-                  width: 'min(680px, 85vw)',
                   height: 'clamp(180px, 18vw, 260px)',
                 }}
               >
@@ -204,7 +216,7 @@ export default function StackedCategoryTitles({
                     className='object-contain h-auto w-auto'
                     style={{ maxHeight: Math.round(140 * SCALE) }}
                     priority
-                    sizes='(max-width: 1024px) 85vw, 680px'
+                    sizes='(max-width: 767px) 85vw, (max-width: 1023px) 30vw, 680px'
                   />
                 </button>
 
@@ -212,7 +224,7 @@ export default function StackedCategoryTitles({
                 <button
                   type='button'
                   onClick={() => onSelectCategory(null)}
-                  className='absolute left-[20%] top-[52%] origin-left rotate-[2deg] pointer-events-auto cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+                  className='absolute left-[18.5%] top-[52%] origin-left rotate-[2deg] pointer-events-auto cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
                   aria-label='Reset category filter (Works)'
                 >
                   <Image
@@ -223,7 +235,7 @@ export default function StackedCategoryTitles({
                     className='object-contain h-auto w-auto'
                     style={{ maxHeight: Math.round(140 * SCALE) }}
                     priority
-                    sizes='(max-width: 1024px) 85vw, 680px'
+                    sizes='(max-width: 767px) 85vw, (max-width: 1023px) 30vw, 680px'
                   />
                 </button>
               </div>
@@ -255,24 +267,30 @@ export default function StackedCategoryTitles({
           Stacked Category Titles (fixed right)
          ========================================= */}
       <div
-        className='hidden lg:block fixed right-4 lg:right-10 top-28 lg:top-1/2 lg:-translate-y-1/2 z-30 pointer-events-none'
+        className='hidden md:block fixed md:max-lg:right-6 right-4 lg:right-10 md:max-lg:top-44 top-28 lg:top-1/2 lg:-translate-y-1/2 z-30 pointer-events-none md:max-lg:w-[300px] lg:w-[460px]'
         style={{
-          width: 460,
           height: stackHeight,
         }}
       >
         <div className='relative w-full h-full'>
-          {categories.map((category, index) => {
+          {navCategories.map((category, index) => {
             const rotation = getCategoryRotation(category.id)
             const offset = getCategoryOffset(category.id, index)
-            const isActive = selectedCategory === category.id
+            const isAllCategories = category.id === '__all__'
+            const isActive = isAllCategories
+              ? selectedCategory === null
+              : selectedCategory === category.id
             const isHovered = hoveredCategory === category.id
             const showBrush = isActive || isHovered
 
             return (
               <button
                 key={category.id}
-                onClick={() => onSelectCategory(isActive ? null : category.id)}
+                onClick={() =>
+                  onSelectCategory(
+                    isAllCategories ? null : isActive ? null : category.id,
+                  )
+                }
                 onMouseEnter={() => setHoveredCategory(category.id)}
                 onMouseLeave={() => setHoveredCategory(null)}
                 className='absolute right-0 cursor-pointer focus:outline-none pointer-events-auto focus-visible:ring-2 focus-visible:ring-black/40'
@@ -327,7 +345,7 @@ export default function StackedCategoryTitles({
 
       {/* Mobile slide-out category nav (contact-style) */}
       <motion.div
-        className='lg:hidden fixed bottom-4 right-4 z-40 flex items-end pointer-events-none'
+        className='lg:hidden md:hidden fixed bottom-4 right-4 z-40 flex items-end pointer-events-none'
         initial={{ x: mobileHideOffset }}
         animate={{ x: isMobileMenuOpen ? 0 : mobileHideOffset }}
         transition={{ duration: 0.5, ease: [0.76, 0, 0.24, 1] }}
@@ -353,7 +371,11 @@ export default function StackedCategoryTitles({
                 seed='category:mobile-handle'
                 color={BRUSH_COLOR}
                 className='absolute -inset-x-3 -z-10'
-                style={{ height: 34, top: '52%', transform: 'translateY(-50%)' }}
+                style={{
+                  height: 34,
+                  top: '52%',
+                  transform: 'translateY(-50%)',
+                }}
               />
               <Image
                 src='/images/ByCategory.png'
@@ -370,14 +392,19 @@ export default function StackedCategoryTitles({
             <div className='absolute left-0 top-0 h-full'>
               <VerticalLine className='h-full' theme={{ fill: 'black' }} />
             </div>
-            {categories.map((category) => {
-              const isActive = selectedCategory === category.id
+            {navCategories.map((category) => {
+              const isAllCategories = category.id === '__all__'
+              const isActive = isAllCategories
+                ? selectedCategory === null
+                : selectedCategory === category.id
               return (
                 <li key={category.id}>
                   <button
                     type='button'
                     onClick={() => {
-                      onSelectCategory(isActive ? null : category.id)
+                      onSelectCategory(
+                        isAllCategories ? null : isActive ? null : category.id,
+                      )
                       setIsMobileMenuOpen(false)
                     }}
                     aria-pressed={isActive}
@@ -451,6 +478,6 @@ function MobileBlurBackdrop({ show }: { show: boolean }) {
         />
       ) : null}
     </AnimatePresence>,
-    document.body
+    document.body,
   )
 }

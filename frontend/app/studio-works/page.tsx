@@ -17,12 +17,17 @@ function toPlainText(blocks: any): string | undefined {
   }
 
   const text = blocks
-    .filter((block) => block?._type === 'block' && Array.isArray(block.children))
+    .filter(
+      (block) => block?._type === 'block' && Array.isArray(block.children),
+    )
     .map((block) =>
       block.children
-        .filter((child: any) => child?._type === 'span' && typeof child.text === 'string')
+        .filter(
+          (child: any) =>
+            child?._type === 'span' && typeof child.text === 'string',
+        )
         .map((child: any) => child.text)
-        .join('')
+        .join(''),
     )
     .join(' ')
     .trim()
@@ -32,7 +37,7 @@ function toPlainText(blocks: any): string | undefined {
 
 export async function generateMetadata(
   _props: any,
-  parent: ResolvingMetadata
+  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const { data: studioWorks } = await sanityFetch({
     query: studioWorksQuery,
@@ -87,10 +92,10 @@ export default async function StudioWorksPage({
     <main className='w-full min-h-screen overflow-hidden'>
       {/* Description */}
       {studioWorks.description && (
-        <header className='hidden md:block px-4 pt-16 sm:pt-20 md:pt-16 xl:py-28 xl:pt-32'>
-          <div className='xl:grid xl:grid-cols-12 xl:gap-x-16'>
-            <div className='xl:col-start-5 xl:col-span-6 xl:row-start-1 xl:max-w-[80ch]'>
-              <div className='text-lg xl:text-2xl leading-snug font-sans'>
+        <header className='hidden md:block px-4 pt-16 sm:pt-20 xl:py-28 xl:pt-32'>
+          <div className='md:max-lg:ml-[10vw] md:max-lg:max-w-[46vw] md:grid md:grid-cols-12 md:gap-x-16'>
+            <div className='md:col-start-5 md:col-span-6 md:row-start-1 md:max-w-[80ch]'>
+              <div className='text-lg md:text-xl xl:text-2xl leading-snug font-sans'>
                 <StudioWorksPortableText value={studioWorks.description} />
               </div>
             </div>

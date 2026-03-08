@@ -3,12 +3,12 @@ import './globals.css'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
-import { VisualEditing } from 'next-sanity/visual-editing'
 import { toPlainText } from 'next-sanity'
 import { Toaster } from 'sonner'
 
 import DraftModeToast from '@/app/components/DraftModeToast'
 import Header from '@/app/components/Header'
+import VisualEditingGate from '@/app/components/VisualEditingGate'
 import * as demo from '@/sanity/lib/demo'
 import { sanityFetch, SanityLive } from '@/sanity/lib/live'
 import { navigationImagesQuery, settingsQuery } from '@/sanity/lib/queries'
@@ -62,6 +62,8 @@ export default async function RootLayout({
 }) {
   const { data: navImages } = await sanityFetch({
     query: navigationImagesQuery,
+    // Navigation is global chrome, not a useful Visual Editing target.
+    stega: false,
   })
   const { isEnabled: isDraftMode } = await draftMode()
 
@@ -79,7 +81,7 @@ export default async function RootLayout({
             <>
               <DraftModeToast />
               {/*  Enable Visual Editing, only to be rendered when Draft Mode is enabled */}
-              <VisualEditing />
+              <VisualEditingGate />
             </>
           )}
           {/* The <SanityLive> component is responsible for making all sanityFetch calls in your application live, so should always be rendered. */}

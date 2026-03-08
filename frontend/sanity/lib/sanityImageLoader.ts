@@ -9,7 +9,14 @@ export default function sanityImageLoader({
   width,
   quality,
 }: ImageLoaderProps): string {
-  if (!src || src.startsWith('/')) return src
+  const safeWidth = Math.max(1, Math.min(width, MAX_WIDTH))
+  const safeQuality = quality ?? DEFAULT_QUALITY
+
+  if (!src) return src
+  if (src.startsWith('/')) {
+    const joiner = src.includes('?') ? '&' : '?'
+    return `${src}${joiner}w=${safeWidth}&q=${safeQuality}`
+  }
   if (src.startsWith('data:') || src.startsWith('blob:')) return src
 
   let parsed: URL
@@ -23,11 +30,10 @@ export default function sanityImageLoader({
     return src
   }
 
-  const safeWidth = Math.max(1, Math.min(width, MAX_WIDTH))
   parsed.searchParams.set('w', String(safeWidth))
   parsed.searchParams.set('fit', 'max')
   parsed.searchParams.set('auto', 'format')
-  parsed.searchParams.set('q', String(quality ?? DEFAULT_QUALITY))
+  parsed.searchParams.set('q', String(safeQuality))
 
   return parsed.toString()
 }

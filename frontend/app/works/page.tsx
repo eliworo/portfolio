@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import { PortableText, type PortableTextComponents } from '@portabletext/react'
 import { sanityFetch } from '@/sanity/lib/live'
 import {
@@ -81,8 +82,12 @@ export default async function WorksPage() {
       strong: ({ children }) => (
         <BrushStrongMark seed='works-preview-strong'>{children}</BrushStrongMark>
       ),
-      link: ({ children, value }) => (
-        <PortableLinkMark value={value as any}>{children}</PortableLinkMark>
+      // The whole preview card is the actual link target; keep inline "more"
+      // styling without rendering nested anchors inside the card link.
+      link: ({ children }) => (
+        <span className='underline decoration-2 underline-offset-4'>
+          {children}
+        </span>
       ),
     },
   }
@@ -124,7 +129,11 @@ export default async function WorksPage() {
       <section className='relative px-4 xl:px-20 mb-20 mt-8 xl:mt-12'>
         <div className='w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-2 xl:max-w-[1400px] xl:ml-40'>
           {/* Productions */}
-          <div className='block group hover:opacity-95 transition-opacity rounded-md'>
+          <Link
+            href='/productions'
+            aria-label='Open Productions'
+            className='block group rounded-md transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-4'
+          >
             <div className='h-full flex flex-col'>
               <div className='relative flex-1 flex flex-col justify-start items-start p-4 lg:p-6 pb-12'>
                 {productionsPage?.titleImage?.asset?.url && (
@@ -146,10 +155,14 @@ export default async function WorksPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
 
           {/* Studio Works */}
-          <div className='block group hover:opacity-95 transition-opacity rounded-md'>
+          <Link
+            href='/studio-works'
+            aria-label='Open Studio Works'
+            className='block group rounded-md transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-4'
+          >
             <div className='h-full flex flex-col'>
               <div className='relative flex-1 flex flex-col justify-start items-start p-4 lg:p-6 pb-12'>
                 {studioWorksPage?.titleImage?.asset?.url && (
@@ -171,7 +184,7 @@ export default async function WorksPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
         </div>
       </section>
     </main>

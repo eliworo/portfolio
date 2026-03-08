@@ -11,6 +11,8 @@ type WritingSlide = {
   title?: string
   titleWeight?: 'normal' | 'bold'
   titleSize?: 'normal' | 'large'
+  verticalAlign?: 'top' | 'center' | 'bottom'
+  contentRich?: any[]
   content?: string
   imageUrl?: string
   imageWidth?: number
@@ -24,6 +26,7 @@ type MediaItem = {
   type: 'image' | 'video'
   url: string
   alt?: string
+  caption?: string
   title?: string
   posterUrl?: string
   width?: number
@@ -35,8 +38,10 @@ type ProjectModalProps = {
   project: {
     _id?: string
     title: string
+    titleStyle?: 'normal' | 'bold' | 'large' | 'largeBold'
     titleImageUrl?: string
     description?: string
+    descriptionRich?: any[]
     year?: string
     content?: any
     coverImage?: {
@@ -51,6 +56,7 @@ type ProjectModalProps = {
       crop?: Record<string, number>
       hotspot?: Record<string, number>
       alt?: string
+      caption?: string
     }
     images?: Array<
       | {
@@ -66,6 +72,7 @@ type ProjectModalProps = {
           crop?: Record<string, number>
           hotspot?: Record<string, number>
           alt?: string
+          caption?: string
           title?: string
         }
       | {
@@ -87,6 +94,8 @@ type ProjectModalProps = {
       title?: string
       titleWeight?: 'normal' | 'bold'
       titleSize?: 'normal' | 'large'
+      verticalAlign?: 'top' | 'center' | 'bottom'
+      contentRich?: any[]
       content?: string
       image?: {
         asset?: {
@@ -108,6 +117,8 @@ type ProjectModalProps = {
   onClose: () => void
 }
 
+type ModalProject = NonNullable<ProjectModalProps['project']>
+
 export default function ProjectModal({ project, onClose }: ProjectModalProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [allMedia, setAllMedia] = useState<MediaItem[]>([])
@@ -120,13 +131,17 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
     if (project.projectSubtype === 'writing' && project.writingContent) {
       const slides: WritingSlide[] = project.writingContent
         .map((block) => {
-          if (block._type === 'writingTextBlock' && block.content) {
+          if (
+            block._type === 'writingTextBlock' &&
+            (block.content ||
+              (Array.isArray(block.contentRich) &&
+                block.contentRich.length > 0))
+          ) {
             return {
               _key: block._key,
               type: 'text' as const,
-              title: block.title,
-              titleWeight: block.titleWeight,
-              titleSize: block.titleSize,
+              verticalAlign: block.verticalAlign,
+              contentRich: block.contentRich,
               content: block.content,
             }
           }
@@ -137,6 +152,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               title: block.title,
               titleWeight: block.titleWeight,
               titleSize: block.titleSize,
+              verticalAlign: block.verticalAlign,
               imageUrl: block.image.asset.url,
               imageWidth: block.image.asset.metadata?.dimensions?.width,
               imageHeight: block.image.asset.metadata?.dimensions?.height,
@@ -164,7 +180,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
         type: 'image',
         url: project.coverImage.asset.url,
         alt: project.coverImage.alt || project.title,
-        title: undefined, // Cover image doesn't have a separate title
+        caption: project.coverImage.caption,
         width: project.coverImage.asset.metadata?.dimensions?.width,
         height: project.coverImage.asset.metadata?.dimensions?.height,
         blurDataURL: project.coverImage.asset.metadata?.lqip,
@@ -186,6 +202,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             type: 'image',
             url: item.asset.url,
             alt: item.alt || project.title,
+            caption: item.caption || item.title,
             title: item.title,
             width: item.asset.metadata?.dimensions?.width,
             height: item.asset.metadata?.dimensions?.height,
@@ -360,12 +377,18 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
     )
   }
 
-  const PaperFrame = ({ children }: { children: React.ReactNode }) => {
+  const PaperFrame = ({
+    children,
+    backgroundSrc = '/images/feuillePapierLogo1FondBlanc.png',
+  }: {
+    children: React.ReactNode
+    backgroundSrc?: string
+  }) => {
     return (
       <div className='relative w-[300px] sm:w-[360px] md:w-[420px]'>
         <div className='relative aspect-[4/5]'>
           <Image
-            src='/images/feuillePapierLogo1FondBlanc.png'
+            src={backgroundSrc}
             alt=''
             fill
             className='object-fill'
@@ -393,52 +416,137 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
     return `${weightClass} ${sizeClass}`
   }
 
-  const renderWritingTextSlide = (slide?: WritingSlide) => (
-    <PaperFrame>
-      <div className='relative w-full h-full overflow-hidden'>
-        <div className='h-full overflow-hidden pt-2'>
-          {slide?.title && (
-            <h3
-              className={`mb-4 leading-tight text-black ${titleClassName(slide)}`}
-            >
-              {slide.title}
-            </h3>
+  const modalTitleClassName = (
+    style?: ModalProject['titleStyle'],
+  ) => {
+    switch (style) {
+      case 'bold':
+        return 'text-3xl font-right-grotesk-narrow-medium text-center font-semibold'
+      case 'large':
+        return 'text-4xl xl:text-5xl font-right-grotesk-narrow-medium text-center'
+      case 'largeBold':
+        return 'text-4xl xl:text-5xl font-right-grotesk-narrow-medium text-center font-semibold'
+      default:
+        return 'text-3xl font-right-grotesk-narrow-medium text-center'
+    }
+  }
+
+  const writingTextComponents = {
+    block: {
+      normal: ({ children }: any) => (
+        <p className='mb-3 text-xs sm:text-sm md:text-base leading-snug text-black whitespace-pre-wrap last:mb-0'>
+          {children}
+        </p>
+      ),
+      h2: ({ children }: any) => (
+        <p className='mb-3 text-sm sm:text-base md:text-lg leading-snug text-black whitespace-pre-wrap last:mb-0'>
+          {children}
+        </p>
+      ),
+      blockquote: ({ children }: any) => (
+        <p className='mb-3 text-[11px] sm:text-xs md:text-sm leading-snug text-black whitespace-pre-wrap last:mb-0'>
+          {children}
+        </p>
+      ),
+    },
+    marks: {
+      strong: ({ children }: any) => (
+        <strong className='font-semibold'>{children}</strong>
+      ),
+      em: ({ children }: any) => <em className='italic'>{children}</em>,
+    },
+  }
+
+  const modalDescriptionComponents = {
+    block: {
+      normal: ({ children }: any) => (
+        <p className='mb-3 text-sm xl:text-2xl leading-snug text-black last:mb-0'>
+          {children}
+        </p>
+      ),
+      h2: ({ children }: any) => (
+        <p className='mb-3 text-base xl:text-3xl leading-snug text-black last:mb-0'>
+          {children}
+        </p>
+      ),
+      blockquote: ({ children }: any) => (
+        <p className='mb-3 text-xs xl:text-xl leading-snug text-black/75 last:mb-0'>
+          {children}
+        </p>
+      ),
+    },
+    marks: writingTextComponents.marks,
+  }
+
+  const pageVerticalAlignClassName = (slide?: WritingSlide) => {
+    switch (slide?.verticalAlign) {
+      case 'center':
+        return 'justify-center'
+      case 'bottom':
+        return 'justify-end'
+      default:
+        return 'justify-start'
+    }
+  }
+
+  const renderWritingTextSlide = (
+    slide?: WritingSlide,
+    backgroundSrc?: string,
+  ) => (
+    <PaperFrame backgroundSrc={backgroundSrc}>
+      <div className='relative flex w-full h-full flex-col overflow-hidden'>
+        <div
+          className={`flex h-full flex-col overflow-hidden pt-2 ${pageVerticalAlignClassName(slide)}`}
+        >
+          {Array.isArray(slide?.contentRich) && slide.contentRich.length > 0 ? (
+            <PortableText
+              value={slide.contentRich}
+              components={writingTextComponents}
+            />
+          ) : (
+            <p className='text-xs sm:text-sm md:text-base leading-snug text-black whitespace-pre-wrap overflow-hidden'>
+              {slide?.content}
+            </p>
           )}
-          <p className='text-xs sm:text-sm md:text-base leading-snug text-black whitespace-pre-wrap overflow-hidden'>
-            {slide?.content}
-          </p>
         </div>
       </div>
     </PaperFrame>
   )
 
-  const renderWritingImageSlide = (slide: WritingSlide) => (
-    <div className='flex flex-col items-center'>
-      <PaperFrame>
-        <div className='relative w-full h-full'>
-          {slide.title && (
-            <h3
-              className={`absolute top-2 left-0 right-0 text-center leading-tight text-black z-10 ${titleClassName(slide)}`}
-            >
-              {slide.title}
-            </h3>
-          )}
-          <ModalBlurImage
-            src={slide.imageUrl!}
-            alt={slide.alt || project.title}
-            width={slide.imageWidth}
-            height={slide.imageHeight}
-            blurDataURL={slide.imageBlurDataURL}
-            className='max-h-[45dvh] lg:max-h-[52dvh] w-auto h-auto object-contain'
-          />
+  const renderWritingImageSlide = (
+    slide: WritingSlide,
+    backgroundSrc?: string,
+  ) => (
+    <PaperFrame backgroundSrc={backgroundSrc}>
+      <div className='relative flex w-full h-full flex-col overflow-hidden'>
+        <div
+          className={`flex h-full w-full flex-col items-center ${pageVerticalAlignClassName(slide)}`}
+        >
+          <div className='inline-flex max-w-full flex-col items-start'>
+            {slide.title && (
+              <h3
+                className={`mb-3 w-full text-center leading-tight text-black ${titleClassName(slide)}`}
+              >
+                {slide.title}
+              </h3>
+            )}
+            <ModalBlurImage
+              src={slide.imageUrl!}
+              alt={slide.alt || project.title}
+              width={slide.imageWidth}
+              height={slide.imageHeight}
+              blurDataURL={slide.imageBlurDataURL}
+              className='max-h-[34dvh] lg:max-h-[40dvh] w-auto h-auto object-contain'
+            />
+            {slide.caption && (
+              <figcaption className='mt-1.5 max-w-full text-left text-[11px] leading-snug text-gray-600 sm:text-xs lg:text-sm'>
+                {slide.caption}
+              </figcaption>
+            )}
+          </div>
         </div>
-      </PaperFrame>
-      {slide.caption && (
-        <figcaption className='mt-2 pl-1 text-xs lg:text-sm text-gray-600 leading-snug text-left w-full max-w-[420px]'>
-          {slide.caption}
-        </figcaption>
-      )}
-    </div>
+      </div>
+    </PaperFrame>
   )
 
   // const renderTextBlock = (text?: string) => (
@@ -463,18 +571,18 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
   //   </div>
   // )
 
-  const renderTextBlock = (slide?: WritingSlide) =>
-    renderWritingTextSlide(slide)
-  const renderImageBlock = (slide: WritingSlide) =>
-    renderWritingImageSlide(slide)
+  const renderTextBlock = (slide?: WritingSlide, backgroundSrc?: string) =>
+    renderWritingTextSlide(slide, backgroundSrc)
+  const renderImageBlock = (slide: WritingSlide, backgroundSrc?: string) =>
+    renderWritingImageSlide(slide, backgroundSrc)
 
-  const renderPageBlock = (slide?: WritingSlide) => {
+  const renderPageBlock = (slide?: WritingSlide, backgroundSrc?: string) => {
     if (!slide) {
       return <div className='opacity-0 select-none h-full' aria-hidden />
     }
     return slide.type === 'text'
-      ? renderTextBlock(slide)
-      : renderImageBlock(slide)
+      ? renderTextBlock(slide, backgroundSrc)
+      : renderImageBlock(slide, backgroundSrc)
   }
 
   const paginationItems = isWriting
@@ -543,12 +651,18 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                       transition={{ duration: 0.3 }}
                     >
                       {useDoubleLayout && currentSpread ? (
-                        <div className='flex gap-1 sm:gap-2 px-2 sm:px-4 py-3 sm:py-4 w-full h-full overflow-hidden'>
-                          <div className='flex-1'>
-                            {renderPageBlock(currentSpread.left)}
+                        <div className='flex gap-[2px] sm:gap-[4px] px-1 sm:px-2 py-3 sm:py-4 w-full h-full overflow-hidden items-center justify-center'>
+                          <div className='flex-1 flex justify-end -mr-1 sm:-mr-2'>
+                            {renderPageBlock(
+                              currentSpread.left,
+                              '/images/feuillePapierLogo1FondBlanc.png',
+                            )}
                           </div>
-                          <div className='flex-1'>
-                            {renderPageBlock(currentSpread.right)}
+                          <div className='flex-1 flex justify-start'>
+                            {renderPageBlock(
+                              currentSpread.right,
+                              '/images/papierLogo2fFondBlanc.png',
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -578,37 +692,39 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                     >
                       <div className='w-full flex items-center justify-center'>
                         <div className='inline-flex flex-col items-start max-w-[92vw] lg:max-w-[1100px]'>
-                        {currentMedia.type === 'image' ? (
-                          <ModalBlurImage
-                            src={currentMedia.url}
-                            alt={currentMedia.alt || project.title}
-                            width={currentMedia.width}
-                            height={currentMedia.height}
-                            blurDataURL={currentMedia.blurDataURL}
-                            className='max-h-[58dvh] lg:max-h-[66dvh] w-auto h-auto object-contain'
-                            onLoaded={() => setIsCurrentMediaReady(true)}
-                          />
-                        ) : (
-                          <video
-                            src={currentMedia.url}
-                            controls
-                            className='max-h-[58dvh] lg:max-h-[66dvh] w-auto h-auto object-contain'
-                            poster={currentMedia.posterUrl}
-                            onLoadedData={() => setIsCurrentMediaReady(true)}
-                            onCanPlay={() => setIsCurrentMediaReady(true)}
-                          >
-                            Your browser does not support the video tag.
-                          </video>
-                        )}
-                        {currentMedia.title && (
-                          <figcaption
-                            className={`mt-2 pl-1 text-xs lg:text-sm text-gray-600 leading-snug text-left transition-opacity duration-200 ${
-                              isCurrentMediaReady ? 'opacity-100' : 'opacity-0'
-                            }`}
-                          >
-                            {currentMedia.title}
-                          </figcaption>
-                        )}
+                          {currentMedia.type === 'image' ? (
+                            <ModalBlurImage
+                              src={currentMedia.url}
+                              alt={currentMedia.alt || project.title}
+                              width={currentMedia.width}
+                              height={currentMedia.height}
+                              blurDataURL={currentMedia.blurDataURL}
+                              className='max-h-[58dvh] lg:max-h-[66dvh] w-auto h-auto object-contain'
+                              onLoaded={() => setIsCurrentMediaReady(true)}
+                            />
+                          ) : (
+                            <video
+                              src={currentMedia.url}
+                              controls
+                              className='max-h-[58dvh] lg:max-h-[66dvh] w-auto h-auto object-contain'
+                              poster={currentMedia.posterUrl}
+                              onLoadedData={() => setIsCurrentMediaReady(true)}
+                              onCanPlay={() => setIsCurrentMediaReady(true)}
+                            >
+                              Your browser does not support the video tag.
+                            </video>
+                          )}
+                          {(currentMedia.caption || currentMedia.title) && (
+                            <figcaption
+                              className={`mt-2 pl-1 text-xs lg:text-sm text-gray-600 leading-snug text-left transition-opacity duration-200 ${
+                                isCurrentMediaReady
+                                  ? 'opacity-100'
+                                  : 'opacity-0'
+                              }`}
+                            >
+                              {currentMedia.caption || currentMedia.title}
+                            </figcaption>
+                          )}
                         </div>
                       </div>
                     </motion.div>
@@ -616,7 +732,11 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                 </div>
               )}
               {totalSlides > 1 && (
-                <div className='flex items-center gap-4 py-1 mt-3 sm:mt-4 relative'>
+                <div
+                  className={`flex items-center gap-4 py-1 relative ${
+                    isWriting ? 'mt-0' : 'mt-3 sm:mt-8'
+                  }`}
+                >
                   {/* Counter */}
                   <div className='text-lg lg:text-xl xl:text-2xl font-rader-medium'>
                     {currentIndex + 1}/{totalSlides}
@@ -656,19 +776,31 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                 </div>
               )}
 
-              <div className='flex justify-center items-center w-full mt-5 mb-2 px-2'>
-                <h1 className='text-3xl font-right-grotesk-narrow-medium text-center'>
+              <div className='flex justify-center items-center w-full mt-8 mb-2 px-2'>
+                <h1 className={modalTitleClassName(project.titleStyle)}>
                   {project.title}
                   {project.year && (
                     <span className='opacity-50'>, {project.year}</span>
                   )}
                 </h1>
               </div>
-              {project.description && (
-                <p className='text-sm xl:text-2xl leading-snug px-2 max-w-3xl font-normal mb-2'>
-                  {project.description}
-                </p>
-              )}
+              {(Array.isArray(project.descriptionRich) &&
+                project.descriptionRich.length > 0) ||
+              project.description ? (
+                <div className='mt-4 px-2 max-w-3xl font-normal mb-2'>
+                  {Array.isArray(project.descriptionRich) &&
+                  project.descriptionRich.length > 0 ? (
+                    <PortableText
+                      value={project.descriptionRich}
+                      components={modalDescriptionComponents}
+                    />
+                  ) : (
+                    <p className='text-sm xl:text-2xl leading-snug'>
+                      {project.description}
+                    </p>
+                  )}
+                </div>
+              ) : null}
 
               {!isWriting && project.content && (
                 <div className='prose prose-sm max-w-none px-2'>

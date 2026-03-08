@@ -3,6 +3,12 @@ import {defineType, defineField} from 'sanity'
 import {format, parseISO} from 'date-fns'
 import {orderRankField} from '@sanity/orderable-document-list'
 
+const writingPageVerticalPositionOptions = [
+  {title: 'Top', value: 'top'},
+  {title: 'Center', value: 'center'},
+  {title: 'Bottom', value: 'bottom'},
+]
+
 export const project = defineType({
   name: 'project',
   title: 'Project',
@@ -77,6 +83,22 @@ export const project = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: 'titleStyle',
+      title: 'Modal Title Style',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Normal', value: 'normal'},
+          {title: 'Bold', value: 'bold'},
+          {title: 'Large', value: 'large'},
+          {title: 'Large Bold', value: 'largeBold'},
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'normal',
+      description: 'Controls the main project title style in the modal, next to the year.',
+    }),
+    defineField({
       name: 'titleImage',
       title: 'Title Image',
       type: 'image',
@@ -143,8 +165,33 @@ export const project = defineType({
       title: 'Short Description',
       type: 'text',
       rows: 3,
-      description: 'Brief intro or blurb for the project',
+      description: 'Legacy plain text blurb. Existing content is preserved here until moved to rich text.',
       validation: (rule) => rule.max(220),
+    }),
+    defineField({
+      name: 'descriptionRich',
+      title: 'Short Description Rich Text',
+      type: 'array',
+      description:
+        'Preferred rich text field for the modal/project blurb under the arrows. Falls back to the legacy Short Description when empty.',
+      of: [
+        {
+          type: 'block',
+          styles: [
+            {title: 'Normal', value: 'normal'},
+            {title: 'Large', value: 'h2'},
+            {title: 'Small', value: 'blockquote'},
+          ],
+          lists: [],
+          marks: {
+            decorators: [
+              {title: 'Bold', value: 'strong'},
+              {title: 'Italic', value: 'em'},
+            ],
+            annotations: [],
+          },
+        },
+      ],
     }),
     defineField({
       name: 'ticketsUrl',
@@ -241,6 +288,12 @@ export const project = defineType({
           title: 'Alt Text',
           type: 'string',
           description: 'Important for SEO and accessibility.',
+        }),
+        defineField({
+          name: 'caption',
+          title: 'Caption',
+          type: 'string',
+          description: 'Optional photo credit or caption for the cover image.',
         }),
       ],
       hidden: ({parent}) =>
@@ -358,9 +411,9 @@ export const project = defineType({
           fields: [
             defineField({
               name: 'title',
-              title: 'Image Title (Optional)',
+              title: 'Caption',
               type: 'string',
-              description: 'Optional title for this specific image',
+              description: 'Optional photo credit or caption for this specific image.',
             }),
             defineField({
               name: 'alt',
@@ -455,41 +508,48 @@ export const project = defineType({
           title: 'Text Block',
           fields: [
             {
-              name: 'title',
-              title: 'Title (optional)',
-              type: 'string',
-            },
-            {
-              name: 'titleWeight',
-              title: 'Title Weight',
+              name: 'verticalAlign',
+              title: 'Page Vertical Position',
               type: 'string',
               options: {
-                list: [
-                  {title: 'Normal', value: 'normal'},
-                  {title: 'Bold', value: 'bold'},
-                ],
+                list: writingPageVerticalPositionOptions,
                 layout: 'radio',
               },
-              initialValue: 'normal',
+              initialValue: 'top',
+              description: 'Choose where this content sits inside the page frame.',
             },
             {
-              name: 'titleSize',
-              title: 'Title Size',
-              type: 'string',
-              options: {
-                list: [
-                  {title: 'Normal', value: 'normal'},
-                  {title: 'Large', value: 'large'},
-                ],
-                layout: 'radio',
-              },
-              initialValue: 'normal',
+              name: 'contentRich',
+              title: 'Rich Text Content',
+              type: 'array',
+              description:
+                'Preferred field for new text pages. Existing plain text stays below until migrated.',
+              of: [
+                {
+                  type: 'block',
+                  styles: [
+                    {title: 'Normal', value: 'normal'},
+                    {title: 'Large', value: 'h2'},
+                    {title: 'Small', value: 'blockquote'},
+                  ],
+                  lists: [],
+                  marks: {
+                    decorators: [
+                      {title: 'Bold', value: 'strong'},
+                      {title: 'Italic', value: 'em'},
+                    ],
+                    annotations: [],
+                  },
+                },
+              ],
             },
             {
               name: 'content',
               title: 'Text Content',
               type: 'text',
               rows: 10,
+              description:
+                'Legacy plain text field. Keep existing content here until you move it into Rich Text Content.',
               validation: (rule) =>
                 rule
                   .custom((value) => {
@@ -523,10 +583,22 @@ export const project = defineType({
           preview: {
             select: {
               content: 'content',
+              rich: 'contentRich',
             },
-            prepare({content}) {
+            prepare({content, rich}) {
+              const richText = Array.isArray(rich)
+                ? rich
+                    .map((block) =>
+                      Array.isArray(block?.children)
+                        ? block.children.map((child: any) => child?.text || '').join('')
+                        : ''
+                    )
+                    .join(' ')
+                    .trim()
+                : ''
+              const previewText = richText || content
               return {
-                title: content ? content.substring(0, 50) + '...' : 'Text Block',
+                title: previewText ? previewText.substring(0, 50) + '...' : 'Text Block',
                 subtitle: 'Text',
               }
             },
@@ -543,30 +615,15 @@ export const project = defineType({
               type: 'string',
             },
             {
-              name: 'titleWeight',
-              title: 'Title Weight',
+              name: 'verticalAlign',
+              title: 'Page Vertical Position',
               type: 'string',
               options: {
-                list: [
-                  {title: 'Normal', value: 'normal'},
-                  {title: 'Bold', value: 'bold'},
-                ],
+                list: writingPageVerticalPositionOptions,
                 layout: 'radio',
               },
-              initialValue: 'normal',
-            },
-            {
-              name: 'titleSize',
-              title: 'Title Size',
-              type: 'string',
-              options: {
-                list: [
-                  {title: 'Normal', value: 'normal'},
-                  {title: 'Large', value: 'large'},
-                ],
-                layout: 'radio',
-              },
-              initialValue: 'normal',
+              initialValue: 'top',
+              description: 'Choose where this content sits inside the page frame.',
             },
             {
               name: 'image',
