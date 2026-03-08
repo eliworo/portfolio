@@ -27,9 +27,9 @@ export function PostItNote() {
       */}
       </div>
       {/* Post-It Content */}
-      <div className='absolute left-0 top-0 p-2 leading-tight'>
+      <div className='absolute left-0 top-0 p-2 leading-snug'>
         <h3 className='text-base xl:text-lg font-bold mb-1'>Hi!</h3>
-        <p className='text-sm xl:text-lg mb-1 leading-tight tracking-tight'>
+        <p className='text-sm xl:text-lg mb-1 leading-snug tracking-tight'>
           Remember to optimize the video loading later. The current setup might
           still cause a flash on mobile devices.
         </p>

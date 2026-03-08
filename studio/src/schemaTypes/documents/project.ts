@@ -3,6 +3,12 @@ import {defineType, defineField} from 'sanity'
 import {format, parseISO} from 'date-fns'
 import {orderRankField} from '@sanity/orderable-document-list'
 
+const writingPageVerticalPositionOptions = [
+  {title: 'Top', value: 'top'},
+  {title: 'Center', value: 'center'},
+  {title: 'Bottom', value: 'bottom'},
+]
+
 export const project = defineType({
   name: 'project',
   title: 'Project',
@@ -77,6 +83,22 @@ export const project = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: 'titleStyle',
+      title: 'Modal Title Style',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Normal', value: 'normal'},
+          {title: 'Bold', value: 'bold'},
+          {title: 'Large', value: 'large'},
+          {title: 'Large Bold', value: 'largeBold'},
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'normal',
+      description: 'Controls the main project title style in the modal, next to the year.',
+    }),
+    defineField({
       name: 'titleImage',
       title: 'Title Image',
       type: 'image',
@@ -119,6 +141,18 @@ export const project = defineType({
       description: 'e.g. 2023 or 2020–2022',
     }),
     defineField({
+      name: 'material',
+      title: 'Material',
+      type: 'string',
+      description: 'Optional default material for this whole project.',
+    }),
+    defineField({
+      name: 'dimensions',
+      title: 'Dimensions',
+      type: 'string',
+      description: 'Optional default dimensions for this whole project.',
+    }),
+    defineField({
       name: 'categories',
       title: 'Categories',
       type: 'array',
@@ -131,10 +165,63 @@ export const project = defineType({
       title: 'Short Description',
       type: 'text',
       rows: 3,
-      description: 'Brief intro or blurb for the project',
+      description: 'Legacy plain text blurb. Existing content is preserved here until moved to rich text.',
       validation: (rule) => rule.max(220),
     }),
+    defineField({
+      name: 'descriptionRich',
+      title: 'Short Description Rich Text',
+      type: 'array',
+      description:
+        'Preferred rich text field for the modal/project blurb under the arrows. Falls back to the legacy Short Description when empty.',
+      of: [
+        {
+          type: 'block',
+          styles: [
+            {title: 'Normal', value: 'normal'},
+            {title: 'Large', value: 'h2'},
+            {title: 'Small', value: 'blockquote'},
+          ],
+          lists: [],
+          marks: {
+            decorators: [
+              {title: 'Bold', value: 'strong'},
+              {title: 'Italic', value: 'em'},
+            ],
+            annotations: [],
+          },
+        },
+      ],
+    }),
+    defineField({
+      name: 'ticketsUrl',
+      title: 'Tickets URL',
+      type: 'url',
+      description: 'Optional external link for tickets (shown on project page when set).',
+      hidden: ({parent}) => parent?.projectKind !== 'professional',
+      validation: (rule) =>
+        rule.uri({
+          allowRelative: false,
+          scheme: ['http', 'https'],
+        }),
+    }),
 
+    defineField({
+      name: 'brushColor',
+      title: 'Brush/Accent Color',
+      type: 'string',
+      description:
+        'Color for brush strokes and accents (e.g., #FFB6C1). Leave empty to use auto-generated color.',
+      validation: (rule) =>
+        rule.custom((value) => {
+          if (!value) return true // Optional field
+          // Validate hex color format
+          if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+            return 'Must be a valid hex color (e.g., #FFB6C1)'
+          }
+          return true
+        }),
+    }),
     defineField({
       name: 'previewType',
       title: 'Preview Type',
@@ -142,7 +229,7 @@ export const project = defineType({
       options: {
         list: [
           {title: 'Cover Image', value: 'image'},
-          {title: 'Text Extract', value: 'text'},
+          {title: 'Text Extract / Custom Text', value: 'text'},
         ],
         layout: 'radio',
       },
@@ -171,6 +258,21 @@ export const project = defineType({
         }),
     }),
     defineField({
+      name: 'previewCustomText',
+      title: 'Custom Cover Text',
+      type: 'text',
+      rows: 4,
+      description:
+        'Optional text shown on the project cover. If empty, text is extracted from Writing Content.',
+      hidden: ({parent}) =>
+        !(
+          parent?.projectKind === 'personal' &&
+          parent?.projectSize === 'small' &&
+          parent?.projectSubtype === 'writing' &&
+          parent?.previewType === 'text'
+        ),
+    }),
+    defineField({
       name: 'coverImage',
       title: 'Cover Image',
       type: 'image',
@@ -186,6 +288,12 @@ export const project = defineType({
           title: 'Alt Text',
           type: 'string',
           description: 'Important for SEO and accessibility.',
+        }),
+        defineField({
+          name: 'caption',
+          title: 'Caption',
+          type: 'string',
+          description: 'Optional photo credit or caption for the cover image.',
         }),
       ],
       hidden: ({parent}) =>
@@ -268,15 +376,20 @@ export const project = defineType({
               projectSize?: string
               projectSubtype?: string
               previewType?: string
+              previewCustomText?: string
             }
+            const hasCustomText =
+              typeof parent?.previewCustomText === 'string' &&
+              parent.previewCustomText.trim().length > 0
             if (
               parent?.projectKind === 'personal' &&
               parent?.projectSize === 'small' &&
               parent?.projectSubtype === 'writing' &&
               parent?.previewType === 'text' &&
+              !hasCustomText &&
               !value
             ) {
-              return 'Text extract block number is required when using text preview'
+              return 'Provide custom cover text or choose a text block number'
             }
             return true
           })
@@ -298,9 +411,9 @@ export const project = defineType({
           fields: [
             defineField({
               name: 'title',
-              title: 'Image Title (Optional)',
+              title: 'Caption',
               type: 'string',
-              description: 'Optional title for this specific image',
+              description: 'Optional photo credit or caption for this specific image.',
             }),
             defineField({
               name: 'alt',
@@ -395,21 +508,97 @@ export const project = defineType({
           title: 'Text Block',
           fields: [
             {
+              name: 'verticalAlign',
+              title: 'Page Vertical Position',
+              type: 'string',
+              options: {
+                list: writingPageVerticalPositionOptions,
+                layout: 'radio',
+              },
+              initialValue: 'top',
+              description: 'Choose where this content sits inside the page frame.',
+            },
+            {
+              name: 'contentRich',
+              title: 'Rich Text Content',
+              type: 'array',
+              description:
+                'Preferred field for new text pages. Existing plain text stays below until migrated.',
+              of: [
+                {
+                  type: 'block',
+                  styles: [
+                    {title: 'Normal', value: 'normal'},
+                    {title: 'Large', value: 'h2'},
+                    {title: 'Small', value: 'blockquote'},
+                  ],
+                  lists: [],
+                  marks: {
+                    decorators: [
+                      {title: 'Bold', value: 'strong'},
+                      {title: 'Italic', value: 'em'},
+                    ],
+                    annotations: [],
+                  },
+                },
+              ],
+            },
+            {
               name: 'content',
               title: 'Text Content',
               type: 'text',
               rows: 10,
+              description:
+                'Legacy plain text field. Keep existing content here until you move it into Rich Text Content.',
               validation: (rule) =>
-                rule.max(1000).error('Keep text blocks under 1000 characters (about 10 lines)'),
+                rule
+                  .custom((value) => {
+                    if (!value) return true
+                    const logicalLines = value.split(/\r?\n/)
+                    const lineCount = logicalLines.length
+                    const approxCharsPerLine = 38
+                    const estimatedWrappedLines = logicalLines.reduce(
+                      (sum, rawLine) => {
+                        const normalized = rawLine.trim().replace(/\s+/g, ' ')
+                        if (!normalized) return sum + 1
+                        return sum + Math.ceil(normalized.length / approxCharsPerLine)
+                      },
+                      0
+                    )
+
+                    if (estimatedWrappedLines > 17) {
+                      return `Over recommended limit: approximately ${estimatedWrappedLines} visual lines (target is 17 max)`
+                    }
+                    if (lineCount > 22) {
+                      return 'Over recommended limit: more than 22 typed lines may overflow on some screens'
+                    }
+                    if (value.length > 1000) {
+                      return 'Over recommended limit: more than 1000 characters may overflow on some screens'
+                    }
+                    return true
+                  })
+                  .warning(),
             },
           ],
           preview: {
             select: {
               content: 'content',
+              rich: 'contentRich',
             },
-            prepare({content}) {
+            prepare({content, rich}) {
+              const richText = Array.isArray(rich)
+                ? rich
+                    .map((block) =>
+                      Array.isArray(block?.children)
+                        ? block.children.map((child: any) => child?.text || '').join('')
+                        : ''
+                    )
+                    .join(' ')
+                    .trim()
+                : ''
+              const previewText = richText || content
               return {
-                title: content ? content.substring(0, 50) + '...' : 'Text Block',
+                title: previewText ? previewText.substring(0, 50) + '...' : 'Text Block',
                 subtitle: 'Text',
               }
             },
@@ -420,6 +609,22 @@ export const project = defineType({
           name: 'writingImageBlock',
           title: 'Image',
           fields: [
+            {
+              name: 'title',
+              title: 'Title (optional)',
+              type: 'string',
+            },
+            {
+              name: 'verticalAlign',
+              title: 'Page Vertical Position',
+              type: 'string',
+              options: {
+                list: writingPageVerticalPositionOptions,
+                layout: 'radio',
+              },
+              initialValue: 'top',
+              description: 'Choose where this content sits inside the page frame.',
+            },
             {
               name: 'image',
               title: 'Image',

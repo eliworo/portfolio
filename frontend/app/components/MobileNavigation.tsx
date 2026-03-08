@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { NavigationImagesQueryResult } from '@/sanity.types'
@@ -51,7 +51,7 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
             alt='E'
             width={200}
             height={200}
-            className='object-contain w-14 h-auto'
+            className='object-contain w-18 h-auto'
           />
         ) : (
           <div className='text-3xl font-bold'>E</div>
@@ -60,37 +60,29 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
 
       <button
         onClick={toggleMenu}
-        className='fixed top-8 right-4 z-50 flex justify-center items-center w-14 h-12'
+        className='fixed top-10 right-4 z-50 flex justify-center items-center w-14 h-12'
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
       >
-        <motion.div
-          className='relative w-12 h-auto'
-          animate={{ opacity: isOpen ? 0 : 1 }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
-        >
-          <Image
-            src='/images/hamburger-1.png'
-            alt='Open menu'
-            width={600}
-            height={600}
-            className='object-contain w-auto h-12 -ml-2'
-          />
-        </motion.div>
-        <motion.div
-          className='absolute w-14 h-auto'
-          animate={{ opacity: isOpen ? 1 : 0 }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
-        >
-          <Image
-            src='/images/close.png'
-            alt='Close menu'
-            width={400}
-            height={400}
-            className='object-contain w-auto h-12'
-          />
-        </motion.div>
+        <div className='relative w-12 h-12'>
+          {!isOpen ? (
+            <Image
+              src='/images/hamburger.png'
+              alt='Open menu'
+              width={600}
+              height={600}
+              className='absolute inset-0 m-auto object-contain h-12 w-12'
+            />
+          ) : (
+            <Image
+              src='/images/close.png'
+              alt='Close menu'
+              width={400}
+              height={400}
+              className='absolute inset-0 m-auto object-contain h-12 w-12'
+            />
+          )}
+        </div>
       </button>
-
       {/* <button
         onClick={toggleMenu}
         className='fixed top-8 right-4 z-50 flex flex-col justify-center items-center w-14 h-12'

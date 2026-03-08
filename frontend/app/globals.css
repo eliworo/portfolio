@@ -28,14 +28,29 @@
   --color-gray-900: #1b1d27;
   --color-gray-950: #13141b;
 
-  --font-display: 'Inter', 'sans-serif';
-  --font-sans: 'Inter', 'sans-serif';
+  /* ----------------------------- Font tokens ----------------------------- */
+  /* Base defaults (pick what you want as global default) */
+  --font-display: var(--font-pp-radio-grotesk), sans-serif;
+  --font-sans: var(--font-pp-radio-grotesk), sans-serif;
+  --font-mono: var(--font-pp-radio-grotesk), sans-serif;
 
-  --font-agrandir: var(--font-agrandir-regular);
-  --font-agrandir-bold: var(--font-agrandir-bold);
-  --font-agrandir-grand-heavy: var(--font-agrandir-grand-heavy);
-  --font-agrandir-tight: var(--font-agrandir-tight-regular);
-  --font-agrandir-italic: var(--font-agrandir-italic);
+  /* Agrandir aliases (your existing naming) */
+  --font-agrandir: var(--font-pp-radio-grotesk);
+  --font-agrandir-bold: var(--font-pp-radio-grotesk);
+  --font-agrandir-grand-heavy: var(--font-pp-radio-grotesk);
+  --font-agrandir-tight: var(--font-pp-radio-grotesk);
+  --font-agrandir-italic: var(--font-pp-radio-grotesk);
+
+  /* Rader aliases (new) */
+  --font-rader: var(--font-pp-radio-grotesk);
+  --font-rader-medium: var(--font-pp-radio-grotesk);
+  --font-rader-bold: var(--font-pp-radio-grotesk);
+  --font-rader-italic: var(--font-pp-radio-grotesk);
+  --font-rader-medium-italic: var(--font-pp-radio-grotesk);
+  --font-rader-bold-italic: var(--font-pp-radio-grotesk);
+
+  /* Right Grotesk */
+  --font-right-grotesk-narrow-medium: var(--font-pp-radio-grotesk);
 
   --default-transition-duration: 250ms;
 }
@@ -43,6 +58,12 @@
 html,
 body {
   overflow-x: hidden;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* Hide scrollbar for WebKit browsers */
@@ -59,4 +80,39 @@ img {
   -webkit-user-drag: none;
   user-select: none;
   pointer-events: none;
+}
+
+/* Keep bold tags on the active family */
+strong,
+b {
+  font-family: inherit;
+}
+
+/* View Transition Customization */
+::view-transition-old(productions-logo),
+::view-transition-new(productions-logo) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+/* Optional: Add a slight scale effect */
+::view-transition-new(productions-logo) {
+  animation-name: scale-in;
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Optional: Disable default fade on root */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
 }

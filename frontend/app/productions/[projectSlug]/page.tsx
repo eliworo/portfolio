@@ -1,14 +1,16 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { sanityFetch } from '@/sanity/lib/live'
-import { projectQuery } from '@/sanity/lib/queries'
+import { productionsPageQuery, projectQuery } from '@/sanity/lib/queries'
 import { ContentRenderer } from '@/app/components/ContentRenderer'
 import CategoryNav from '@/app/components/CategoryNav'
 import { ProjectCredits } from '@/app/components/ProjectCredits'
 import ScrollToHash from '@/app/components/ScrollToHash'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
+import { ProjectNavigation } from '@/app/components/ProjectNavigation'
+import ProjectSectionsStackedNavClient from '@/app/components/ProjectSectionsStackedNavClient'
+import RealBrush from '@/app/components/drawings/RealBrush'
 
 type Category = {
   _id: string
@@ -26,6 +28,7 @@ type Project = {
   title: string
   titleImage?: { asset?: { url?: string | null } } | null
   description?: string
+  ticketsUrl?: string
   projectKind?: string
   projectTypeSlug?: string
   categorySections?: CategorySection[]
@@ -33,11 +36,12 @@ type Project = {
   press?: any
   tournee?: any
   content?: any
+  coverImage?: any
 }
 
 export async function generateMetadata(
   { params }: { params: Promise<{ projectSlug: string }> },
-  parent: ResolvingMetadata
+  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const { projectSlug } = await params
 
@@ -65,17 +69,49 @@ export default async function ProductionsProjectPage({
 }) {
   const { projectSlug } = await params
 
-  const { data } = await sanityFetch({
-    query: projectQuery,
-    params: { projectSlug },
-    stega: false,
-  })
+  const [projectResult, productionsResult] = await Promise.all([
+    sanityFetch({
+      query: projectQuery,
+      params: { projectSlug },
+      stega: false,
+    }),
+    sanityFetch({
+      query: productionsPageQuery,
+      stega: false,
+    }),
+  ])
 
-  const project = data as unknown as Project
+  const project = projectResult.data as unknown as Project
+  const productionsPage = productionsResult.data as any
 
   if (!project || project.projectKind !== 'professional') {
     notFound()
   }
+
+  const featuredProjects = productionsPage?.featuredProjects || []
+  const currentIndex = featuredProjects.findIndex(
+    (item: any) => item.project.slug.current === projectSlug,
+  )
+
+  const prevProject =
+    currentIndex > 0
+      ? {
+          title: featuredProjects[currentIndex - 1].project.title,
+          slug: featuredProjects[currentIndex - 1].project.slug.current,
+          titleImageUrl:
+            featuredProjects[currentIndex - 1].project.titleImage?.asset?.url,
+        }
+      : undefined
+
+  const nextProject =
+    currentIndex >= 0 && currentIndex < featuredProjects.length - 1
+      ? {
+          title: featuredProjects[currentIndex + 1].project.title,
+          slug: featuredProjects[currentIndex + 1].project.slug.current,
+          titleImageUrl:
+            featuredProjects[currentIndex + 1].project.titleImage?.asset?.url,
+        }
+      : undefined
 
   const categoryNavItems = (project.categorySections ?? [])
     .filter((section) => section.category && section.category._id)
@@ -85,92 +121,142 @@ export default async function ProductionsProjectPage({
       titleImageUrl: section.category.titleImage?.asset?.url ?? undefined,
     }))
 
+  const useStackedTitles = true
+
   return (
-    <main className='min-h-screen xl:pl-64'>
+    <main className='min-h-screen xl:pl-54 xl:px-68'>
       <ScrollToHash />
 
-      {categoryNavItems.length > 0 && (
-        <CategoryNav
-          categories={categoryNavItems}
-          title='woronoff by category'
-          projectTitleImageUrl={project.titleImage?.asset?.url ?? undefined}
-          isProjectPage={true}
-        />
-      )}
-
-      {project?.titleImage?.asset?.url && (
-        <div className='mb-8 absolute left-1/2 -translate-x-1/2 top-24 lg:left-22 lg:top-16 -rotate-3 z-10 w-[85vw] lg:w-[40vw] lg:translate-x-0'>
-          <Image
-            src={project.titleImage.asset.url}
-            alt={project.title}
-            width={1000}
-            height={500}
-            className='object-contain h-auto'
+      {categoryNavItems.length > 0 &&
+        (useStackedTitles ? (
+          <ProjectSectionsStackedNavClient
+            categories={categoryNavItems}
+            groupTitleImages={{
+              horizontal: project.titleImage?.asset?.url ?? undefined,
+            }}
+            titleVariant='stacked'
           />
-        </div>
-      )}
+        ) : (
+          <CategoryNav
+            categories={categoryNavItems}
+            title='woronoff by category'
+            projectTitleImageUrl={project.titleImage?.asset?.url ?? undefined}
+            isProjectPage={true}
+          />
+        ))}
 
-      <div className='px-6 mb-8 xl:mb-16'>
-        {project.description && (
-          <p className='text-xl leading-tight lg:text-4xl max-w-7xl mt-68 xl:mt-88'>
-            {project.description}
-          </p>
-        )}
-      </div>
+      {/* Content wrapper: one place controls page padding & rhythm */}
+      <div className='px-8 pt-32 sm:pt-20 lg:pt-16'>
+        {/* HEADER: title image + description in FLOW */}
 
-      {project.content && (
-        <div className='px-6'>
-          <ContentRenderer content={project.content} />
-        </div>
-      )}
+        <header className='mb-10 lg:mb-16'>
+          {project.ticketsUrl && (
+            <div className='fixed right-8 top-22 lg:top-8 xl:right-16 z-10'>
+              <a
+                href={project.ticketsUrl}
+                target='_blank'
+                rel='noopener noreferrer'
+                aria-label='Open tickets'
+                className='relative inline-block px-2 py-1 opacity-80 hover:opacity-100 transition-opacity'
+              >
+                {/* Black brush background */}
+                <RealBrush
+                  seed='tickets-brush'
+                  color='#000'
+                  className='absolute -inset-x-1 z-0'
+                  style={{
+                    height: '130%',
+                    top: '45%',
+                    transform: 'translateY(-50%)',
+                  }}
+                />
+                {/* Tickets logo on top */}
+                <Image
+                  src='/images/ticketsLogo-blanc.png'
+                  alt='Tickets'
+                  width={800}
+                  height={269}
+                  className='h-6 lg:h-7 w-auto relative z-10'
+                  draggable={false}
+                  priority
+                />
+              </a>
+            </div>
+          )}
+          <div className='lg:grid lg:grid-cols-12 lg:gap-x-10 lg:items-start'>
+            {/* Title image */}
+            {project?.titleImage?.asset?.url && (
+              <div className='lg:col-span-8 xl:-ml-44'>
+                <Image
+                  src={project.titleImage.asset.url}
+                  alt={project.title}
+                  width={1200}
+                  height={600}
+                  priority
+                  className='
+                    object-contain
+                    w-[85vw] max-w-[980px]
+                    lg:w-full lg:max-w-none
+                    h-auto
+                    -rotate-3
+                    mx-auto
+                    lg:mx-0
+                  '
+                />
 
-      {project.categorySections && project.categorySections.length > 0 && (
-        <div className='space-y-24 px-6'>
-          {project.categorySections.map((section) => (
-            <section
-              key={section.category._id}
-              id={section.category.slug.current}
-              className='scroll-mt-24'
-            >
-              <div className=''>
-                {section.category.titleImage?.asset?.url ? (
-                  <div className='flex justify-start items-center mb-2 lg:mb-8 mt-16 xl:mt-32'>
-                    <Image
-                      src={section.category.titleImage.asset.url}
-                      alt={section.category.title}
-                      width={1000}
-                      height={700}
-                      className='h-16 lg:h-36 w-auto object-contain'
-                    />
-                  </div>
-                ) : (
-                  <h2 className='text-3xl font-bold mb-8'>
-                    {section.category.title}
-                  </h2>
-                )}
-                <ContentRenderer content={section.content} />
+                <div className='-mt-4'>
+                  <ProjectNavigation
+                    prevProject={prevProject}
+                    nextProject={nextProject}
+                  />
+                </div>
               </div>
-            </section>
-          ))}
-        </div>
-      )}
+            )}
 
-      <div className='px-6'>
-        <ProjectCredits
-          credits={project.credits}
-          press={project.press}
-          tournee={project.tournee}
-        />
-      </div>
+            {/* Description */}
+            {project.description && (
+              <div className='mt-8 lg:mt-16 lg:col-start-1 lg:col-span-9'>
+                <p className='text-xl leading-snug tracking-tight lg:text-4xl max-w-7xl'>
+                  {project.description}
+                </p>
+              </div>
+            )}
+          </div>
+        </header>
 
-      <div className='px-6 my-16'>
-        <Link
-          href='/productions'
-          className='inline-flex items-center text-gray-600 hover:text-black transition-colors'
-        >
-          <span className='mr-2'>←</span>
-          Back to Productions
-        </Link>
+        {/* Main content */}
+        {project.content && (
+          <section className='mb-16 lg:mb-24'>
+            <ContentRenderer content={project.content} />
+          </section>
+        )}
+
+        {/* Category sections */}
+        {project.categorySections && project.categorySections.length > 0 && (
+          <section className='space-y-20 lg:space-y-24'>
+            {project.categorySections.map((section) => (
+              <section
+                key={section.category._id}
+                id={section.category.slug.current}
+                className='scroll-mt-[110px]'
+              >
+                {/* Sentinel for intersection observer */}
+                <div data-section-sentinel className='h-px w-px' />
+
+                <ContentRenderer content={section.content} />
+              </section>
+            ))}
+          </section>
+        )}
+
+        {/* Credits */}
+        <section className='mt-16 lg:my-32' data-credits-section>
+          <ProjectCredits
+            credits={project.credits}
+            press={project.press}
+            tournee={project.tournee}
+          />
+        </section>
       </div>
     </main>
   )

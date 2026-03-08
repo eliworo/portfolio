@@ -16,7 +16,13 @@ const postFields = /* groq */ `
 const linkReference = /* groq */ `
   _type == "link" => {
     "page": page->slug.current,
-    "post": post->slug.current
+    "post": post->slug.current,
+    "internalLink": select(
+      defined(internalLink) => internalLink,
+      defined(page->slug.current) => page->slug.current,
+      defined(post->slug.current) => "posts/" + post->slug.current,
+      null
+    )
   }
 `
 
@@ -119,7 +125,34 @@ export const homepageQuery = `
   logo{
     asset->{url}
   },
-  showLogo
+  showLogo,
+  muteIcon {
+    asset->{
+      url
+    }
+  },
+  unmuteIcon {
+    asset->{
+      url
+    }
+  },
+  newsPostIts[]{
+    title,
+    date,
+    description,
+    linkUrl,
+    linkText,
+    postItImage {
+      asset->{
+        url
+      }
+    },
+    titleImage {
+      asset->{
+        url
+      }
+    }
+  }
 }
 `
 
@@ -133,57 +166,14 @@ const worksFields = /* groq */ `
       }
     }
   },
-  description
-`
-
-const featuredProjectFields = /* groq */ `
-  project->{
-    _id,
-    title,
-    slug {
-      current
-    },
-    titleImage {
-      asset->{
-        url
-      }
-    },
-    coverImage {
-      asset->{ _id, url },
-      crop,
-      hotspot,
-      alt
-    },
-    projectType->{
-      title,
-      slug {
-        current
-      }
-    },
-    categories[]->{
-      _id,
-      title,
-      slug{current},
-      titleImage {
-        asset->{
-          url
-        }
-      }
-    }
-  },
-  offsetY,
-  offsetX,
-  rotation,
-  scale,
-  zIndex
+  description,
+  productionsPreviewText,
+  studioWorksPreviewText
 `
 
 export const worksPageQuery = defineQuery(`
   *[_type == "works" && _id == "worksPage"][0]{
-    ${worksFields},
-    featuredProjects[]{
-      ${featuredProjectFields}
-    }
+    ${worksFields}
   }
 `)
 
@@ -277,7 +267,9 @@ export const navigationImagesQuery = defineQuery(`{
     titleImage{asset->{url}}
   },
   "studioWorks": *[_type == "studioWorks"][0]{
-    titleImage{asset->{url}}
+    titleImage{asset->{url}}, // keep existing horizontal
+    titleImageStudio{asset->{url}},
+    titleImageWorks{asset->{url}}
   },
   "homepage": *[_type == "homepage"][0]{
     logo{asset->{url}}
@@ -332,19 +324,86 @@ export const projectGroupQuery =
           _type == "imageBlock" => {
             _type,
             _key,
-            images[]{asset->{url}, alt}
+            images[]{asset->{_id, url}, alt, crop, hotspot}
           },
           _type == "imageGallery" => {
             _type,
             _key,
-            images[]{asset->{url}, alt}
+            images[]{asset->{_id, url}, alt}
           },
-          _type == "videoBlock" => { _type, _key, url, caption, aspectRatio },
+          _type == "videoBlock" => {
+            _type,
+            _key,
+            url,
+            caption,
+            aspectRatio,
+            videoFile {
+              asset-> {
+                url,
+                mimeType
+              }
+            }
+          },
+          _type == "mediaWithMedia" => {
+          _type,
+          _key,
+          leftMedia {
+            mediaType,
+            url,
+            videoFile {
+              asset-> {
+                url,
+                mimeType
+              }
+            },
+            caption,
+            aspectRatio,
+            image {
+              asset-> {
+                _id,
+                url
+              },
+              crop,
+              hotspot,
+              alt,
+              caption,
+              material,
+              dimensions,
+              year
+            }
+          },
+          rightMedia {
+            mediaType,
+            url,
+            videoFile {
+              asset-> {
+                url,
+                mimeType
+              }
+            },
+            caption,
+            aspectRatio,
+            image {
+              asset-> {
+                _id,
+                url
+              },
+              crop,
+              hotspot,
+              alt,
+              caption,
+              material,
+              dimensions,
+              year
+            }
+          },
+          layout
+        },
           _type == "textBlock" => { _type, _key, content, columns, alignment },
           _type == "textWithImage" => {
             _type, _key,
-            image{asset->{url}, alt, caption},
-            text, imagePosition, imageSize
+            image{asset->{_id, url}, alt, caption, hotspot, crop},
+            text, imagePosition, imageSize, verticalAlignment
           }
         },
         "categorySections": categorySections[]{
@@ -358,8 +417,8 @@ export const projectGroupQuery =
           content[]{
             _type,
             _key,
-            _type == "imageBlock" => { _type, _key, images[]{asset->{url}, alt} },
-            _type == "imageGallery" => { _type, _key, images[]{asset->{url}, alt} }
+            _type == "imageBlock" => { _type, _key, images[]{asset->{_id, url}, alt, crop, hotspot} },
+            _type == "imageGallery" => { _type, _key, images[]{asset->{_id, url}, alt, crop, hotspot} }
           }
         }
       }
@@ -386,7 +445,10 @@ export const projectQuery = defineQuery(`
     title,
     slug,
     year,
+    material,
+    dimensions,
     description,
+    ticketsUrl,
     projectKind,
     projectSize,
     projectSubtype,
@@ -401,11 +463,17 @@ export const projectQuery = defineQuery(`
       asset-> {
         url
       },
-      alt
+      alt,
+      caption
     },
     content[] {
       _type,
       _key,
+      _type == "headingBlock" => {
+        text,
+        level,
+        alignment
+      },
       // Text Block
       _type == "textBlock" => {
         content,
@@ -429,7 +497,8 @@ export const projectQuery = defineQuery(`
         },
         layout,
         position,
-        spacing
+        spacing,
+        collageMode
       },
       // Image Gallery
       _type == "imageGallery" => {
@@ -438,6 +507,8 @@ export const projectQuery = defineQuery(`
             url
           },
           alt,
+          crop,
+          hotspot,
           caption,
           material,
           dimensions,
@@ -453,22 +524,89 @@ export const projectQuery = defineQuery(`
       _type == "textWithImage" => {
         image {
           asset-> {
+            _id,
             url
           },
           alt,
-          caption
+          caption,
+          hotspot,
+          crop
         },
         text,
         imagePosition,
-        imageSize
+        imageSize,
+        verticalAlignment
       },
       // Video Block
       _type == "videoBlock" => {
         url,
         caption,
-        aspectRatio
-      }
+        aspectRatio,
+        videoFile {
+          asset-> {
+            url,
+            mimeType
+          }
+        }
+      },
+      _type == "mediaWithMedia" => {
+      _type,
+      _key,
+      leftMedia {
+        mediaType,
+        url,
+        videoFile {
+          asset-> {
+            url,
+            mimeType
+          }
+        },
+        caption,
+        aspectRatio,
+        image {
+          asset-> {
+            _id,
+            url
+          },
+          crop,
+          hotspot,
+          alt,
+          caption,
+          material,
+          dimensions,
+          year
+        }
+      },
+      rightMedia {
+        mediaType,
+        url,
+        videoFile {
+          asset-> {
+            url,
+            mimeType
+          }
+        },
+        caption,
+        aspectRatio,
+        image {
+          asset-> {
+            _id,
+            url
+          },
+          crop,
+          hotspot,
+          alt,
+          caption,
+          material,
+          dimensions,
+          year
+        }
+      },
+      layout,
+      collageMode
+    }
     },
+
     categorySections[] {
       _key,
       category-> {
@@ -484,6 +622,11 @@ export const projectQuery = defineQuery(`
       content[] {
         _type,
         _key,
+          _type == "headingBlock" => {
+          text,
+          level,
+          alignment
+        },
         // Text Block
         _type == "textBlock" => {
           content,
@@ -494,8 +637,11 @@ export const projectQuery = defineQuery(`
         _type == "imageBlock" => {
           images[] {
             asset-> {
+              _id,
               url
             },
+            crop,
+            hotspot,
             alt,
             caption,
             material,
@@ -504,7 +650,8 @@ export const projectQuery = defineQuery(`
           },
           layout,
           position,
-          spacing
+          spacing,
+          collageMode
         },
         // Image Gallery
         _type == "imageGallery" => {
@@ -513,6 +660,8 @@ export const projectQuery = defineQuery(`
               url
             },
             alt,
+            crop,
+            hotspot,
             caption,
             material,
             dimensions,
@@ -528,20 +677,86 @@ export const projectQuery = defineQuery(`
         _type == "textWithImage" => {
           image {
             asset-> {
+              _id,
               url
             },
             alt,
+            crop,
+            hotspot,
             caption
           },
           text,
           imagePosition,
-          imageSize
+          imageSize,
+          verticalAlignment
         },
         // Video Block
         _type == "videoBlock" => {
           url,
           caption,
-          aspectRatio
+          aspectRatio,
+          videoFile {
+            asset-> {
+              url,
+              mimeType
+            }
+          }
+        },
+        _type == "mediaWithMedia" => {
+          _type,
+          _key,
+          leftMedia {
+            mediaType,
+            url,
+            videoFile {
+              asset-> {
+                url,
+                mimeType
+              }
+            },
+            caption,
+            aspectRatio,
+            image {
+              asset-> {
+                _id,
+                url
+              },
+              crop,
+              hotspot,
+              alt,
+              caption,
+              material,
+              dimensions,
+              year
+            }
+          },
+          rightMedia {
+            mediaType,
+            url,
+            videoFile {
+              asset-> {
+                url,
+                mimeType
+              }
+            },
+            caption,
+            aspectRatio,
+            image {
+              asset-> {
+                _id,
+                url
+              },
+              crop,
+              hotspot,
+              alt,
+              caption,
+              material,
+              dimensions,
+              year
+            }
+          },
+          layout,
+          collageMode
         }
       }
     },
@@ -564,6 +779,8 @@ export const projectsListQuery = defineQuery(`
     title,
     slug,
     year,
+    material,
+    dimensions,
     description,
     coverImage {
       asset-> {
@@ -595,6 +812,8 @@ export const allProjectsByCategoryQuery = defineQuery(`{
     "slug": slug.current,
     projectKind,
     year,
+    material,
+    dimensions,
     coverImage {
       asset-> {
         url
@@ -707,7 +926,8 @@ const aboutFields = /* groq */ `
     }
   },
   quote,
-  bio,
+  bioTop,
+  bioBottom,
   cv{
     asset->{
       url
@@ -757,15 +977,7 @@ const commissionsFields = /* groq */ `
   },
   quote,
   tools[]{
-    titleImage{
-      asset->{
-        url,
-        metadata {
-          dimensions
-        }
-      }
-    },
-    subtitle,
+    "title": coalesce(title, subtitle),
     description,
     image{
       asset->{
@@ -774,9 +986,7 @@ const commissionsFields = /* groq */ `
       alt
     },
     offsetY,
-    offsetX,
-    rotation,
-    scale
+    offsetX
   }
 `
 
@@ -813,6 +1023,7 @@ const productionsFeaturedProjectFields = /* groq */ `
     },
     coverImage,
     projectKind,
+    brushColor,
     categories[]->{
       _id,
       title,
@@ -846,22 +1057,39 @@ const projectFields = /* groq */ `
   title,
   slug { current },
   projectKind,
+  brushColor,
   projectSize,
   projectSubtype,
   titleImage { asset->{ url } },
   coverImage {
-    asset->{ _id, url },
+    asset->{
+      _id,
+      url,
+      metadata {
+        dimensions { width, height },
+        lqip
+      }
+    },
     crop,
     hotspot,
-    alt
+    alt,
+    caption
   },
  images[] {
     _type,
     _type == "image" => {
-      asset->{ _id, url },
+      asset->{
+        _id,
+        url,
+        metadata {
+          dimensions { width, height },
+          lqip
+        }
+      },
       crop,
       hotspot,
       alt,
+      "caption": coalesce(caption, title),
       title
     },
     _type == "videoItem" => {
@@ -875,6 +1103,16 @@ const projectFields = /* groq */ `
     }
   },
   description,
+  descriptionRich[]{
+    ...,
+    children[]{
+      ...,
+    },
+    markDefs[]{
+      ...,
+    }
+  },
+  titleStyle,
   year,
   categories[]->{
     _id,
@@ -882,15 +1120,35 @@ const projectFields = /* groq */ `
     slug{current},
     titleImage { asset->{ url } }
   },
-  content,
   writingLayout,
   writingContent[] {
     _type,
     _key,
-    _type == "writingTextBlock" => { content },
+    _type == "writingTextBlock" => {
+      verticalAlign,
+      contentRich[]{
+        ...,
+        children[]{
+          ...,
+        },
+        markDefs[]{
+          ...,
+        }
+      },
+      content
+    },
     _type == "writingImageBlock" => {
+      title,
+      verticalAlign,
       image {
-        asset->{ _id, url },
+        asset->{
+          _id,
+          url,
+          metadata {
+            dimensions { width, height },
+            lqip
+          }
+        },
         crop,
         hotspot,
         alt
@@ -899,6 +1157,7 @@ const projectFields = /* groq */ `
     }
   },
   previewType,
+  previewCustomText,
   textExtractIndex,
   categorySections[] {
     _key,
@@ -926,7 +1185,14 @@ const projectFields = /* groq */ `
       },
       _type == "imageBlock" => {
         images[] {
-          asset->{ _id, url },
+          asset->{
+            _id,
+            url,
+            metadata {
+              dimensions { width, height },
+              lqip
+            }
+          },
           crop,
           hotspot,
           alt
@@ -934,7 +1200,14 @@ const projectFields = /* groq */ `
       },
       _type == "imageGallery" => {
         images[] {
-          asset->{ _id, url },
+          asset->{
+            _id,
+            url,
+            metadata {
+              dimensions { width, height },
+              lqip
+            }
+          },
           crop,
           hotspot,
           alt
@@ -945,31 +1218,31 @@ const projectFields = /* groq */ `
         image {
           asset->{ _id, url },
           alt,
-          caption
+          caption,
+          crop,
+          hotspot
         },
         imagePosition,
-        imageSize
+        imageSize,
+        verticalAlignment
       }
     }
-  },
-  credits,
-  press,
-  tournee,
-  publishedAt,
-  visible
+  }
 `
 
 export const studioWorksQuery = /* groq */ `
   *[_type == "studioWorks"][0]{
     title,
-    titleImage {
-      asset->{
-        url
-      }
-    },
+    titleImage { asset->{ url } },
+    titleImageStudio { asset->{ url } },
+    titleImageWorks { asset->{ url } },
     description,
     featuredProjects[] {
       _key,
+      kind,
+      blankLabel,
+      blankSize,
+      hideOnDefaultList,
       project->{
         ${projectFields}
       },
@@ -979,6 +1252,7 @@ export const studioWorksQuery = /* groq */ `
       rotation,
       scale,
       zIndex
-    }
+    },
+    gridSpacing { columnGap, rowGap }
   }
 `

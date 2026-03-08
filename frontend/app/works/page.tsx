@@ -1,14 +1,20 @@
 import Image from 'next/image'
-import { PortableText } from '@portabletext/react'
+import Link from 'next/link'
+import { PortableText, type PortableTextComponents } from '@portabletext/react'
 import { sanityFetch } from '@/sanity/lib/live'
-import { worksPageQuery } from '@/sanity/lib/queries'
-import FeaturedProjectCard from '@/app/components/FeaturedProjectCard'
+import {
+  worksPageQuery,
+  productionsPageQuery,
+  studioWorksQuery,
+} from '@/sanity/lib/queries'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
+import PortableLinkMark from '@/app/components/portable/PortableLinkMark'
+import BrushStrongMark from '@/app/components/portable/BrushStrongMark'
 
 export async function generateMetadata(
   _props: any,
-  parent: ResolvingMetadata
+  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const { data: worksPage } = await sanityFetch({
     query: worksPageQuery,
@@ -21,7 +27,8 @@ export async function generateMetadata(
     ? worksPage.description
         .map(
           (block: any) =>
-            block.children?.map((child: any) => child.text || '').join('') || ''
+            block.children?.map((child: any) => child.text || '').join('') ||
+            '',
         )
         .join(' ')
         .trim()
@@ -37,45 +44,149 @@ export async function generateMetadata(
 }
 
 export default async function WorksPage() {
-  const { data: worksPage } = await sanityFetch({
-    query: worksPageQuery,
-  })
+  const [
+    { data: worksPage },
+    { data: productionsPage },
+    { data: studioWorksPage },
+  ] = await Promise.all([
+    sanityFetch({ query: worksPageQuery }),
+    sanityFetch({ query: productionsPageQuery }),
+    sanityFetch({ query: studioWorksQuery }),
+  ])
 
-  if (!worksPage) {
-    return null
+  if (!worksPage) return null
+
+  const introPortableComponents: PortableTextComponents = {
+    block: {
+      normal: ({ children }) => (
+        <p className='mb-4 whitespace-pre-line'>{children}</p>
+      ),
+    },
+    marks: {
+      strong: ({ children }) => (
+        <BrushStrongMark seed='works-intro-strong'>{children}</BrushStrongMark>
+      ),
+      link: ({ children, value }) => (
+        <PortableLinkMark value={value as any}>{children}</PortableLinkMark>
+      ),
+    },
+  }
+
+  const previewPortableComponents: PortableTextComponents = {
+    block: {
+      normal: ({ children }) => (
+        <p className='mb-3 whitespace-pre-line'>{children}</p>
+      ),
+    },
+    marks: {
+      strong: ({ children }) => (
+        <BrushStrongMark seed='works-preview-strong'>{children}</BrushStrongMark>
+      ),
+      // The whole preview card is the actual link target; keep inline "more"
+      // styling without rendering nested anchors inside the card link.
+      link: ({ children }) => (
+        <span className='underline decoration-2 underline-offset-4'>
+          {children}
+        </span>
+      ),
+    },
   }
 
   return (
-    <main className='w-full '>
-      {worksPage.titleImage?.asset?.url && (
-        <div className='mb-8 absolute left-1/2 -translate-x-1/2 top-30 lg:left-22 lg:top-16 -rotate-3 z-10 w-[85vw] lg:w-[40vw] lg:translate-x-0'>
-          <Image
-            src={worksPage.titleImage.asset.url}
-            alt='WORKS'
-            width={600}
-            height={200}
-            className='object-contain w-auto h-[140px] lg:h-[200px]'
-          />
-        </div>
-      )}
+    <main className='w-full min-h-screen overflow-hidden'>
+      <header className='px-4 pt-16 sm:pt-20 md:pt-16 xl:pt-12'>
+        <div className='xl:ml-20 xl:max-w-[760px]'>
+          {worksPage.titleImage?.asset?.url && (
+            <div className='mt-4'>
+              <Image
+                src={worksPage.titleImage.asset.url}
+                alt='Works'
+                width={1000}
+                height={500}
+                priority
+                className='
+                  object-contain mx-auto mt-18 mb-4 xl:my-0 object-left px-2 xl:px-0
+                  max-h-[200px]
+                  xl:w-full xl:max-w-none
+                '
+              />
+            </div>
+          )}
 
-      <div className='flex w-full px-2 lg:px-16'>
-        <div className='hidden lg:block w-full'></div>
-        {worksPage.description && (
-          <div className='text-black/85 text-lg mt-60 py-16 lg:mt-0 lg:text-2xl leading-tight font-agrandir-tight lg:mb-12 w-full columns-1 lg:py-32 lg:px-0 lg:pl-8 lg:max-w-3xl'>
-            <PortableText value={worksPage.description} />
-          </div>
-        )}
-      </div>
-
-      {/* Featured Projects with Creative Layout */}
-      {worksPage?.featuredProjects && worksPage.featuredProjects.length > 0 && (
-        <div className='columns-2 md:columns-2 lg:columns-3 gap-2 lg:gap-6 relative overflow-hidden px-2 lg:px-0 lg:pl-60 lg:pr-8'>
-          {worksPage.featuredProjects.map((item, index) => (
-            <FeaturedProjectCard key={index} item={item} />
-          ))}
+          {worksPage.description && (
+            <div className='mt-6 xl:mt-8 px-2 xl:px-0 xl:w-full xl:ml-[360px]'>
+              <div className='text-lg xl:text-2xl leading-tight font-sans max-w-[80ch]'>
+                <PortableText
+                  value={worksPage.description}
+                  components={introPortableComponents}
+                />
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </header>
+
+      <section className='relative px-4 xl:px-20 mb-20 mt-8 xl:mt-12'>
+        <div className='w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-2 xl:max-w-[1400px] xl:ml-40'>
+          {/* Productions */}
+          <Link
+            href='/productions'
+            aria-label='Open Productions'
+            className='block group rounded-md transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-4'
+          >
+            <div className='h-full flex flex-col'>
+              <div className='relative flex-1 flex flex-col justify-start items-start p-4 lg:p-6 pb-12'>
+                {productionsPage?.titleImage?.asset?.url && (
+                  <div className='mb-4 lg:mb-8 w-full relative rotate-1'>
+                    <Image
+                      src={productionsPage.titleImage.asset.url}
+                      alt='Productions'
+                      width={500}
+                      height={500}
+                      className='object-contain w-full max-h-[130px] h-auto object-left'
+                    />
+                  </div>
+                )}
+                <div className='text-sm xl:text-xl leading-tight'>
+                  <PortableText
+                    value={worksPage.productionsPreviewText || []}
+                    components={previewPortableComponents}
+                  />
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Studio Works */}
+          <Link
+            href='/studio-works'
+            aria-label='Open Studio Works'
+            className='block group rounded-md transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-4'
+          >
+            <div className='h-full flex flex-col'>
+              <div className='relative flex-1 flex flex-col justify-start items-start p-4 lg:p-6 pb-12'>
+                {studioWorksPage?.titleImage?.asset?.url && (
+                  <div className='mb-4 lg:mb-8 w-full relative'>
+                    <Image
+                      src={studioWorksPage.titleImage.asset.url}
+                      alt='Studio Works'
+                      width={500}
+                      height={500}
+                      className='object-contain w-full max-h-[130px] h-auto object-left'
+                    />
+                  </div>
+                )}
+                <div className='text-sm xl:text-xl leading-tight'>
+                  <PortableText
+                    value={worksPage.studioWorksPreviewText || []}
+                    components={previewPortableComponents}
+                  />
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+      </section>
     </main>
   )
 }

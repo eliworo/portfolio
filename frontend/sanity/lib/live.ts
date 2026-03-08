@@ -1,6 +1,6 @@
-import { defineLive } from "next-sanity";
-import { client } from "./client";
-import { token } from "./token";
+import { defineLive } from 'next-sanity/live'
+import { client } from './client'
+import { token } from './token'
 
 /**
  * Use defineLive to enable automatic revalidation and refreshing of your fetched content
@@ -13,4 +13,4 @@ export const { sanityFetch, SanityLive } = defineLive({
   serverToken: token,
   // Required for stand-alone live previews, the token is only shared to the browser if it's a valid Next.js Draft Mode session
   browserToken: token,
-});
+})

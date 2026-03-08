@@ -489,8 +489,57 @@ export type About = {
     crop?: SanityImageCrop;
     _type: "image";
   };
-  quote?: string;
-  bio?: Array<{
+  quote?: Array<{
+    children?: Array<{
+      marks?: Array<string>;
+      text?: string;
+      _type: "span";
+      _key: string;
+    }>;
+    style?: "normal" | "blockquote";
+    listItem?: "bullet" | "number";
+    markDefs?: Array<{
+      href?: string;
+      _type: "link";
+      _key: string;
+    }>;
+    level?: number;
+    _type: "block";
+    _key: string;
+  }>;
+  bioTop?: Array<{
+    children?: Array<{
+      marks?: Array<string>;
+      text?: string;
+      _type: "span";
+      _key: string;
+    }>;
+    style?: "normal" | "h1" | "h2" | "h3" | "blockquote";
+    listItem?: "bullet" | "number";
+    markDefs?: Array<{
+      href?: string;
+      _type: "link";
+      _key: string;
+    }>;
+    level?: number;
+    _type: "block";
+    _key: string;
+  } | {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    caption?: string;
+    alt?: string;
+    _type: "image";
+    _key: string;
+  }>;
+  bioBottom?: Array<{
     children?: Array<{
       marks?: Array<string>;
       text?: string;
@@ -585,7 +634,24 @@ export type Commissions = {
     crop?: SanityImageCrop;
     _type: "image";
   };
-  quote?: string;
+  quote?: Array<{
+    children?: Array<{
+      marks?: Array<string>;
+      text?: string;
+      _type: "span";
+      _key: string;
+    }>;
+    style?: "normal" | "blockquote";
+    listItem?: "bullet" | "number";
+    markDefs?: Array<{
+      href?: string;
+      _type: "link";
+      _key: string;
+    }>;
+    level?: number;
+    _type: "block";
+    _key: string;
+  }>;
   tools?: Array<{
     titleImage?: {
       asset?: {
@@ -2506,7 +2572,7 @@ export type CategoryProjectsQueryResult = {
   }>;
 } | null;
 // Variable: aboutPageQuery
-// Query: *[_type == "about"][0]{      _id,  logo{    asset->{      url,      metadata {        dimensions      }    }  },  titleImage{    asset->{      url,      metadata {        dimensions      }    }  },  contactImage{    asset->{      url,      metadata {        dimensions      }    }  },  quote,  bio,  cv{    asset->{      url    }  },  profileImage{    asset->{      url    },    alt,    credit  },  contact{    email,    instagram,    linkedin,    facebook  },  arteosDescription,  arteosLogo{    asset->{      url,      metadata {        dimensions      }    }  }  }
+// Query: *[_type == "about"][0]{      _id,  logo{    asset->{      url,      metadata {        dimensions      }    }  },  titleImage{    asset->{      url,      metadata {        dimensions      }    }  },  contactImage{    asset->{      url,      metadata {        dimensions      }    }  },  quote,  bioTop,  bioBottom,  cv{    asset->{      url    }  },  profileImage{    asset->{      url    },    alt,    credit  },  contact{    email,    instagram,    linkedin,    facebook  },  arteosDescription,  arteosLogo{    asset->{      url,      metadata {        dimensions      }    }  }  }
 export type AboutPageQueryResult = {
   _id: string;
   logo: {
@@ -2533,8 +2599,57 @@ export type AboutPageQueryResult = {
       } | null;
     } | null;
   } | null;
-  quote: string | null;
-  bio: Array<{
+  quote: Array<{
+    children?: Array<{
+      marks?: Array<string>;
+      text?: string;
+      _type: "span";
+      _key: string;
+    }>;
+    style?: "blockquote" | "normal";
+    listItem?: "bullet" | "number";
+    markDefs?: Array<{
+      href?: string;
+      _type: "link";
+      _key: string;
+    }>;
+    level?: number;
+    _type: "block";
+    _key: string;
+  }> | null;
+  bioTop: Array<{
+    children?: Array<{
+      marks?: Array<string>;
+      text?: string;
+      _type: "span";
+      _key: string;
+    }>;
+    style?: "blockquote" | "h1" | "h2" | "h3" | "normal";
+    listItem?: "bullet" | "number";
+    markDefs?: Array<{
+      href?: string;
+      _type: "link";
+      _key: string;
+    }>;
+    level?: number;
+    _type: "block";
+    _key: string;
+  } | {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    caption?: string;
+    alt?: string;
+    _type: "image";
+    _key: string;
+  }> | null;
+  bioBottom: Array<{
     children?: Array<{
       marks?: Array<string>;
       text?: string;
@@ -2606,7 +2721,24 @@ export type CommissionsPageQueryResult = {
       } | null;
     } | null;
   } | null;
-  quote: string | null;
+  quote: Array<{
+    children?: Array<{
+      marks?: Array<string>;
+      text?: string;
+      _type: "span";
+      _key: string;
+    }>;
+    style?: "blockquote" | "normal";
+    listItem?: "bullet" | "number";
+    markDefs?: Array<{
+      href?: string;
+      _type: "link";
+      _key: string;
+    }>;
+    level?: number;
+    _type: "block";
+    _key: string;
+  }> | null;
   tools: Array<{
     titleImage: {
       asset: {

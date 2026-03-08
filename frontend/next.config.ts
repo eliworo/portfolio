@@ -6,7 +6,17 @@ const nextConfig: NextConfig = {
     SC_DISABLE_SPEEDY: 'false',
   },
   images: {
-    domains: ['cdn.sanity.io'],
+    loader: 'custom',
+    loaderFile: './sanity/lib/sanityImageLoader.ts',
+    deviceSizes: [320, 420, 640, 768, 1024, 1280, 1600, 1920],
+    imageSizes: [32, 48, 64, 96, 128, 256, 384, 512],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
+        pathname: '/images/**',
+      },
+    ],
   },
 }
 

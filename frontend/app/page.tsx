@@ -1,13 +1,25 @@
-import { homepageQuery } from '@/sanity/lib/queries'
+import { aboutPageQuery, homepageQuery } from '@/sanity/lib/queries'
 import { sanityFetch } from '@/sanity/lib/live'
 import Image from 'next/image'
 import { PostItNote } from './components/PostItNote'
 import Loading from './loading'
+import HeroVideo from './components/HeroVideo'
+import NewsPostIts from './components/NewsPostIts'
+import ContactNav from './components/ContactNav'
 
 export default async function Page() {
-  const { data: homepage } = await sanityFetch({
-    query: homepageQuery,
-  })
+  const [{ data: homepage }, { data: aboutPage }] = await Promise.all([
+    sanityFetch({
+      query: homepageQuery,
+      // The homepage is heavily animated and draggable; stega markup here
+      // causes noisy Visual Editing behavior in draft mode.
+      stega: false,
+    }),
+    sanityFetch({
+      query: aboutPageQuery,
+      stega: false,
+    }),
+  ])
 
   // Get video settings with defaults
   const videoSettings = homepage?.videoSettings || {
@@ -19,53 +31,36 @@ export default async function Page() {
 
   return (
     <>
-      <div className='relative'>
-        {/* <div className='absolute bottom-20 right-10 z-50'>
-          <PostItNote />
-        </div> */}
+      <div className='relative h-screen overflow-hidden'>
+        {homepage?.newsPostIts && <NewsPostIts news={homepage.newsPostIts} />}
 
-        {/* Uploaded video */}
         {homepage?.heroType === 'video' && (
           <>
             {/* Mobile video */}
             {homepage?.heroVideoMobile?.asset?.url && (
-              <div className='block md:hidden h-svh w-auto sm:mx-0'>
-                <video
-                  className='h-full w-full transform rounded-none border-0 object-cover'
-                  autoPlay={videoSettings.autoplay}
+              <div className='block md:hidden'>
+                <HeroVideo
+                  videoUrl={homepage.heroVideoMobile.asset.url}
+                  posterUrl={homepage?.heroImage?.asset?.url}
+                  muteIconUrl={homepage?.muteIcon?.asset?.url}
+                  unmuteIconUrl={homepage?.unmuteIcon?.asset?.url}
+                  autoplay={videoSettings.autoplay}
                   loop={videoSettings.loop}
-                  muted={videoSettings.muted}
-                  playsInline
-                  controls={videoSettings.controls}
-                  poster={homepage?.heroImage?.asset?.url || undefined}
-                >
-                  <source
-                    src={homepage.heroVideoMobile.asset.url}
-                    type='video/mp4'
-                  />
-                  Your browser does not support the video tag.
-                </video>
+                />
               </div>
             )}
 
             {/* Desktop video */}
             {homepage?.heroVideoDesktop?.asset?.url && (
-              <div className='hidden md:block h-svh w-auto sm:mx-0'>
-                <video
-                  className='h-full w-full transform rounded-none border-0 object-cover'
-                  autoPlay={videoSettings.autoplay}
+              <div className='hidden md:block'>
+                <HeroVideo
+                  videoUrl={homepage.heroVideoDesktop.asset.url}
+                  posterUrl={homepage?.heroImage?.asset?.url}
+                  muteIconUrl={homepage?.muteIcon?.asset?.url}
+                  unmuteIconUrl={homepage?.unmuteIcon?.asset?.url}
+                  autoplay={videoSettings.autoplay}
                   loop={videoSettings.loop}
-                  muted={videoSettings.muted}
-                  playsInline
-                  controls={videoSettings.controls}
-                  poster={homepage?.heroImage?.asset?.url || undefined}
-                >
-                  <source
-                    src={homepage.heroVideoDesktop.asset.url}
-                    type='video/mp4'
-                  />
-                  Your browser does not support the video tag.
-                </video>
+                />
               </div>
             )}
           </>
@@ -142,6 +137,12 @@ export default async function Page() {
           </div>
         )}
       </div>
+
+      <ContactNav
+        contact={aboutPage?.contact ?? null}
+        cv={aboutPage?.cv}
+        contactImageUrl={aboutPage?.contactImage?.asset?.url}
+      />
     </>
   )
 }

@@ -1,13 +1,14 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { sanityFetch } from '@/sanity/lib/live'
-import { projectQuery } from '@/sanity/lib/queries'
+import { projectQuery, studioWorksQuery } from '@/sanity/lib/queries'
 import { ContentRenderer } from '@/app/components/ContentRenderer'
 import CategoryNav from '@/app/components/CategoryNav'
 import { ProjectCredits } from '@/app/components/ProjectCredits'
+import ScrollToHash from '@/app/components/ScrollToHash'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
+import ProjectSectionsStackedNavClient from '@/app/components/ProjectSectionsStackedNavClient'
 
 type Category = {
   _id: string
@@ -64,13 +65,20 @@ export async function generateMetadata(
 export default async function StudioWorksProjectPage(props: Props) {
   const { projectSlug } = await props.params
 
-  const { data } = await sanityFetch({
-    query: projectQuery,
-    params: { projectSlug },
-    stega: false,
-  })
+  const [projectResult, studioWorksResult] = await Promise.all([
+    sanityFetch({
+      query: projectQuery,
+      params: { projectSlug },
+      stega: false,
+    }),
+    sanityFetch({
+      query: studioWorksQuery,
+      stega: false,
+    }),
+  ])
 
-  const project = data as unknown as Project
+  const project = projectResult.data as unknown as Project
+  const studioWorksPage = studioWorksResult.data as any
 
   // Only show projects that belong to studio-works (personal large projects)
   if (
@@ -88,89 +96,92 @@ export default async function StudioWorksProjectPage(props: Props) {
       titleImageUrl: section.category.titleImage?.asset?.url ?? undefined,
     }))
 
+  const useStackedTitles = true
+
   return (
-    <main className='min-h-screen xl:pl-64'>
-      {categoryNavItems.length > 0 && (
-        <CategoryNav
-          categories={categoryNavItems}
-          title='woronoff by category'
-          isProjectPage={true}
-        />
-      )}
+    <main className='min-h-screen xl:pl-54 xl:px-68'>
+      <ScrollToHash />
 
-      {project?.titleImage?.asset?.url && (
-        <div className='mb-8 absolute left-1/2 -translate-x-1/2 top-30 lg:left-22 lg:top-16 -rotate-3 z-10 w-[85vw] lg:w-[40vw] lg:translate-x-0'>
-          <Image
-            src={project.titleImage.asset.url}
-            alt={project.title}
-            width={1000}
-            height={500}
-            className='object-contain h-auto'
+      {categoryNavItems.length > 0 &&
+        (useStackedTitles ? (
+          <ProjectSectionsStackedNavClient
+            categories={categoryNavItems}
+            groupTitleImages={{
+              horizontal: project.titleImage?.asset?.url ?? undefined,
+            }}
+            titleVariant='stacked'
           />
-        </div>
-      )}
+        ) : (
+          <CategoryNav
+            categories={categoryNavItems}
+            title='woronoff by category'
+            projectTitleImageUrl={project.titleImage?.asset?.url ?? undefined}
+            isProjectPage={true}
+          />
+        ))}
 
-      <div className='px-6 mb-8 xl:mb-16'>
-        {project.description && (
-          <p className='text-xl leading-tight lg:text-4xl max-w-7xl mt-68 xl:mt-88'>
-            {project.description}
-          </p>
-        )}
-      </div>
-
-      {project.content && (
-        <div className='px-6'>
-          <ContentRenderer content={project.content} />
-        </div>
-      )}
-
-      {project.categorySections && project.categorySections.length > 0 && (
-        <div className='space-y-24'>
-          {project.categorySections.map((section) => (
-            <section
-              key={section.category._id}
-              id={section.category.slug.current}
-              className='scroll-mt-24'
-            >
-              <div className='container mx-auto'>
-                {section.category.titleImage?.asset?.url ? (
-                  <div className='flex justify-start items-center mb-8 mt-16 xl:mt-32'>
-                    <Image
-                      src={section.category.titleImage.asset.url}
-                      alt={section.category.title}
-                      width={1000}
-                      height={700}
-                      className='h-35 w-auto object-contain'
-                    />
-                  </div>
-                ) : (
-                  <h2 className='text-3xl font-bold mb-8'>
-                    {section.category.title}
-                  </h2>
-                )}
-                <ContentRenderer content={section.content} />
+      <div className='px-8 pt-32 sm:pt-20 lg:pt-16'>
+        <header className='mb-10 lg:mb-16'>
+          <div className='lg:grid lg:grid-cols-12 lg:gap-x-10 lg:items-start'>
+            {project?.titleImage?.asset?.url && (
+              <div className='lg:col-span-8 xl:-ml-44'>
+                <Image
+                  src={project.titleImage.asset.url}
+                  alt={project.title}
+                  width={1200}
+                  height={600}
+                  priority
+                  className='
+                    object-contain
+                    w-[85vw] max-w-[980px]
+                    lg:w-full lg:max-w-none
+                    h-auto
+                    -rotate-3
+                    mx-auto
+                    lg:mx-0
+                  '
+                />
               </div>
-            </section>
-          ))}
-        </div>
-      )}
+            )}
 
-      <div className='container mx-auto'>
-        <ProjectCredits
-          credits={project.credits}
-          press={project.press}
-          tournee={project.tournee}
-        />
-      </div>
+            {project.description && (
+              <div className='mt-8 lg:mt-16 lg:col-start-1 lg:col-span-9'>
+                <p className='text-xl leading-snug tracking-tight lg:text-4xl max-w-7xl'>
+                  {project.description}
+                </p>
+              </div>
+            )}
+          </div>
+        </header>
 
-      <div className='container mx-auto my-16'>
-        <Link
-          href='/studio-works'
-          className='inline-flex items-center text-gray-600 hover:text-black transition-colors'
-        >
-          <span className='mr-2'>←</span>
-          Back to Studio Works
-        </Link>
+        {project.content && (
+          <section className='mb-16 lg:mb-24'>
+            <ContentRenderer content={project.content} />
+          </section>
+        )}
+
+        {project.categorySections && project.categorySections.length > 0 && (
+          <section className='space-y-20 lg:space-y-24'>
+            {project.categorySections.map((section) => (
+              <section
+                key={section.category._id}
+                id={section.category.slug.current}
+                className='scroll-mt-[110px]'
+              >
+                <div data-section-sentinel className='h-px w-px' />
+                <ContentRenderer content={section.content} />
+              </section>
+            ))}
+          </section>
+        )}
+
+        <section className='mt-16 lg:my-32' data-credits-section>
+          <ProjectCredits
+            credits={project.credits}
+            press={project.press}
+            tournee={project.tournee}
+          />
+        </section>
       </div>
     </main>
   )

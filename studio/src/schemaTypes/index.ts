@@ -15,8 +15,10 @@ import {navigation} from './singletons/navigation'
 import {commissions} from './singletons/commissions'
 import {about} from './singletons/about'
 import {
+  headingBlock,
   imageBlock,
   imageGallery,
+  mediaWithMedia,
   textBlock,
   textWithImage,
   videoBlock,
@@ -52,8 +54,10 @@ export const schemaTypes = [
   categorySection,
   // Content Blocks
   textBlock,
+  headingBlock,
   imageBlock,
   imageGallery,
   textWithImage,
   videoBlock,
+  mediaWithMedia,
 ]

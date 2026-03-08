@@ -1,5 +1,5 @@
 import {defineField, defineType} from 'sanity'
-import {HomeIcon, PlayIcon, ImageIcon, LinkIcon} from '@sanity/icons'
+import {HomeIcon, PlayIcon, ImageIcon, LinkIcon, CalendarIcon} from '@sanity/icons'
 
 export const homepage = defineType({
   name: 'homepage',
@@ -119,6 +119,94 @@ export const homepage = defineType({
           type: 'boolean',
           initialValue: false,
         }),
+      ],
+    }),
+    defineField({
+      name: 'muteIcon',
+      title: 'Mute Icon',
+      type: 'image',
+      description: 'Custom icon for mute button',
+      options: {hotspot: true},
+    }),
+    defineField({
+      name: 'unmuteIcon',
+      title: 'Unmute Icon (optional)',
+      type: 'image',
+      description: 'Custom icon for unmute state. If not provided, mute icon will be used.',
+      options: {hotspot: true},
+    }),
+
+    defineField({
+      name: 'newsPostIts',
+      title: 'News Post-its',
+      type: 'array',
+      description: 'Add up to 4 news items to display as post-it notes on the homepage.',
+      validation: (Rule) => Rule.max(4),
+      of: [
+        {
+          type: 'object',
+          icon: CalendarIcon,
+          fields: [
+            defineField({
+              name: 'postItImage',
+              title: 'Post-it Background Image',
+              type: 'image',
+              description:
+                'Upload a custom image for the note background. If left empty, the standard white box style will be used.',
+              options: {hotspot: true},
+            }),
+            defineField({
+              name: 'titleImage',
+              title: 'Title Image',
+              type: 'image',
+              description: 'Image to replace the text title (e.g. handwritten "NEWS").',
+              options: {hotspot: true},
+            }),
+            defineField({
+              name: 'title',
+              title: 'Title Text',
+              type: 'string',
+              initialValue: 'NEWS',
+              description: 'Fallback text if no title image is provided.',
+            }),
+            defineField({
+              name: 'date',
+              title: 'Date',
+              type: 'string',
+              description: 'e.g. "11 Octobre 2025"',
+            }),
+            defineField({
+              name: 'description',
+              title: 'Description / Location',
+              type: 'text',
+              rows: 2,
+              description: 'Short text, e.g. "MAD Brussels"',
+            }),
+            defineField({
+              name: 'linkUrl',
+              title: 'Link URL',
+              type: 'url',
+            }),
+            defineField({
+              name: 'linkText',
+              title: 'Link Text',
+              type: 'string',
+              description: 'e.g. "TICKETS" or "MORE INFO"',
+            }),
+          ],
+          preview: {
+            select: {
+              title: 'title',
+              media: 'postItImage',
+            },
+            prepare(selection) {
+              return {
+                title: selection.title || 'News Item',
+                media: selection.media || CalendarIcon,
+              }
+            },
+          },
+        },
       ],
     }),
   ],

@@ -3,9 +3,10 @@
   "description": "Next.js + Sanity: A Powerful Website Starter with Real-time Visual Editing",
   "scripts": {
     "dev": "npm-run-all --parallel --print-label dev:*",
-    "dev:next": "npm run dev --workspace=frontend",
-    "dev:studio": "npm run dev --workspace=studio",
-    "import-sample-data": "cd studio && sanity dataset import sample-data.tar.gz --replace"
+    "dev:next": "npm run patch:sanity-export && npm run dev --workspace=frontend",
+    "dev:studio": "npm run patch:sanity-export && npm run dev --workspace=studio",
+    "import-sample-data": "npm run patch:sanity-export && cd studio && sanity dataset import sample-data.tar.gz --replace",
+    "patch:sanity-export": "node scripts/patch-sanity-export.mjs"
   },
   "keywords": [
     "Sanity",
@@ -24,26 +25,17 @@
     "frontend"
   ],
   "devDependencies": {
-    "npm-run-all": "^4.1.5",
-    "typescript": "^5.8",
     "eslint": "^9.28",
-    "prettier": "^3.5"
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.5",
+    "typescript": "^5.8"
   },
   "dependencies": {
-    "sanity": "^4.10.2",
-    "@sanity/client": "^7.6.0",
-    "@sanity/image-url": "^1.2.0",
-    "@sanity/icons": "^3.7.0",
-    "@sanity/orderable-document-list": "^1.4.0",
-    "@sanity/vision": "^4.10.2",
-    "@sanity/assist": "^4.3.0",
-    "@sanity/uuid": "^3.0.2",
-    "next-sanity": "^9.12.0",
-    "@portabletext/react": "^4.0.3",
-    "date-fns": "^3.6.0",
     "react": "^19.1",
-    "react-dom": "^19.1",
-    "styled-components": "^6.1.18"
+    "react-dom": "^19.1"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "^1.30.2"
+  }
 }

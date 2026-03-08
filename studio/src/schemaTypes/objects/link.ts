@@ -2,8 +2,8 @@ import {defineField, defineType} from 'sanity'
 import {LinkIcon} from '@sanity/icons'
 
 /**
- * Link schema object. This link object lets the user first select the type of link and then
- * then enter the URL, page reference, or post reference - depending on the type selected.
+ * Link schema object. This link object lets the user select an internal or external link.
+ * Internal links use a slug/path (without domain), and external links use a URL.
  * Learn more: https://www.sanity.io/docs/object-type
  */
 
@@ -17,56 +17,39 @@ export const link = defineType({
       name: 'linkType',
       title: 'Link Type',
       type: 'string',
-      initialValue: 'url',
+      initialValue: 'external',
       options: {
         list: [
-          {title: 'URL', value: 'href'},
-          {title: 'Page', value: 'page'},
-          {title: 'Post', value: 'post'},
+          {title: 'Internal', value: 'internal'},
+          {title: 'External', value: 'external'},
         ],
         layout: 'radio',
       },
     }),
     defineField({
+      name: 'internalLink',
+      title: 'Internal slug',
+      description: 'Examples: about, productions, posts/my-post',
+      type: 'string',
+      hidden: ({parent}) => parent?.linkType !== 'internal',
+      validation: (Rule) =>
+        Rule.custom((value, context: any) => {
+          if (context.parent?.linkType === 'internal' && !value) {
+            return 'Internal slug is required when Link Type is Internal'
+          }
+          return true
+        }),
+    }),
+    defineField({
       name: 'href',
       title: 'URL',
       type: 'url',
-      hidden: ({parent}) => parent?.linkType !== 'href',
+      hidden: ({parent}) => parent?.linkType !== 'external',
       validation: (Rule) =>
-        // Custom validation to ensure URL is provided if the link type is 'href'
+        // Ensure URL is provided for external links.
         Rule.custom((value, context: any) => {
-          if (context.parent?.linkType === 'href' && !value) {
-            return 'URL is required when Link Type is URL'
-          }
-          return true
-        }),
-    }),
-    defineField({
-      name: 'page',
-      title: 'Page',
-      type: 'reference',
-      to: [{type: 'page'}],
-      hidden: ({parent}) => parent?.linkType !== 'page',
-      validation: (Rule) =>
-        // Custom validation to ensure page reference is provided if the link type is 'page'
-        Rule.custom((value, context: any) => {
-          if (context.parent?.linkType === 'page' && !value) {
-            return 'Page reference is required when Link Type is Page'
-          }
-          return true
-        }),
-    }),
-    defineField({
-      name: 'post',
-      title: 'Post',
-      type: 'reference',
-      to: [{type: 'post'}],
-      hidden: ({parent}) => parent?.linkType !== 'post',
-      validation: (Rule) =>
-        // Custom validation to ensure post reference is provided if the link type is 'post'
-        Rule.custom((value, context: any) => {
-          if (context.parent?.linkType === 'post' && !value) {
-            return 'Post reference is required when Link Type is Post'
+          if (context.parent?.linkType === 'external' && !value) {
+            return 'URL is required when Link Type is External'
           }
           return true
         }),

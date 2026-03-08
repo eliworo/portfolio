@@ -19,9 +19,78 @@ export const commissions = defineType({
     defineField({
       name: 'quote',
       title: 'Quote',
-      type: 'text',
-      rows: 4,
-      description: 'A short quote or sentence to display at the top of the page.',
+      type: 'array',
+      description: 'Rich text quote displayed at the top of the page.',
+      of: [
+        {
+          type: 'block',
+          styles: [
+            {title: 'Normal', value: 'normal'},
+            {title: 'Quote', value: 'blockquote'},
+          ],
+          marks: {
+            decorators: [
+              {title: 'Strong', value: 'strong'},
+              {title: 'Emphasis', value: 'em'},
+            ],
+            annotations: [
+              {
+                name: 'link',
+                type: 'object',
+                title: 'Link',
+                fields: [
+                  {
+                    name: 'linkType',
+                    title: 'Link Type',
+                    type: 'string',
+                    initialValue: 'external',
+                    options: {
+                      list: [
+                        {title: 'Internal', value: 'internal'},
+                        {title: 'External', value: 'external'},
+                      ],
+                      layout: 'radio',
+                    },
+                  },
+                  {
+                    name: 'internalLink',
+                    title: 'Internal slug',
+                    description: 'Examples: about, productions, posts/my-post',
+                    type: 'string',
+                    hidden: ({parent}: any) => parent?.linkType !== 'internal',
+                    validation: (Rule) =>
+                      Rule.custom((value, context: any) => {
+                        if (context.parent?.linkType === 'internal' && !value) {
+                          return 'Internal slug is required when Link Type is Internal'
+                        }
+                        return true
+                      }),
+                  },
+                  {
+                    name: 'href',
+                    title: 'URL',
+                    type: 'url',
+                    hidden: ({parent}: any) => parent?.linkType !== 'external',
+                    validation: (Rule) =>
+                      Rule.custom((value, context: any) => {
+                        if (context.parent?.linkType === 'external' && !value) {
+                          return 'URL is required when Link Type is External'
+                        }
+                        return true
+                      }),
+                  },
+                  {
+                    name: 'openInNewTab',
+                    title: 'Open in new tab',
+                    type: 'boolean',
+                    initialValue: false,
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      ],
     }),
     defineField({
       name: 'tools',
@@ -32,26 +101,16 @@ export const commissions = defineType({
           type: 'object',
           fields: [
             defineField({
-              name: 'titleImage',
-              title: 'Tool Title Image',
-              type: 'image',
-              description: 'Image for the tool title',
-              options: {
-                hotspot: true,
-              },
-            }),
-            defineField({
-              name: 'subtitle',
-              title: 'Subtitle',
+              name: 'title',
+              title: 'Title',
               type: 'string',
-              description: 'Short subtitle for the tool',
+              description: 'Title for the tool',
             }),
             defineField({
               name: 'description',
               title: 'Description',
-              type: 'text',
-              rows: 3,
-              description: 'Short descriptive text for the tool',
+              type: 'blockContent',
+              description: 'Tool description (supports rich text)',
             }),
             defineField({
               name: 'image',
@@ -85,34 +144,17 @@ export const commissions = defineType({
               validation: (Rule) => Rule.min(-50).max(50),
               initialValue: 0,
             }),
-            defineField({
-              name: 'rotation',
-              title: 'Rotation',
-              type: 'number',
-              description: 'Rotate the card. Range: -15 to 15 degrees',
-              validation: (Rule) => Rule.min(-15).max(15),
-              initialValue: 0,
-            }),
-            defineField({
-              name: 'scale',
-              title: 'Size',
-              type: 'number',
-              description: 'Make it bigger or smaller. Range: 0.8 to 1.2',
-              validation: (Rule) => Rule.min(0.8).max(1.2),
-              initialValue: 1,
-            }),
           ],
           preview: {
             select: {
-              title: 'subtitle',
-              media: 'titleImage',
+              title: 'title',
+              media: 'image',
               offsetY: 'offsetY',
-              rotation: 'rotation',
             },
-            prepare({title, media, offsetY, rotation}) {
+            prepare({title, media, offsetY}) {
               return {
                 title: title || 'Untitled Tool',
-                subtitle: `Y: ${offsetY || 0}px, Rotation: ${rotation || 0}°`,
+                subtitle: `Y: ${offsetY || 0}px`,
                 media,
               }
             },

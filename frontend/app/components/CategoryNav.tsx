@@ -25,7 +25,7 @@ interface CategoryNavProps {
   selectedItem?: string | null
   selectedCategory?: string | null
   title: string
-  projectTitleImageUrl?: string // NEW: Project title image URL
+  projectTitleImageUrl?: string
   isStudioWorks?: boolean
   isProjectPage?: boolean
   isProductionsPage?: boolean
@@ -54,7 +54,19 @@ export default function CategoryNav({
   const [titleWidth, setTitleWidth] = useState(0)
   const [isMeasured, setIsMeasured] = useState(false)
 
-  const navItems = useMemo(() => items ?? categories ?? [], [items, categories])
+  const baseNavItems = useMemo(() => items ?? categories ?? [], [items, categories])
+  const navItems = useMemo(() => {
+    if (!isStudioWorks) return baseNavItems
+
+    return [
+      {
+        id: '__all__',
+        title: 'All categories',
+        titleImageUrl: '/images/AllCategoriesLogo.png',
+      },
+      ...baseNavItems,
+    ]
+  }, [baseNavItems, isStudioWorks])
   const onSelect = useMemo(
     () => onSelectItem ?? onSelectCategory,
     [onSelectItem, onSelectCategory]
@@ -90,7 +102,7 @@ export default function CategoryNav({
       clearTimeout(timer)
       resizeObserver.disconnect()
     }
-  }, [navItems, title, projectTitleImageUrl]) // Add projectTitleImageUrl to deps
+  }, [navItems, title, projectTitleImageUrl])
 
   useEffect(() => {
     setActiveItem(selected)
@@ -118,12 +130,19 @@ export default function CategoryNav({
     (item: any, e: React.MouseEvent) => {
       e.preventDefault()
 
+      const isAllCategories = item.id === '__all__'
+      const nextId = isAllCategories ? null : item.id
+
       if (onSelect) {
-        if (item.id === activeItem) {
+        if (isAllCategories) {
           onSelect(null)
-          setActiveItem(null)
+          setActiveItem('__all__')
+        } else if (item.id === activeItem) {
+          onSelect(null)
+          setActiveItem('__all__')
         } else {
-          onSelect(item.id)
+          onSelect(nextId)
+          setActiveItem(nextId)
         }
       } else if (isProjectPage) {
         const element = document.getElementById(item.id)
@@ -132,10 +151,9 @@ export default function CategoryNav({
           setActiveItem(item.id)
         }
       } else if (isProductionsPage) {
-        // Navigate to project page
         router.push(`/productions/${item.slug}`)
       } else if (isStudioWorks) {
-        router.push(`/${groupSlug}/c/${item.id}`)
+        router.push(isAllCategories ? `/${groupSlug}` : `/${groupSlug}/c/${item.id}`)
       } else if (item.slug) {
         router.push(`/${groupSlug}/${item.slug}`)
       }
@@ -166,7 +184,7 @@ export default function CategoryNav({
       {isHovered && window.innerWidth < 1280 && (
         <div
           className='fixed inset-0 z-20 bg-white/30 backdrop-blur-sm transition-opacity duration-300'
-          onClick={() => setIsHovered(false)} // Close on backdrop click
+          onClick={() => setIsHovered(false)}
         />
       )}
       <motion.div
@@ -175,8 +193,8 @@ export default function CategoryNav({
         animate={{
           x: isHovered
             ? typeof window !== 'undefined' && window.innerWidth < 1280
-              ? -(titleWidth - horizontalLineWidth) // Mobile: slide to start of horizontal line
-              : 0 // Desktop: normal behavior
+              ? -(titleWidth - horizontalLineWidth)
+              : 0
             : hideOffset,
         }}
         transition={{
@@ -184,20 +202,28 @@ export default function CategoryNav({
           ease: [0.76, 0, 0.24, 1],
         }}
       >
+        {/* Invisible bridge that moves with the menu */}
         <div
-          className='flex items-end xl:items-start'
+          className='absolute -right-4 top-0 w-16 h-20 pointer-events-auto hidden xl:block'
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        />
+
+        <div
+          className='flex items-end xl:items-start cursor-pointer'
           ref={contentRef}
-          onMouseEnter={() => window.innerWidth >= 1280 && setIsHovered(true)}
-          onMouseLeave={() => window.innerWidth >= 1280 && setIsHovered(false)}
-          onClick={() => {
-            if (window.innerWidth < 1280) {
-              setIsHovered((prev) => !prev)
-            }
-          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
+          {/* Title area */}
           <div
             className='flex flex-shrink-0 -mr-1 pt-2 pl-2 relative pointer-events-auto'
             ref={titleRef}
+            onClick={() => {
+              if (window.innerWidth < 1280) {
+                setIsHovered((prev) => !prev)
+              }
+            }}
           >
             {isImageTitle ? (
               <div className='relative flex items-center gap-2'>
@@ -205,7 +231,6 @@ export default function CategoryNav({
                   className='absolute top-1/2 -translate-y-[45%] -rotate-1 w-[110%] h-[80%] -z-10'
                   theme={{ fill: '#98D8C8' }}
                 />
-                {/* NEW: Show project title image if on project page */}
                 {projectTitleImageUrl && isProjectPage ? (
                   <>
                     <Image
@@ -247,23 +272,27 @@ export default function CategoryNav({
 
           <ul
             ref={categoriesRef}
-            className='space-y-0 relative ml-2 min-w-[200px] lg:min-w-0'
+            className='space-y-0 relative ml-2 min-w-[200px] lg:min-w-0 pointer-events-auto'
           >
             <div className='absolute left-0 top-0 h-full'>
               <VerticalLine className='h-full' theme={{ fill: 'black' }} />
             </div>
             {navItems.map((item) => (
-              <li className='ml-4' key={item.id}>
+              <li className='ml-6' key={item.id}>
                 <div className='relative inline-block'>
-                  {activeItem === item.id && (
+                  {(activeItem === item.id ||
+                    (!activeItem && item.id === '__all__')) && (
                     <PaintBrush
                       className='absolute bottom-0 left-1/2 transform -translate-x-1/2 -z-10 w-full h-8'
                       theme={{ fill: '#9AB1FF' }}
                     />
                   )}
                   <button
-                    className={`block w-fit px-2 py-1 text-sm transition-colors cursor-pointer whitespace-nowrap pointer-events-auto ${
-                      activeItem === item.id ? 'text-white relative z-10' : ''
+                    className={`block w-fit px-2 py-1 text-sm transition-colors cursor-pointer whitespace-nowrap ${
+                      activeItem === item.id ||
+                      (!activeItem && item.id === '__all__')
+                        ? 'text-white relative z-10'
+                        : ''
                     }`}
                     onClick={(e) => handleItemClick(item, e)}
                   >

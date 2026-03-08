@@ -1,8 +1,10 @@
 'use client'
 
 import { PortableText, PortableTextComponents } from '@portabletext/react'
-import Link from 'next/link'
 import { PortableTextBlock } from 'sanity'
+import RealBrush from './drawings/RealBrush'
+import Image from 'next/image'
+import PortableLinkMark from '@/app/components/portable/PortableLinkMark'
 
 interface ProjectCreditsProps {
   credits?: PortableTextBlock[] | null
@@ -11,43 +13,160 @@ interface ProjectCreditsProps {
 }
 
 const components: PortableTextComponents = {
-  marks: {
-    strong: ({ children }) => (
-      <strong className='font-agrandir-bold'>{children}</strong>
+  block: {
+    normal: ({ children }) => (
+      <p className='mb-8 last:mb-0 whitespace-pre-wrap'>{children}</p>
     ),
-    em: ({ children }) => <em className='font-agrandir-italic'>{children}</em>,
+    h2: ({ children }) => (
+      <h2 className='text-2xl font-bold mb-4 whitespace-pre-wrap'>
+        {children}
+      </h2>
+    ),
+    h3: ({ children }) => (
+      <h3 className='text-lg font-semibold mb-4 whitespace-pre-wrap'>
+        {children}
+      </h3>
+    ),
+    h4: ({ children }) => (
+      <h4 className='text-lg font-semibold whitespace-pre-wrap'>{children}</h4>
+    ),
+  },
+  marks: {
+    // strong: ({ children }) => (
+    //   <strong className='font-rader-bold'>{children}</strong>
+    // ),
+    em: ({ children }) => <em>{children}</em>,
     underline: ({ children }) => <span className='underline'>{children}</span>,
-    link: ({ value, children }) => {
-      const isInternal = value?.linkType === 'internal'
-      const href = isInternal ? value?.internalLink : value?.href
-      const openInNewTab = value?.openInNewTab
+    link: ({ value, children }) => (
+      <PortableLinkMark value={value as any}>{children}</PortableLinkMark>
+    ),
+  },
+  list: {
+    bullet: ({ children }) => (
+      <ul className='list-none ml-0 space-y-2'>{children}</ul>
+    ),
+    number: ({ children }) => <ol className='list-decimal ml-6'>{children}</ol>,
+  },
+  listItem: {
+    bullet: ({ children }) => (
+      <li className='relative inline-block mb-2'>
+        <span className='relative inline-block align-baseline pl-1'>
+          <RealBrush
+            as='span'
+            seed={`bullet-${Math.random()}`}
+            color='#D9D9D9'
+            className='absolute -inset-x-2 -z-10 opacity-90'
+            style={{
+              height: '1.2em',
+              top: '55%',
+              transform: 'translateY(-50%)',
+            }}
+          />
+          <span className='relative z-10'>{children}</span>
+        </span>
+      </li>
+    ),
+    number: ({ children }) => <li>{children}</li>,
+  },
+}
 
-      if (!href) return <span>{children}</span>
+const tourneeComponents: PortableTextComponents = {
+  block: {
+    normal: ({ children }) => {
+      const hasComplexChildren =
+        Array.isArray(children) &&
+        children.some((child) => typeof child === 'object' && child !== null)
 
-      if (isInternal) {
+      if (hasComplexChildren) {
         return (
-          <Link href={href} className='text-black underline'>
+          <p className='mb-5 last:mb-0 whitespace-pre-wrap leading-relaxed text-base lg:text-lg'>
             {children}
-          </Link>
+          </p>
+        )
+      }
+
+      const text = String(children)
+
+      const match = text.match(
+        /^([\d\-\s]+(?:to[\d\-\s]+)?)\s+(.+?)\s+\(([A-Z]{2,})\)$/i,
+      )
+
+      if (match) {
+        const [, dates, venue, country] = match
+        return (
+          <p className='mb-5 last:mb-0 whitespace-pre-wrap leading-relaxed'>
+            <span className='font-rader-bold text-base lg:text-lg'>
+              {dates}
+            </span>
+            <span className='ml-3'>{venue}</span>
+            <span className='ml-2 font-agrandir-italic'>({country})</span>
+          </p>
         )
       }
 
       return (
-        <a
-          href={href}
-          className='text-black underline'
-          target={openInNewTab ? '_blank' : undefined}
-          rel={openInNewTab ? 'noopener noreferrer' : undefined}
-        >
+        <p className='mb-5 last:mb-0 whitespace-pre-wrap text-base lg:text-lg'>
           {children}
-        </a>
+        </p>
       )
     },
   },
-  list: {
-    bullet: ({ children }) => <ul className='list-disc ml-6'>{children}</ul>,
-    number: ({ children }) => <ol className='list-decimal ml-6'>{children}</ol>,
+  marks: {
+    ...components.marks,
   },
+  list: components.list,
+  listItem: components.listItem,
+}
+
+/** deterministic tiny variation, avoids hydration mismatch */
+function hashToFloat01(seed: string) {
+  let h = 2166136261
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  // 0..1
+  return (h >>> 0) / 4294967295
+}
+
+function BrushTitle({
+  children,
+  seed,
+  color = '#9AB1FF',
+  className = '',
+}: {
+  children: React.ReactNode
+  seed: string
+  color?: string
+  className?: string
+}) {
+  // small deterministic "hand placed" feel
+  const r = hashToFloat01(seed)
+  const rotate = (r * 6 - 3).toFixed(2) // -3..+3 deg
+  const y = ((r * 6 - 3) * 0.6).toFixed(2) // -1.8..+1.8 px
+
+  return (
+    <h3 className={['font-rader-bold text-xl text-black', className].join(' ')}>
+      <span
+        className='relative inline-block leading-none'
+        // style={{ transform: `translateY(${y}px) rotate(${rotate}deg)` }}
+        style={{ transform: `translateY(${y}px)` }}
+      >
+        <RealBrush
+          seed={`credits-title:${seed}`}
+          color={color}
+          className='absolute -inset-x-2 -inset-y-2 -z-10 opacity-90'
+          style={{
+            // slightly taller brush; keeps it visible behind caps
+            height: '1.35em',
+            top: '70%',
+            transform: 'translateY(-52%)',
+          }}
+        />
+        <span className='relative z-10'>{children}</span>
+      </span>
+    </h3>
+  )
 }
 
 export function ProjectCredits({
@@ -63,18 +182,24 @@ export function ProjectCredits({
         {/* LEFT COLUMN: CREDITS */}
         <div>
           {credits && (
-            // tabIndex={0} makes this div focusable (like a button).
-            // This ensures the "tap" works reliably on mobile.
             <div className='group relative focus:outline-none' tabIndex={0}>
-              <h3 className='font-agrandir-bold uppercase text-xl mb-4'>
-                Crédits
-              </h3>
+              {/* <BrushTitle
+                seed='credits'
+                color='#D9D9D9'
+                className='mb-4 text-sm lg:text-lg'
+              >
+                Credits
+              </BrushTitle> */}
 
-              {/* 1. max-h-[400px]: Default clamped height (mobile & desktop).
-                  2. group-hover & group-focus: Expands when hovered OR clicked (focused).
-                  3. transition-all: Smooth animation.
-              */}
-              <div className='leading-[1.5] overflow-hidden transition-all duration-500 ease-in-out max-h-[400px] group-hover:max-h-[2000px] group-focus:max-h-[2000px] text-sm lg:text-lg'>
+              <Image
+                src={'/images/CreditsLogo.png'}
+                alt='PRODUCTIONS'
+                width={800}
+                height={215}
+                className='h-7 w-auto mb-4'
+              />
+
+              <div className='leading-snug overflow-hidden transition-all duration-500 ease-in-out max-h-[400px] group-hover:max-h-[2000px] group-focus:max-h-[2000px] text-sm lg:text-lg ml-0'>
                 <PortableText value={credits} components={components} />
                 <div className='h-4' />
               </div>
@@ -84,13 +209,24 @@ export function ProjectCredits({
           )}
         </div>
 
-        <div>
+        <div className='space-y-24'>
           {press && (
             <>
-              <h3 className='font-agrandir-bold uppercase text-xl mb-4'>
+              {/* <BrushTitle
+                seed='press'
+                color='#D9D9D9'
+                className='mb-4 text-sm lg:text-lg'
+              >
                 Press
-              </h3>
+              </BrushTitle> */}
               <div className='text-sm lg:text-lg'>
+                <Image
+                  src={'/images/pressLogo.png'}
+                  alt='PRODUCTIONS'
+                  width={800}
+                  height={335}
+                  className='h-7 w-auto mb-4'
+                />
                 <PortableText value={press} components={components} />
               </div>
             </>
@@ -98,11 +234,22 @@ export function ProjectCredits({
 
           {tournee && (
             <>
-              <h3 className='font-agrandir-bold uppercase text-xl mb-4 mt-8'>
-                Tournée
-              </h3>
+              {/* <BrushTitle
+                seed='dates'
+                color='#D9D9D9'
+                className='mb-4 mt-8 text-sm lg:text-lg'
+              >
+                Dates
+              </BrushTitle> */}
               <div className='text-sm lg:text-lg'>
-                <PortableText value={tournee} components={components} />
+                <Image
+                  src={'/images/datesLogo.png'}
+                  alt='PRODUCTIONS'
+                  width={800}
+                  height={297}
+                  className='h-7 w-auto mb-4'
+                />
+                <PortableText value={tournee} components={tourneeComponents} />
               </div>
             </>
           )}

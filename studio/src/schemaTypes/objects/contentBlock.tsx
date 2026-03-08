@@ -1,5 +1,68 @@
 import {defineType, defineField} from 'sanity'
-import {ImageIcon, ImagesIcon, DocumentTextIcon, ComposeIcon, PlayIcon} from '@sanity/icons'
+import {
+  ImageIcon,
+  ImagesIcon,
+  DocumentTextIcon,
+  ComposeIcon,
+  PlayIcon,
+  BlockElementIcon,
+} from '@sanity/icons'
+
+export const headingBlock = defineType({
+  name: 'headingBlock',
+  title: 'Heading',
+  type: 'object',
+  icon: BlockElementIcon,
+  fields: [
+    defineField({
+      name: 'text',
+      title: 'Heading Text',
+      type: 'string',
+      validation: (Rule) => Rule.required().max(120),
+    }),
+    defineField({
+      name: 'level',
+      title: 'Heading Level',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'H2 (Large)', value: 'h2'},
+          {title: 'H3 (Medium)', value: 'h3'},
+          {title: 'H4 (Small)', value: 'h4'},
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'h2',
+    }),
+    defineField({
+      name: 'alignment',
+      title: 'Alignment',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Left', value: 'left'},
+          {title: 'Center', value: 'center'},
+          {title: 'Right', value: 'right'},
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'left',
+    }),
+  ],
+  preview: {
+    select: {
+      text: 'text',
+      level: 'level',
+    },
+    prepare({text, level}) {
+      return {
+        title: text || 'Empty heading',
+        subtitle: level?.toUpperCase() || 'H2',
+        media: BlockElementIcon,
+      }
+    },
+  },
+})
 
 // Rich text block with column options
 export const textBlock = defineType({
@@ -235,6 +298,13 @@ export const imageBlock = defineType({
       },
       initialValue: 'normal',
     }),
+    {
+      name: 'collageMode',
+      title: 'Collage Mode',
+      type: 'boolean',
+      description: 'Enable playful overlapping layout with random Y offsets',
+      initialValue: false,
+    },
   ],
   preview: {
     select: {
@@ -432,6 +502,21 @@ export const textWithImage = defineType({
       },
       initialValue: 'medium',
     }),
+    defineField({
+      name: 'verticalAlignment',
+      title: 'Vertical Alignment',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Top', value: 'start'},
+          {title: 'Center', value: 'center'},
+          {title: 'Bottom', value: 'end'},
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'start',
+      description: 'Align text vertically relative to the image',
+    }),
   ],
   preview: {
     select: {
@@ -464,7 +549,21 @@ export const videoBlock = defineType({
       title: 'Video URL',
       type: 'url',
       description: 'YouTube, Vimeo, or direct video URL',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) =>
+        Rule.custom((value, context) => {
+          const parent = context.parent as {videoFile?: unknown} | undefined
+          if (value || parent?.videoFile) return true
+          return 'Add a Video URL or upload a Video File'
+        }),
+    }),
+    defineField({
+      name: 'videoFile',
+      title: 'Video File',
+      type: 'file',
+      options: {
+        accept: 'video/*',
+      },
+      description: 'Upload a video file instead of using a URL',
     }),
     defineField({
       name: 'caption',
@@ -490,12 +589,266 @@ export const videoBlock = defineType({
     select: {
       url: 'url',
       caption: 'caption',
+      hasVideoFile: 'videoFile.asset',
     },
-    prepare({url, caption}) {
+    prepare({url, caption, hasVideoFile}) {
       return {
         title: caption || 'Video',
-        subtitle: url,
+        subtitle: url || (hasVideoFile ? 'Uploaded video file' : 'No source selected'),
         media: PlayIcon,
+      }
+    },
+  },
+})
+
+export const mediaWithMedia = defineType({
+  name: 'mediaWithMedia',
+  title: 'Video with Image',
+  type: 'object',
+  icon: ComposeIcon,
+  fields: [
+    defineField({
+      name: 'leftMedia',
+      title: 'Left Media',
+      type: 'object',
+      fields: [
+        {
+          name: 'mediaType',
+          title: 'Media Type',
+          type: 'string',
+          options: {
+            list: [
+              {title: 'Video', value: 'video'},
+              {title: 'Image', value: 'image'},
+            ],
+            layout: 'radio',
+          },
+          initialValue: 'video',
+        },
+        // VIDEO FIELDS (same as videoBlock)
+        {
+          name: 'url',
+          title: 'Video URL',
+          type: 'url',
+          description: 'YouTube, Vimeo, or direct video URL',
+          hidden: ({parent}) => parent?.mediaType !== 'video',
+          validation: (Rule) =>
+            Rule.custom((value, context) => {
+              const parent = context.parent as
+                | {mediaType?: string; videoFile?: unknown}
+                | undefined
+              if (parent?.mediaType !== 'video') return true
+              if (value || parent?.videoFile) return true
+              return 'Add a Video URL or upload a Video File'
+            }),
+        },
+        {
+          name: 'videoFile',
+          title: 'Video File',
+          type: 'file',
+          options: {
+            accept: 'video/*',
+          },
+          description: 'Upload a video file instead of using a URL',
+          hidden: ({parent}) => parent?.mediaType !== 'video',
+        },
+        {
+          name: 'caption',
+          title: 'Caption',
+          type: 'string',
+          hidden: ({parent}) => parent?.mediaType !== 'video',
+        },
+        {
+          name: 'aspectRatio',
+          title: 'Aspect Ratio',
+          type: 'string',
+          options: {
+            list: [
+              {title: '16:9 (Standard)', value: '16:9'},
+              {title: '4:3 (Classic)', value: '4:3'},
+              {title: '1:1 (Square)', value: '1:1'},
+              {title: '9:16 (Vertical)', value: '9:16'},
+            ],
+          },
+          initialValue: '16:9',
+          hidden: ({parent}) => parent?.mediaType !== 'video',
+        },
+        // IMAGE FIELDS (same as imageBlock single image)
+        {
+          name: 'image',
+          title: 'Image',
+          type: 'image',
+          options: {hotspot: true},
+          hidden: ({parent}) => parent?.mediaType !== 'image',
+          fields: [
+            {
+              name: 'alt',
+              type: 'string',
+              title: 'Alt Text',
+            },
+            {
+              name: 'caption',
+              type: 'string',
+              title: 'Caption',
+            },
+            {
+              name: 'material',
+              type: 'string',
+              title: 'Material',
+            },
+            {
+              name: 'dimensions',
+              type: 'string',
+              title: 'Dimensions',
+            },
+            {
+              name: 'year',
+              type: 'string',
+              title: 'Year',
+            },
+          ],
+        },
+      ],
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'rightMedia',
+      title: 'Right Media',
+      type: 'object',
+      fields: [
+        {
+          name: 'mediaType',
+          title: 'Media Type',
+          type: 'string',
+          options: {
+            list: [
+              {title: 'Video', value: 'video'},
+              {title: 'Image', value: 'image'},
+            ],
+            layout: 'radio',
+          },
+          initialValue: 'image',
+        },
+        // VIDEO FIELDS (same as videoBlock)
+        {
+          name: 'url',
+          title: 'Video URL',
+          type: 'url',
+          description: 'YouTube, Vimeo, or direct video URL',
+          hidden: ({parent}) => parent?.mediaType !== 'video',
+          validation: (Rule) =>
+            Rule.custom((value, context) => {
+              const parent = context.parent as
+                | {mediaType?: string; videoFile?: unknown}
+                | undefined
+              if (parent?.mediaType !== 'video') return true
+              if (value || parent?.videoFile) return true
+              return 'Add a Video URL or upload a Video File'
+            }),
+        },
+        {
+          name: 'videoFile',
+          title: 'Video File',
+          type: 'file',
+          options: {
+            accept: 'video/*',
+          },
+          description: 'Upload a video file instead of using a URL',
+          hidden: ({parent}) => parent?.mediaType !== 'video',
+        },
+        {
+          name: 'caption',
+          title: 'Caption',
+          type: 'string',
+          hidden: ({parent}) => parent?.mediaType !== 'video',
+        },
+        {
+          name: 'aspectRatio',
+          title: 'Aspect Ratio',
+          type: 'string',
+          options: {
+            list: [
+              {title: '16:9 (Standard)', value: '16:9'},
+              {title: '4:3 (Classic)', value: '4:3'},
+              {title: '1:1 (Square)', value: '1:1'},
+              {title: '9:16 (Vertical)', value: '9:16'},
+            ],
+          },
+          initialValue: '16:9',
+          hidden: ({parent}) => parent?.mediaType !== 'video',
+        },
+        // IMAGE FIELDS (same as imageBlock single image)
+        {
+          name: 'image',
+          title: 'Image',
+          type: 'image',
+          options: {hotspot: true},
+          hidden: ({parent}) => parent?.mediaType !== 'image',
+          fields: [
+            {
+              name: 'alt',
+              type: 'string',
+              title: 'Alt Text',
+            },
+            {
+              name: 'caption',
+              type: 'string',
+              title: 'Caption',
+            },
+            {
+              name: 'material',
+              type: 'string',
+              title: 'Material',
+            },
+            {
+              name: 'dimensions',
+              type: 'string',
+              title: 'Dimensions',
+            },
+            {
+              name: 'year',
+              type: 'string',
+              title: 'Year',
+            },
+          ],
+        },
+      ],
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'layout',
+      title: 'Size Ratio',
+      type: 'string',
+      options: {
+        list: [
+          {title: '50/50', value: 'equal'},
+          {title: '60/40 (Left Larger)', value: 'leftLarger'},
+          {title: '40/60 (Right Larger)', value: 'rightLarger'},
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'equal',
+    }),
+    {
+      name: 'collageMode',
+      title: 'Collage Mode',
+      type: 'boolean',
+      description: 'Enable playful overlapping layout with random Y offsets',
+      initialValue: false,
+    },
+  ],
+  preview: {
+    select: {
+      leftType: 'leftMedia.mediaType',
+      rightType: 'rightMedia.mediaType',
+      leftImage: 'leftMedia.image',
+      rightImage: 'rightMedia.image',
+    },
+    prepare({leftType, rightType, leftImage, rightImage}) {
+      return {
+        title: `${leftType === 'video' ? 'Video' : 'Image'} + ${rightType === 'video' ? 'Video' : 'Image'}`,
+        subtitle: 'Side by Side Media',
+        media: leftImage || rightImage || ComposeIcon,
       }
     },
   },

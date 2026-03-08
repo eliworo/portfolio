@@ -14,7 +14,7 @@ import {
   type PortableTextBlock,
 } from "next-sanity";
 
-import ResolvedLink from "@/app/components/ResolvedLink";
+import PortableLinkMark from "@/app/components/portable/PortableLinkMark";
 
 export default function CustomPortableText({
   className,
@@ -25,6 +25,7 @@ export default function CustomPortableText({
 }) {
   const components: PortableTextComponents = {
     block: {
+      normal: ({ children }) => <p className="whitespace-pre-line">{children}</p>,
       h1: ({ children, value }) => (
         // Add an anchor to the h1
         <h1 className="group relative">
@@ -80,7 +81,7 @@ export default function CustomPortableText({
     },
     marks: {
       link: ({ children, value: link }) => {
-        return <ResolvedLink link={link}>{children}</ResolvedLink>;
+        return <PortableLinkMark value={link}>{children}</PortableLinkMark>;
       },
     },
   };
