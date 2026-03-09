@@ -32,7 +32,7 @@ type FeaturedProjectItem = {
 
 export async function generateMetadata(
   _props: any,
-  parent: ResolvingMetadata
+  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const { data: productionsPage } = await sanityFetch({
     query: productionsPageQuery,
@@ -46,7 +46,8 @@ export async function generateMetadata(
     ? productionsPage.description
         .map(
           (block: any) =>
-            block.children?.map((child: any) => child.text || '').join('') || ''
+            block.children?.map((child: any) => child.text || '').join('') ||
+            '',
         )
         .join(' ')
         .trim()
@@ -127,8 +128,8 @@ export default async function ProductionsPage() {
 
       {productionsPage?.featuredProjects &&
         productionsPage.featuredProjects.length > 0 && (
-          <section className='px-8 lg:px-0 pb-16 lg:pb-32 xl:px-44 xl:pr-68'>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-24 gap-y-44 relative overflow-visible'>
+          <section className='px-8 lg:px-0 pb-16 lg:pb-32 xl:px-44 xl:pl-68'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 gap-y-24 xl:gap-24 xl:gap-y-44 relative overflow-visible'>
               {productionsPage.featuredProjects.map(
                 (item: FeaturedProjectItem, index: number) => (
                   <ProductionsProjectCard
@@ -136,7 +137,7 @@ export default async function ProductionsPage() {
                     item={item}
                     priority={index < 6}
                   />
-                )
+                ),
               )}
             </div>
           </section>

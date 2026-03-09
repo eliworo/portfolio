@@ -181,6 +181,7 @@ function DraggableProjectCard({
   brushColor,
   onOpenModal,
   onImageReady,
+  isImageReady,
   childrenBrushAndTitle,
 }: {
   item: any
@@ -192,6 +193,7 @@ function DraggableProjectCard({
   brushColor: (id: string) => string
   onOpenModal: () => void
   onImageReady?: () => void
+  isImageReady?: boolean
   childrenBrushAndTitle: React.ReactNode
 }) {
   const offsetFactor = isMobile ? 0.35 : 1
@@ -351,12 +353,16 @@ function DraggableProjectCard({
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.92, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
+      animate={
+        isImageReady !== false
+          ? { opacity: 1, scale: 1, y: 0 }
+          : { opacity: 0, scale: 0.92, y: 20 }
+      }
       exit={{ opacity: 0, scale: 0.92, y: 20 }}
       transition={{
-        opacity: { duration: 0.35, delay: idx * 0.04 },
-        scale: { duration: 0.35, delay: idx * 0.04 },
-        y: { duration: 0.35, delay: idx * 0.04 },
+        opacity: { duration: 0.4 },
+        scale: { duration: 0.4 },
+        y: { duration: 0.4 },
       }}
       drag={!isMobile}
       dragListener={!isMobile}
@@ -510,7 +516,7 @@ export default function CreativeProjectsList({
     initialCategory || null,
   )
   const [isMobile, setIsMobile] = React.useState(false)
-  const [isCategoryLoading, setIsCategoryLoading] = React.useState(false)
+  const [showSkeleton, setShowSkeleton] = React.useState(false)
   const [readyImageKeys, setReadyImageKeys] = React.useState<Set<string>>(
     () => new Set(),
   )
@@ -733,7 +739,7 @@ export default function CreativeProjectsList({
   )
 
   const handleSelectCategory = (id: string | null) => {
-    setIsCategoryLoading(true)
+    setShowSkeleton(true)
     setReadyImageKeys(new Set())
     setReadyTitleImageKeys(new Set())
     try {
@@ -746,30 +752,22 @@ export default function CreativeProjectsList({
     setSelectedCategory(selectedCategory === id ? null : id)
   }
 
+  // Hide the skeleton as soon as the first image is ready
   useEffect(() => {
-    if (!isCategoryLoading) return
-
-    if (expectedImageKeys.length === 0) {
-      setIsCategoryLoading(false)
-      return
+    if (showSkeleton && readyImageKeys.size > 0) {
+      setShowSkeleton(false)
     }
+  }, [showSkeleton, readyImageKeys])
 
-    const allReady = expectedImageKeys.every((key) => readyImageKeys.has(key))
-    if (allReady) {
-      setIsCategoryLoading(false)
-      return
-    }
-
-    const timer = window.setTimeout(() => {
-      setIsCategoryLoading(false)
-    }, 2500)
-
+  // Safety timeout so skeleton doesn't hang forever
+  useEffect(() => {
+    if (!showSkeleton) return
+    const timer = window.setTimeout(() => setShowSkeleton(false), 3000)
     return () => window.clearTimeout(timer)
-  }, [isCategoryLoading, expectedImageKeys, readyImageKeys])
+  }, [showSkeleton])
 
   const handleCardImageReady = React.useCallback(
     (itemKey: string) => {
-      if (!isCategoryLoading) return
       if (!expectedImageKeySet.has(itemKey)) return
 
       setReadyImageKeys((prev) => {
@@ -779,7 +777,7 @@ export default function CreativeProjectsList({
         return next
       })
     },
-    [isCategoryLoading, expectedImageKeySet],
+    [expectedImageKeySet],
   )
 
   const handleTitleImageReady = React.useCallback((itemKey: string) => {
@@ -972,17 +970,16 @@ export default function CreativeProjectsList({
       )}
 
       <div className='relative'>
-        {isCategoryLoading && (
+        {showSkeleton && (
           <div className='absolute inset-0 z-30 flex items-start justify-center pt-16 pointer-events-none'>
             <ThreeDotsLoader className='w-full py-20' />
           </div>
         )}
         <div
-          className='mt-0 px-4 sm:px-3 md:px-2 lg:px-2 grid grid-cols-2 md:grid-cols-4 py-40 md:py-24 lg:pb-64 pt-0 xl:py-16 transition-opacity duration-150'
+          className='mt-0 px-4 sm:px-3 md:px-2 lg:px-2 grid grid-cols-2 md:grid-cols-4 py-40 md:py-24 lg:pb-64 pt-0 xl:py-16 xl:pb-64'
           style={{
             columnGap: `${colGap}px`,
             rowGap: `${rowGap}px`,
-            opacity: isCategoryLoading ? 0 : 1,
           }}
         >
           <AnimatePresence mode='popLayout'>
@@ -1053,13 +1050,18 @@ export default function CreativeProjectsList({
                   brushColor={brushColor}
                   onOpenModal={openModal}
                   onImageReady={() => handleCardImageReady(item._key)}
+                  isImageReady={
+                    preview.type === 'text' || readyImageKeys.has(item._key)
+                  }
                   childrenBrushAndTitle={
                     item.project.titleImage?.asset?.url ? (
                       <div
                         className='absolute z-10 w-max'
                         style={{
                           ...brushPosition(item._key, isMobile),
-                          maxWidth: isMobile ? 'calc(100% + 10px)' : 'calc(100% - 1rem)',
+                          maxWidth: isMobile
+                            ? 'calc(100% + 10px)'
+                            : 'calc(100% - 1rem)',
                         }}
                       >
                         <div

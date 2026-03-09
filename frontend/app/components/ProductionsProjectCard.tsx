@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'motion/react'
@@ -99,6 +99,17 @@ export default function ProductionsProjectCard({
 }: ProductionsProjectCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [titleImageReady, setTitleImageReady] = useState(false)
+  const [hasDesktopOffsets, setHasDesktopOffsets] = useState(false)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1280px)')
+    const syncDesktopOffsets = () => setHasDesktopOffsets(mediaQuery.matches)
+
+    syncDesktopOffsets()
+    mediaQuery.addEventListener('change', syncDesktopOffsets)
+
+    return () => mediaQuery.removeEventListener('change', syncDesktopOffsets)
+  }, [])
 
   // Move hooks BEFORE the early return
   // Use project ID to get consistent color and rotation
@@ -131,6 +142,10 @@ export default function ProductionsProjectCard({
 
   const positionClasses = getPositionClasses(item.titlePosition)
   const href = `/productions/${item.project.slug.current}`
+  const animatedX = hasDesktopOffsets ? (item.offsetX ?? 0) : 0
+  const animatedY = hasDesktopOffsets ? (item.offsetY ?? 0) : 0
+  const animatedRotation = hasDesktopOffsets ? (item.rotation ?? 0) : 0
+  const animatedScale = hasDesktopOffsets ? (item.scale ?? 1) : 1
 
   return (
     <div
@@ -142,10 +157,10 @@ export default function ProductionsProjectCard({
       <motion.div
         initial={false}
         animate={{
-          x: item.offsetX ?? 0,
-          y: item.offsetY ?? 0,
-          rotate: item.rotation ?? 0,
-          scale: item.scale ?? 1,
+          x: animatedX,
+          y: animatedY,
+          rotate: animatedRotation,
+          scale: animatedScale,
         }}
         transition={{ duration: 0.25 }}
         className='cursor-pointer'
