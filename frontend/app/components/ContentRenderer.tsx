@@ -299,7 +299,7 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
               block.leftMedia.image.material ||
               block.leftMedia.image.dimensions ||
               block.leftMedia.image.year) && (
-              <figcaption className='h-auto text-xs lg:text-sm text-gray-600 flex items-center leading-snug justify-start gap-1 mt-2 opacity-0 hidden lg:block group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto ml-1'>
+              <figcaption className='h-auto text-xs lg:text-sm text-gray-600 block leading-snug mt-2 ml-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 lg:pointer-events-none lg:group-hover:pointer-events-auto'>
                 {block.leftMedia.image.caption && (
                   <p>{block.leftMedia.image.caption}</p>
                 )}{' '}
@@ -343,7 +343,7 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
               block.rightMedia.image.material ||
               block.rightMedia.image.dimensions ||
               block.rightMedia.image.year) && (
-              <figcaption className='h-auto text-xs lg:text-sm text-gray-600 flex items-center leading-snug justify-start gap-1 mt-2 opacity-0 hidden lg:block group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto ml-1'>
+              <figcaption className='h-auto text-xs lg:text-sm text-gray-600 block leading-snug mt-2 ml-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 lg:pointer-events-none lg:group-hover:pointer-events-auto'>
                 {block.rightMedia.image.caption && (
                   <p>{block.rightMedia.image.caption}</p>
                 )}{' '}
@@ -541,7 +541,7 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
                 image.material ||
                 image.dimensions ||
                 image.year) && (
-                <figcaption className='h-auto text-xs lg:text-sm text-gray-600 flex items-center leading-snug justify-start gap-1 mt-2 opacity-0 hidden lg:block group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto ml-1'>
+                <figcaption className='h-auto text-xs lg:text-sm text-gray-600 block leading-snug mt-2 ml-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 lg:pointer-events-none lg:group-hover:pointer-events-auto'>
                   {image.caption && <p>{image.caption}</p>}{' '}
                   {image.year && <span>({image.year})</span>}
                 </figcaption>
@@ -567,7 +567,7 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
             image.material ||
             image.dimensions ||
             image.year) && (
-            <figcaption className='h-auto text-xs lg:text-sm text-gray-600 flex items-center leading-snug justify-start gap-1 mt-2 opacity-0 hidden lg:block group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto ml-1'>
+            <figcaption className='h-auto text-xs lg:text-sm text-gray-600 block leading-snug mt-2 ml-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 lg:pointer-events-none lg:group-hover:pointer-events-auto'>
               {image.caption && <p>{image.caption}</p>}{' '}
               {image.year && <span>({image.year})</span>}
             </figcaption>
@@ -714,7 +714,7 @@ function TextWithImageRenderer({ block }: { block: TextWithImage }) {
       >
         <CoverImage image={block.image} />
         {block.image.caption && (
-          <figcaption className='absolute -bottom-8 left-0 w-full text-xs lg:text-sm text-gray-600 flex items-center leading-snug justify-start gap-1 pr-2 py-1 opacity-0 hidden lg:flex group-hover:opacity-100 transition-opacity duration-200'>
+          <figcaption className='mt-2 text-xs lg:text-sm text-gray-600 leading-snug lg:absolute lg:-bottom-8 lg:left-0 lg:w-full lg:pr-2 lg:py-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200'>
             {block.image.caption}
           </figcaption>
         )}

@@ -142,7 +142,7 @@ export default async function AboutPage() {
                   className='w-[80vw] lg:w-full lg:max-w-lg h-auto object-cover'
                 />
                 {aboutPage.profileImage.credit && (
-                  <p className='text-xs text-gray-600 mt-2 text-left opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
+                  <p className='text-xs text-gray-600 mt-2 text-left lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200'>
                     {aboutPage.profileImage.credit}
                   </p>
                 )}

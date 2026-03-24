@@ -216,7 +216,7 @@ export default function CarouselGalleryClient({
                 </div>
 
                 {image.caption && (
-                  <figcaption className='mt-2 pl-1 text-xs lg:text-sm opacity-0 group-hover:opacity-100 transition-opacity'>
+                  <figcaption className='mt-2 pl-1 text-xs lg:text-sm lg:opacity-0 lg:group-hover:opacity-100 transition-opacity'>
                     {image.caption}
                   </figcaption>
                 )}
