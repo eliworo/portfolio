@@ -4,6 +4,25 @@ const stripInvisible = (s?: string) =>
 const normalizeCategoryKey = (key: string) =>
   stripInvisible(key).substring(0, 12)
 
+const isLargePersonalProject = (project: any) => {
+  const kind = String(project?.projectKind || '').toLowerCase()
+  return kind.includes('personal') && project?.projectSize === 'large'
+}
+
+const addCategoryToMap = (
+  map: Map<string, { id: string; title: string; titleImageUrl?: string }>,
+  category: any,
+) => {
+  const slug = category?.slug?.current
+  if (!slug || map.has(slug)) return
+
+  map.set(slug, {
+    id: slug,
+    title: category.title,
+    titleImageUrl: category.titleImage?.asset?.url,
+  })
+}
+
 // This is intentionally "any"-tolerant so it matches your current Sanity payload.
 // You can type it later if you want.
 export function deriveCategoryMapFromFeatured(featured: any[]) {
@@ -34,27 +53,20 @@ export function deriveCategoryMapFromFeatured(featured: any[]) {
       const sec = p.categorySections.find((s: any) =>
         String(s?._key || '').startsWith(coreKey)
       )
-      const slug = sec?.category?.slug?.current
-      if (slug && !map.has(slug)) {
-        map.set(slug, {
-          id: slug,
-          title: sec.category.title,
-          titleImageUrl: sec.category.titleImage?.asset?.url,
-        })
+      addCategoryToMap(map, sec?.category)
+    } else if (
+      isLargePersonalProject(p) &&
+      Array.isArray(p?.categorySections)
+    ) {
+      for (const sec of p.categorySections) {
+        addCategoryToMap(map, sec?.category)
       }
     }
 
     // Small personal: derive from project.categories
     if (isPersonal && !isLargePersonal && Array.isArray(p?.categories)) {
       for (const cat of p.categories) {
-        const slug = cat?.slug?.current
-        if (slug && !map.has(slug)) {
-          map.set(slug, {
-            id: slug,
-            title: cat.title,
-            titleImageUrl: cat.titleImage?.asset?.url,
-          })
-        }
+        addCategoryToMap(map, cat)
       }
     }
   }

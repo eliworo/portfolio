@@ -1,16 +1,16 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { PortableText, type PortableTextComponents } from '@portabletext/react'
 import { sanityFetch } from '@/sanity/lib/live'
 import {
   worksPageQuery,
   productionsPageQuery,
-  studioWorksQuery,
+  studioWorksPreviewQuery,
 } from '@/sanity/lib/queries'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
 import PortableLinkMark from '@/app/components/portable/PortableLinkMark'
 import BrushStrongMark from '@/app/components/portable/BrushStrongMark'
+import PaintedTitleImage from '@/app/components/PaintedTitleImage'
 
 export async function generateMetadata(
   _props: any,
@@ -51,7 +51,7 @@ export default async function WorksPage() {
   ] = await Promise.all([
     sanityFetch({ query: worksPageQuery }),
     sanityFetch({ query: productionsPageQuery }),
-    sanityFetch({ query: studioWorksQuery }),
+    sanityFetch({ query: studioWorksPreviewQuery }),
   ])
 
   if (!worksPage) return null
@@ -98,7 +98,7 @@ export default async function WorksPage() {
         <div className='xl:ml-20 xl:max-w-[760px]'>
           {worksPage.titleImage?.asset?.url && (
             <div className='mt-4'>
-              <Image
+              <PaintedTitleImage
                 src={worksPage.titleImage.asset.url}
                 alt='Works'
                 width={1000}
@@ -138,7 +138,7 @@ export default async function WorksPage() {
               <div className='relative flex-1 flex flex-col justify-start items-start p-4 lg:p-6 pb-12'>
                 {productionsPage?.titleImage?.asset?.url && (
                   <div className='mb-4 lg:mb-8 w-full relative rotate-1'>
-                    <Image
+                    <PaintedTitleImage
                       src={productionsPage.titleImage.asset.url}
                       alt='Productions'
                       width={500}
@@ -167,7 +167,7 @@ export default async function WorksPage() {
               <div className='relative flex-1 flex flex-col justify-start items-start p-4 lg:p-6 pb-12'>
                 {studioWorksPage?.titleImage?.asset?.url && (
                   <div className='mb-4 lg:mb-8 w-full relative'>
-                    <Image
+                    <PaintedTitleImage
                       src={studioWorksPage.titleImage.asset.url}
                       alt='Studio Works'
                       width={500}

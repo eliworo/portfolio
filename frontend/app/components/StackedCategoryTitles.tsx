@@ -6,6 +6,9 @@ import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
 import RealBrush from './drawings/RealBrush'
 import VerticalLine from './lines/VerticalLine'
+import { useOptimizedImagePreload } from './useOptimizedImagePreload'
+import PaintedTitleImage from './PaintedTitleImage'
+import BlendArrow, { type BlendRect } from './BlendArrow'
 
 /** =========================================
  * Types
@@ -15,6 +18,10 @@ export interface CategoryItem {
   id: string
   title: string
   titleImageUrl?: string
+}
+
+type StackNavItem = CategoryItem & {
+  brushColor?: string
 }
 
 export type GroupTitleImages = {
@@ -32,6 +39,16 @@ export interface StackedCategoryTitlesProps {
   groupTitle?: string
   hideGroupTitle?: boolean
   showAllCategories?: boolean
+  projectTitle?: {
+    title: string
+    titleImageUrl?: string
+    brushColor?: string
+  }
+  showProjectTitle?: boolean
+  showMobileCategoryNav?: boolean
+  showScrollTopButton?: boolean
+  onSelectProjectTitle?: () => void
+  onScrollToTop?: () => void
   categories: CategoryItem[]
   selectedCategory: string | null
   onSelectCategory: (id: string | null) => void
@@ -67,6 +84,33 @@ const BRUSH_H_PX = Math.round(56 * SCALE) // h-14 is ~56px
 const IMG_MAX_H_PX = Math.round(55 * SCALE) // old lg max-h ~55px (close enough)
 const MOBILE_BRUSH_H_PX = Math.round(BRUSH_H_PX * 1)
 
+type ArrowBlendState = {
+  width: number
+  height: number
+  rects: BlendRect[]
+}
+
+const EMPTY_ARROW_BLEND: ArrowBlendState = {
+  width: 0,
+  height: 0,
+  rects: [],
+}
+
+function equalArrowBlendState(a: ArrowBlendState, b: ArrowBlendState) {
+  if (a.width !== b.width || a.height !== b.height) return false
+  if (a.rects.length !== b.rects.length) return false
+
+  return a.rects.every((rect, index) => {
+    const other = b.rects[index]
+    return (
+      rect.x === other.x &&
+      rect.y === other.y &&
+      rect.width === other.width &&
+      rect.height === other.height
+    )
+  })
+}
+
 /** =========================================
  * Component
  * ========================================= */
@@ -79,6 +123,12 @@ export default function StackedCategoryTitles({
   categories,
   selectedCategory,
   onSelectCategory,
+  projectTitle,
+  showProjectTitle = false,
+  showMobileCategoryNav = true,
+  showScrollTopButton = false,
+  onSelectProjectTitle,
+  onScrollToTop,
   hideGroupTitle,
   showAllCategories = true,
 }: StackedCategoryTitlesProps) {
@@ -86,9 +136,12 @@ export default function StackedCategoryTitles({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const mobileContentRef = useRef<HTMLDivElement>(null)
   const mobileHandleRef = useRef<HTMLButtonElement>(null)
+  const scrollTopArrowRef = useRef<HTMLButtonElement>(null)
   const [mobileContentWidth, setMobileContentWidth] = useState(0)
   const [mobileHandleWidth, setMobileHandleWidth] = useState(0)
   const [mobileMeasured, setMobileMeasured] = useState(false)
+  const [scrollTopArrowBlend, setScrollTopArrowBlend] =
+    useState<ArrowBlendState>(EMPTY_ARROW_BLEND)
 
   const getCategoryRotation = (id: string) => {
     const hash = hashString(id + 'rotation')
@@ -102,18 +155,37 @@ export default function StackedCategoryTitles({
     return { x: xOffset, y: yOffset }
   }
 
-  const navCategories = useMemo(() => {
+  const navCategories = useMemo<CategoryItem[]>(() => {
     if (!showAllCategories) return categories
 
     return [
       {
         id: '__all__',
         title: 'All categories',
-        titleImageUrl: '/images/AllCategoriesLogo.png',
+        titleImageUrl: '/images/optimized/AllCategoriesLogo-800.webp',
       },
       ...categories,
     ]
   }, [categories, showAllCategories])
+
+  const activeMobileCategory = useMemo(
+    () =>
+      selectedCategory
+        ? navCategories.find((category) => category.id === selectedCategory)
+        : undefined,
+    [navCategories, selectedCategory],
+  )
+
+  const projectTitleNavItem = useMemo<StackNavItem | null>(() => {
+    if (!projectTitle) return null
+
+    return {
+      id: '__project_title__',
+      title: projectTitle.title,
+      titleImageUrl: projectTitle.titleImageUrl,
+      brushColor: projectTitle.brushColor,
+    }
+  }, [projectTitle])
 
   // Give the stack a real height so the panel isn’t 0px tall
   const stackHeight = useMemo(() => {
@@ -134,6 +206,37 @@ export default function StackedCategoryTitles({
   const mobileHideOffset = mobileMeasured
     ? Math.max(0, mobileContentWidth - mobileHandleWidth + 10)
     : 1000
+  const preloadImages = useMemo(
+    () => [
+      { src: images.horizontal, width: 800, quality: 70 },
+      { src: images.studio, width: 900, quality: 70 },
+      { src: images.works, width: 900, quality: 70 },
+      {
+        src: projectTitleNavItem?.titleImageUrl,
+        width: 800,
+        quality: 70,
+      },
+      ...navCategories.map((category) => ({
+        src: category.titleImageUrl,
+        width: 800,
+        quality: 70,
+      })),
+    ],
+    [images, navCategories, projectTitleNavItem],
+  )
+
+  useOptimizedImagePreload(preloadImages, {
+    width: 800,
+    quality: 70,
+    concurrency: 3,
+    eager: true,
+  })
+
+  useEffect(() => {
+    if (!showMobileCategoryNav) {
+      setIsMobileMenuOpen(false)
+    }
+  }, [showMobileCategoryNav])
 
   useEffect(() => {
     if (!mobileContentRef.current || !mobileHandleRef.current) return
@@ -157,6 +260,87 @@ export default function StackedCategoryTitles({
     }
   }, [categories, selectedCategory])
 
+  useEffect(() => {
+    if (!showScrollTopButton) {
+      setScrollTopArrowBlend(EMPTY_ARROW_BLEND)
+      return
+    }
+
+    let rafId: number | null = null
+
+    const measureScrollTopArrowBlend = (): ArrowBlendState => {
+      const arrow = scrollTopArrowRef.current
+      if (!arrow) return EMPTY_ARROW_BLEND
+
+      const arrowRect = arrow.getBoundingClientRect()
+      const selectors = [
+        'main img',
+        'main video',
+        'main canvas',
+        'main p',
+        'main h1',
+        'main h2',
+        'main h3',
+        'main h4',
+        'main h5',
+        'main h6',
+        'main a',
+        'main li',
+        'main figcaption',
+      ].join(',')
+      const candidates = Array.from(document.querySelectorAll<HTMLElement>(selectors))
+      const rects = candidates.flatMap((element) => {
+        if (arrow.contains(element) || element.contains(arrow)) return []
+
+        const elementRect = element.getBoundingClientRect()
+        const x = Math.max(arrowRect.left, elementRect.left)
+        const y = Math.max(arrowRect.top, elementRect.top)
+        const right = Math.min(arrowRect.right, elementRect.right)
+        const bottom = Math.min(arrowRect.bottom, elementRect.bottom)
+        const width = right - x
+        const height = bottom - y
+
+        if (width <= 1 || height <= 1) return []
+
+        return [
+          {
+            x: Math.round(x - arrowRect.left),
+            y: Math.round(y - arrowRect.top),
+            width: Math.round(width),
+            height: Math.round(height),
+          },
+        ]
+      })
+
+      return {
+        width: Math.round(arrowRect.width),
+        height: Math.round(arrowRect.height),
+        rects,
+      }
+    }
+
+    const update = () => {
+      if (rafId) cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(() => {
+        rafId = null
+        const nextBlend = measureScrollTopArrowBlend()
+        setScrollTopArrowBlend((prev) =>
+          equalArrowBlendState(prev, nextBlend) ? prev : nextBlend,
+        )
+      })
+    }
+
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId)
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [showScrollTopButton])
+
   return (
     <>
       {/* =========================================
@@ -166,14 +350,13 @@ export default function StackedCategoryTitles({
         <div
           className='
     px-4 lg:px-0
-    relative md:max-lg:absolute lg:absolute
-    mt-32 ml-12 sm:mt-20 md:max-lg:mt-0 lg:mt-0
-    -rotate-3 md:max-lg:rotate-0 lg:rotate-0
-    left-auto md:max-lg:left-8 lg:left-22
-    top-auto md:max-lg:top-16 lg:top-16
-    w-[85vw] md:max-lg:w-[30vw] lg:w-[40vw]
-    md:max-lg:max-w-[320px]
-    mx-auto md:max-lg:mx-0 lg:mx-0
+    relative lg:absolute
+    mt-32 ml-12 sm:mt-20 lg:mt-0
+    -rotate-3 lg:rotate-0
+    left-auto lg:left-22
+    top-auto lg:top-16
+    w-[85vw] lg:w-[40vw]
+    mx-auto lg:mx-0
     z-20
     pointer-events-none
   '
@@ -194,7 +377,7 @@ export default function StackedCategoryTitles({
                   className='absolute left-0 top-0 origin-left rotate-[0deg] pointer-events-auto cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
                   aria-label='Reset category filter (Studio)'
                 >
-                  <Image
+                  <PaintedTitleImage
                     src={images.studio!}
                     alt={groupTitle ? `${groupTitle} — Studio` : 'Studio'}
                     width={900}
@@ -202,7 +385,7 @@ export default function StackedCategoryTitles({
                     className='object-contain h-auto w-auto'
                     style={{ maxHeight: Math.round(140 * SCALE) }}
                     priority
-                    sizes='(max-width: 767px) 85vw, (max-width: 1023px) 30vw, 680px'
+                    sizes='(max-width: 1023px) 85vw, 680px'
                   />
                 </button>
 
@@ -213,7 +396,7 @@ export default function StackedCategoryTitles({
                   className='absolute left-[18.5%] top-[52%] origin-left rotate-[2deg] pointer-events-auto cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
                   aria-label='Reset category filter (Works)'
                 >
-                  <Image
+                  <PaintedTitleImage
                     src={images.works!}
                     alt={groupTitle ? `${groupTitle} — Works` : 'Works'}
                     width={900}
@@ -221,7 +404,7 @@ export default function StackedCategoryTitles({
                     className='object-contain h-auto w-auto'
                     style={{ maxHeight: Math.round(140 * SCALE) }}
                     priority
-                    sizes='(max-width: 767px) 85vw, (max-width: 1023px) 30vw, 680px'
+                    sizes='(max-width: 1023px) 85vw, 680px'
                   />
                 </button>
               </div>
@@ -233,7 +416,7 @@ export default function StackedCategoryTitles({
                 className='pointer-events-auto cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
                 aria-label='Reset category filter'
               >
-                <Image
+                <PaintedTitleImage
                   src={images.horizontal}
                   alt={groupTitle || 'Studio Works'}
                   width={800}
@@ -241,7 +424,7 @@ export default function StackedCategoryTitles({
                   className='object-contain h-auto w-auto'
                   style={{ maxHeight: Math.round(120 * SCALE) }}
                   priority
-                  sizes='(max-width: 1024px) 80vw, 600px'
+                  sizes='(max-width: 1023px) 85vw, 600px'
                 />
               </button>
             ) : null}
@@ -253,12 +436,67 @@ export default function StackedCategoryTitles({
           Stacked Category Titles (fixed right)
          ========================================= */}
       <div
-        className='hidden md:block fixed md:max-lg:right-6 right-4 lg:right-10 md:max-lg:top-44 top-28 lg:top-1/2 lg:-translate-y-1/2 z-30 pointer-events-none md:max-lg:w-[300px] lg:w-[460px]'
+        className='hidden min-[1180px]:block fixed right-10 top-1/2 -translate-y-1/2 z-30 pointer-events-none w-[460px]'
         style={{
           height: stackHeight,
         }}
       >
         <div className='relative w-full h-full'>
+          <AnimatePresence>
+            {showProjectTitle && projectTitleNavItem ? (
+              <motion.button
+                key='project-title-nav-item'
+                type='button'
+                onClick={() => onSelectProjectTitle?.()}
+                onMouseEnter={() => setHoveredCategory(projectTitleNavItem.id)}
+                onMouseLeave={() => setHoveredCategory(null)}
+                className='absolute right-0 z-20 cursor-pointer focus:outline-none pointer-events-auto focus-visible:ring-2 focus-visible:ring-black/40'
+                style={{
+                  transformOrigin: 'right center',
+                  top: -ITEM_GAP,
+                  transform: 'rotate(-1.5deg)',
+                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+                aria-label='Back to top'
+              >
+                <div className='relative inline-block'>
+                  <div
+                    className='absolute inset-x-0 bottom-0 flex items-end justify-center z-0 pointer-events-none'
+                    style={{ height: '110%' }}
+                  >
+                    <RealBrush
+                      seed='category:project-title'
+                      color={projectTitleNavItem.brushColor || BRUSH_COLOR}
+                      className='absolute -inset-x-2 bottom-0'
+                      style={{ height: BRUSH_H_PX }}
+                    />
+                  </div>
+                  <div className='relative z-10'>
+                    {projectTitleNavItem.titleImageUrl ? (
+                      <PaintedTitleImage
+                        src={projectTitleNavItem.titleImageUrl}
+                        alt={projectTitleNavItem.title}
+                        width={400}
+                        height={100}
+                        className='object-contain h-auto w-auto'
+                        style={{ maxHeight: IMG_MAX_H_PX }}
+                        priority
+                        sizes='400px'
+                      />
+                    ) : (
+                      <span className='text-xl lg:text-2xl font-right-grotesk-narrow-medium'>
+                        {projectTitleNavItem.title}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </motion.button>
+            ) : null}
+          </AnimatePresence>
+
           {navCategories.map((category, index) => {
             const rotation = getCategoryRotation(category.id)
             const offset = getCategoryOffset(category.id, index)
@@ -306,7 +544,7 @@ export default function StackedCategoryTitles({
                   {/* Image/title above */}
                   <div className='relative z-10'>
                     {category.titleImageUrl ? (
-                      <Image
+                      <PaintedTitleImage
                         src={category.titleImageUrl}
                         alt={category.title}
                         width={400}
@@ -331,24 +569,39 @@ export default function StackedCategoryTitles({
 
       {/* Mobile slide-out category nav (contact-style) */}
       <motion.div
-        className='lg:hidden md:hidden fixed bottom-4 right-4 z-40 flex items-end pointer-events-none'
-        initial={{ x: mobileHideOffset }}
-        animate={{ x: isMobileMenuOpen ? 0 : mobileHideOffset }}
-        transition={{ duration: 0.5, ease: [0.76, 0, 0.24, 1] }}
+        className='min-[1180px]:hidden fixed right-4 top-28 z-40 flex items-start pointer-events-none'
+        initial={{ x: mobileHideOffset, opacity: 0 }}
+        animate={{
+          x: showMobileCategoryNav
+            ? isMobileMenuOpen
+              ? 0
+              : mobileHideOffset
+            : mobileHideOffset,
+          opacity: showMobileCategoryNav ? 1 : 0,
+        }}
+        transition={{
+          x: { duration: 0.5, ease: [0.76, 0, 0.24, 1] },
+          opacity: { duration: 0.22, ease: 'easeOut' },
+        }}
+        aria-hidden={!showMobileCategoryNav}
       >
         <MobileBlurBackdrop
-          show={isMobileMenuOpen}
+          show={isMobileMenuOpen && showMobileCategoryNav}
           onClose={() => setIsMobileMenuOpen(false)}
         />
         <div
           ref={mobileContentRef}
-          className='flex items-end pointer-events-none'
+          className='flex items-start pointer-events-none'
         >
           <button
             ref={mobileHandleRef}
             type='button'
             onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-            className='flex flex-shrink-0 -mr-1 pt-2 pl-2 relative cursor-pointer pointer-events-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+            className={`flex flex-shrink-0 -mr-1 pt-2 pl-2 relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40 ${
+              showMobileCategoryNav
+                ? 'pointer-events-auto'
+                : 'pointer-events-none'
+            }`}
             aria-expanded={isMobileMenuOpen}
             aria-label='Toggle category navigation'
           >
@@ -363,17 +616,32 @@ export default function StackedCategoryTitles({
                   transform: 'translateY(-50%)',
                 }}
               />
-              <Image
-                src='/images/ByCategory.png'
-                alt='By Category'
-                width={400}
-                height={400}
-                className='object-contain h-8 w-auto select-none pointer-events-none'
-              />
+              {activeMobileCategory?.titleImageUrl ? (
+                <PaintedTitleImage
+                  src={activeMobileCategory.titleImageUrl}
+                  alt={activeMobileCategory.title}
+                  width={600}
+                  height={148}
+                  sizes='220px'
+                  className='object-contain h-8 w-auto select-none pointer-events-none'
+                />
+              ) : activeMobileCategory ? (
+                <span className='relative z-10 text-[28px] leading-none font-right-grotesk-narrow-medium select-none pointer-events-none'>
+                  {activeMobileCategory.title}
+                </span>
+              ) : (
+                <PaintedTitleImage
+                  src='/images/optimized/ByCategory-600.webp'
+                  alt='By Category'
+                  width={600}
+                  height={148}
+                  className='object-contain h-8 w-auto select-none pointer-events-none'
+                />
+              )}
             </div>
             <span className='relative ml-1 h-2 mt-3 w-10 pointer-events-none'>
               <Image
-                src='/images/brushMenuHorizontal.png'
+                src='/images/optimized/brushMenuHorizontal-420.webp'
                 alt=''
                 fill
                 className='object-fill -rotate-8'
@@ -384,7 +652,7 @@ export default function StackedCategoryTitles({
           <ul className='space-y-0 relative ml-2 min-w-[200px]'>
             <div className='absolute left-0 top-0 h-full w-[18px] pointer-events-none'>
               <Image
-                src='/images/brushMenu.png'
+                src='/images/optimized/brushMenu-160.webp'
                 alt=''
                 fill
                 className='object-fill object-top'
@@ -420,11 +688,12 @@ export default function StackedCategoryTitles({
                         </span>
                       )}
                       {category.titleImageUrl ? (
-                        <Image
+                        <PaintedTitleImage
                           src={category.titleImageUrl}
                           alt={category.title}
                           width={220}
                           height={56}
+                          sizes='220px'
                           className='object-contain h-[32px] w-auto'
                         />
                       ) : (
@@ -440,6 +709,30 @@ export default function StackedCategoryTitles({
           </ul>
         </div>
       </motion.div>
+
+      <AnimatePresence>
+        {showScrollTopButton ? (
+          <motion.button
+            ref={scrollTopArrowRef}
+            type='button'
+            className='min-[1180px]:hidden fixed bottom-24 right-5 z-40 cursor-pointer pointer-events-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40'
+            onClick={() => onScrollToTop?.()}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            aria-label='Back to top'
+          >
+            <BlendArrow
+              direction='up'
+              bounds={scrollTopArrowBlend}
+              blendRects={scrollTopArrowBlend.rects}
+              className='h-12 w-12'
+            />
+          </motion.button>
+        ) : null}
+      </AnimatePresence>
     </>
   )
 }

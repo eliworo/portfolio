@@ -379,13 +379,15 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
 
   const PaperFrame = ({
     children,
-    backgroundSrc = '/images/feuillePapierLogo1FondBlanc.png',
+    backgroundSrc = '/images/optimized/feuillePapierLogo1FondBlanc-700.webp',
   }: {
     children: React.ReactNode
     backgroundSrc?: string
   }) => {
     return (
-      <div className='relative w-[300px] sm:w-[360px] md:w-[420px]'>
+      <div
+        className='relative w-[min(var(--writing-frame-max-width),calc(100vw-2rem),calc(41.6dvh-1.6rem))] [--writing-frame-max-width:300px] sm:[--writing-frame-max-width:360px] md:[--writing-frame-max-width:420px] lg:w-[min(var(--writing-frame-max-width),calc(100vw-2rem),calc(46.4dvh-1.6rem))]'
+      >
         <div className='relative aspect-[4/5]'>
           <Image
             src={backgroundSrc}
@@ -397,7 +399,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
           />
         </div>
 
-        <div className='absolute inset-0 flex items-center justify-center p-10 sm:p-12 md:px-20 md:py-10 xl:py-12 xl:pb-14'>
+        <div className='absolute inset-0 flex items-center justify-center p-8 sm:p-12 md:px-20 md:py-10 xl:py-12 xl:pb-14'>
           <div className='w-full h-full overflow-hidden flex items-start justify-center'>
             {children}
           </div>
@@ -615,10 +617,10 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
           className='fixed right-5 top-5 text-black hover:text-black text-3xl w-8 h-8 flex items-center justify-center z-50'
         >
           <Image
-            src='/images/close.png'
+            src='/images/optimized/close-180.webp'
             alt='Close menu'
-            width={400}
-            height={400}
+            width={180}
+            height={217}
             className='object-contain w-auto h-12'
           />
         </button>
@@ -655,13 +657,13 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                           <div className='flex-1 flex justify-end -mr-1 sm:-mr-2'>
                             {renderPageBlock(
                               currentSpread.left,
-                              '/images/feuillePapierLogo1FondBlanc.png',
+                              '/images/optimized/feuillePapierLogo1FondBlanc-700.webp',
                             )}
                           </div>
                           <div className='flex-1 flex justify-start'>
                             {renderPageBlock(
                               currentSpread.right,
-                              '/images/papierLogo2fFondBlanc.png',
+                              '/images/optimized/papierLogo2fFondBlanc-900.webp',
                             )}
                           </div>
                         </div>
@@ -750,10 +752,10 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                       aria-label='Previous'
                     >
                       <Image
-                        src='/images/arrowLeftLogo.png'
+                        src='/images/optimized/arrowLeftLogo-180.webp'
                         alt='Previous'
-                        width={600}
-                        height={600}
+                        width={180}
+                        height={100}
                         className='object-contain h-6 sm:h-7 lg:h-8 w-auto select-none pointer-events-none'
                       />
                     </button>
@@ -765,10 +767,10 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                       aria-label='Next'
                     >
                       <Image
-                        src='/images/arrowRightLogo.png'
+                        src='/images/optimized/arrowRightLogo-180.webp'
                         alt='Next'
-                        width={600}
-                        height={600}
+                        width={180}
+                        height={106}
                         className='object-contain h-6 sm:h-7 lg:h-8 w-auto select-none pointer-events-none'
                       />
                     </button>

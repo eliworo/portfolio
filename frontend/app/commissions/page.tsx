@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
 import { sanityFetch } from '@/sanity/lib/live'
 import { aboutPageQuery, commissionsPageQuery } from '@/sanity/lib/queries'
@@ -9,6 +8,7 @@ import { resolveOpenGraphImage } from '@/sanity/lib/utils'
 import ContactNav from '../components/ContactNav'
 import PortableLinkMark from '@/app/components/portable/PortableLinkMark'
 import BrushStrongMark from '@/app/components/portable/BrushStrongMark'
+import PaintedTitleImage from '@/app/components/PaintedTitleImage'
 
 function toPlainText(blocks: any): string | undefined {
   if (!Array.isArray(blocks)) {
@@ -94,7 +94,7 @@ export default async function CommissionsPage() {
           {/* Title image: anchored top-left, in flow */}
           {commissionsPage.titleImage?.asset?.url && (
             <div className='xl:col-span-6 xl:row-start-1'>
-              <Image
+              <PaintedTitleImage
                 src={commissionsPage.titleImage.asset.url}
                 alt='Commissions'
                 width={1000}

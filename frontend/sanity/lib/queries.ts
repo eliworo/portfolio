@@ -282,8 +282,7 @@ export const navigationImagesQuery = defineQuery(`{
     "projects": *[_type == "project" && references(^._id) && defined(visible) && visible == true] | order(orderRank asc) {
       title,
       "slug": slug.current,
-      titleImage{asset->{url}}, 
-      coverImage{asset->{url}, alt}
+      titleImage{asset->{url}}
     }
   }
 }`)
@@ -448,6 +447,7 @@ export const projectQuery = defineQuery(`
     material,
     dimensions,
     description,
+    brushColor,
     ticketsUrl,
     projectKind,
     projectSize,
@@ -935,7 +935,10 @@ const aboutFields = /* groq */ `
   },
   profileImage{
     asset->{
-      url
+      url,
+      metadata {
+        dimensions
+      }
     },
     alt,
     credit
@@ -1052,7 +1055,7 @@ export const productionsPageQuery = defineQuery(`
   }
 `)
 
-const projectFields = /* groq */ `
+const projectModalFields = /* groq */ `
   _id,
   title,
   slug { current },
@@ -1075,7 +1078,7 @@ const projectFields = /* groq */ `
     alt,
     caption
   },
- images[] {
+  images[] {
     _type,
     _type == "image" => {
       asset->{
@@ -1158,7 +1161,51 @@ const projectFields = /* groq */ `
   },
   previewType,
   previewCustomText,
+  textExtractIndex
+`
+
+const studioWorksListProjectFields = /* groq */ `
+  _id,
+  title,
+  slug { current },
+  projectKind,
+  brushColor,
+  projectSize,
+  projectSubtype,
+  titleImage { asset->{ url } },
+  coverImage {
+    asset->{
+      _id,
+      url,
+      metadata {
+        dimensions { width, height },
+        lqip
+      }
+    },
+    crop,
+    hotspot,
+    alt,
+    caption
+  },
+  titleStyle,
+  year,
+  categories[]->{
+    _id,
+    title,
+    slug{current},
+    titleImage { asset->{ url } }
+  },
+  previewType,
+  previewCustomText,
   textExtractIndex,
+  writingContent[_type == "writingTextBlock"] {
+    _type,
+    _key,
+    content,
+    contentRich[]{
+      children[]{text}
+    }
+  },
   categorySections[] {
     _key,
     category->{ _id, title, slug{current}, titleImage { asset->{ url } } },
@@ -1175,7 +1222,7 @@ const projectFields = /* groq */ `
       },
       text
     },
-    content[] {
+    "previewTextContent": content[_type in ["textBlock", "textWithImage"]] {
       _type,
       _key,
       _type == "textBlock" => {
@@ -1183,52 +1230,31 @@ const projectFields = /* groq */ `
         columns,
         alignment
       },
-      _type == "imageBlock" => {
-        images[] {
-          asset->{
-            _id,
-            url,
-            metadata {
-              dimensions { width, height },
-              lqip
-            }
-          },
-          crop,
-          hotspot,
-          alt
-        }
-      },
-      _type == "imageGallery" => {
-        images[] {
-          asset->{
-            _id,
-            url,
-            metadata {
-              dimensions { width, height },
-              lqip
-            }
-          },
-          crop,
-          hotspot,
-          alt
-        }
-      },
       _type == "textWithImage" => {
-        text,
-        image {
-          asset->{ _id, url },
-          alt,
-          caption,
-          crop,
-          hotspot
-        },
-        imagePosition,
-        imageSize,
-        verticalAlignment
+        text
       }
+    },
+    "firstImage": content[_type in ["imageBlock", "imageGallery"] && defined(images[0].asset)][0].images[0] {
+      asset->{
+        _id,
+        url,
+        metadata {
+          dimensions { width, height },
+          lqip
+        }
+      },
+      crop,
+      hotspot,
+      alt
     }
   }
 `
+
+export const projectModalQuery = defineQuery(`
+  *[_type == "project" && _id == $projectId][0]{
+    ${projectModalFields}
+  }
+`)
 
 export const studioWorksQuery = /* groq */ `
   *[_type == "studioWorks"][0]{
@@ -1244,7 +1270,7 @@ export const studioWorksQuery = /* groq */ `
       blankSize,
       hideOnDefaultList,
       project->{
-        ${projectFields}
+        ${studioWorksListProjectFields}
       },
       categorySectionKey,
       offsetY,
@@ -1256,3 +1282,18 @@ export const studioWorksQuery = /* groq */ `
     gridSpacing { columnGap, rowGap }
   }
 `
+
+export const studioWorksPreviewQuery = defineQuery(`
+  *[_type == "studioWorks"][0]{
+    title,
+    titleImage { asset->{ url } }
+  }
+`)
+
+export const studioWorksMetadataQuery = defineQuery(`
+  *[_type == "studioWorks"][0]{
+    title,
+    titleImage { asset->{ url } },
+    description
+  }
+`)

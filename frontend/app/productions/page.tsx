@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
 import { sanityFetch } from '@/sanity/lib/live'
 import { productionsPageQuery } from '@/sanity/lib/queries'
@@ -7,6 +6,7 @@ import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
 import PortableLinkMark from '@/app/components/portable/PortableLinkMark'
 import { BrushMark } from '@/app/components/portable/BrushMark'
+import PaintedTitleImage from '@/app/components/PaintedTitleImage'
 
 type FeaturedProjectItem = {
   project: {
@@ -27,6 +27,8 @@ type FeaturedProjectItem = {
       }
       alt?: string | null
     } | null
+    projectKind?: string | null
+    brushColor?: string | null
   }
 }
 
@@ -101,7 +103,7 @@ export default async function ProductionsPage() {
     <main className='w-full min-h-screen overflow-hidden'>
       {productionsPage.titleImage?.asset?.url && (
         <div className='px-8 pt-28 sm:pt-28 md:pt-16 xl:pt-24'>
-          <Image
+          <PaintedTitleImage
             src={productionsPage.titleImage.asset.url}
             alt='PRODUCTIONS'
             width={1000}
@@ -115,7 +117,7 @@ export default async function ProductionsPage() {
         <header className='px-8 pt-10 pb-14 sm:pb-16 md:pb-20 xl:pb-24'>
           <div className='xl:grid xl:grid-cols-12 xl:gap-x-16'>
             <div className='xl:col-start-5 xl:col-span-6 xl:row-start-1 xl:max-w-[80ch]'>
-              <div className='text-lg xl:text-2xl leading-snug font-sans'>
+              <div className='text-lg xl:text-2xl leading-tight font-sans'>
                 <PortableText
                   value={productionsPage.description}
                   components={portableTextComponents}

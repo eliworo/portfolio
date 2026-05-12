@@ -6,12 +6,18 @@ interface VerticalLineProps {
     fill?: string
   }
   className?: string
+  preserveAspectRatio?: string
 }
 
-const VerticalLine: React.FC<VerticalLineProps> = ({ theme, className }) => (
+const VerticalLine: React.FC<VerticalLineProps> = ({
+  theme,
+  className,
+  preserveAspectRatio = 'xMidYMid meet',
+}) => (
   <svg
     className={className}
     viewBox='0 0 9 125'
+    preserveAspectRatio={preserveAspectRatio}
     fill='none'
     xmlns='http://www.w3.org/2000/svg'
   >

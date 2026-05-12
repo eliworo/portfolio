@@ -15,6 +15,7 @@ import StackedCategoryTitles from './StackedCategoryTitles'
 import RealBrush from './drawings/RealBrush'
 import StudioWorksPortableText from './portable/StudioWorksPortableText'
 import ThreeDotsLoader from './ThreeDotsLoader'
+import PaintedTitleImage from './PaintedTitleImage'
 
 /* =========================
    helpers (keep as-is)
@@ -65,13 +66,22 @@ const normalizeImageSource = (image?: SanityImageSource) => {
   return undefined
 }
 
-const buildImageUrl = (image?: SanityImageSource, width = 1400) => {
+const buildImageUrl = (
+  image?: SanityImageSource,
+  width = 1400,
+  quality = 85,
+) => {
   const normalized = normalizeImageSource(image)
   if (!normalized) return image?.asset?.url
   return (
-    urlForImage(normalized)?.width(width).quality(85).url() || image?.asset?.url
+    urlForImage(normalized)?.width(width).quality(quality).url() ||
+    image?.asset?.url
   )
 }
+
+const GRID_PREVIEW_IMAGE_WIDTH = 1000
+const CATEGORY_TRANSITION_MIN_MS = 250
+const CATEGORY_TRANSITION_MAX_MS = 3500
 
 type FeaturedProject = {
   _key: string
@@ -138,6 +148,8 @@ type FeaturedProject = {
         textOverride?: string
         textExtractIndex?: number
       }
+      previewTextContent?: any[]
+      firstImage?: SanityImageSource
       content?: any[]
     }>
   }
@@ -154,6 +166,49 @@ type Preview =
 const kindOf = (p: any) => String(p?.projectKind ?? '').toLowerCase()
 const isPersonalKind = (p: any) => kindOf(p).includes('personal')
 const isProfessionalKind = (p: any) => kindOf(p).includes('professional')
+const isLargePersonalKind = (p: any) =>
+  isPersonalKind(p) && p?.projectSize === 'large'
+
+const findCategorySectionByKey = (project: any, key?: string) => {
+  if (!key || !Array.isArray(project?.categorySections)) return undefined
+  const coreKey = normalizeCategoryKey(key)
+  return project.categorySections.find((section: any) =>
+    String(section?._key || '').startsWith(coreKey),
+  )
+}
+
+const findCategorySectionBySlug = (
+  project: any,
+  categoryId?: string | null,
+) => {
+  if (!categoryId || !Array.isArray(project?.categorySections)) {
+    return undefined
+  }
+
+  return project.categorySections.find(
+    (section: any) => section?.category?.slug?.current === categoryId,
+  )
+}
+
+const getCuratedCategorySection = (
+  item: FeaturedProject,
+  categoryId?: string | null,
+) => {
+  const project = item.project
+  if (!project) return undefined
+
+  const keyedSection = findCategorySectionByKey(
+    project,
+    item.categorySectionKey,
+  )
+  if (keyedSection) return keyedSection
+
+  if (!item.categorySectionKey && isLargePersonalKind(project)) {
+    return findCategorySectionBySlug(project, categoryId)
+  }
+
+  return undefined
+}
 
 /* =========================
    NEW: Action model
@@ -166,6 +221,28 @@ type CardAction =
 
 const isModifiedClick = (e: React.MouseEvent) =>
   e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1
+
+const preloadImageUrl = (url?: string) =>
+  new Promise<void>((resolve) => {
+    if (!url || typeof window === 'undefined') {
+      resolve()
+      return
+    }
+
+    const image = new window.Image()
+    let settled = false
+    const finish = () => {
+      if (settled) return
+      settled = true
+      resolve()
+    }
+
+    image.onload = finish
+    image.onerror = finish
+    image.src = url
+
+    if (image.complete) finish()
+  })
 
 /* =========================
    DraggableProjectCard (UPDATED with animations)
@@ -180,8 +257,6 @@ function DraggableProjectCard({
   brushRotation,
   brushColor,
   onOpenModal,
-  onImageReady,
-  isImageReady,
   childrenBrushAndTitle,
 }: {
   item: any
@@ -192,8 +267,6 @@ function DraggableProjectCard({
   brushRotation: (k: string) => number
   brushColor: (id: string) => string
   onOpenModal: () => void
-  onImageReady?: () => void
-  isImageReady?: boolean
   childrenBrushAndTitle: React.ReactNode
 }) {
   const offsetFactor = isMobile ? 0.35 : 1
@@ -270,14 +343,19 @@ function DraggableProjectCard({
         transition={{ duration: 0.12, ease: 'easeOut' }}
       >
         {preview.type === 'image' ? (
-          <CoverImage image={preview.image} onReady={onImageReady} />
+          <CoverImage
+            image={preview.image}
+            sizes='(min-width: 768px) 25vw, 50vw'
+            imageWidth={GRID_PREVIEW_IMAGE_WIDTH}
+            unoptimized
+          />
         ) : (
           // Text preview with paper background
           <div className='relative w-full my-16 flex items-center justify-center'>
             <div className='relative w-[280px] md:w-[320px]'>
               <div className='relative aspect-[4/5]'>
                 <Image
-                  src='/images/feuillePapierLogo1FondBlanc.png'
+                  src='/images/optimized/feuillePapierLogo1FondBlanc-700.webp'
                   alt=''
                   fill
                   className='object-fill'
@@ -353,11 +431,7 @@ function DraggableProjectCard({
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.92, y: 20 }}
-      animate={
-        isImageReady !== false
-          ? { opacity: 1, scale: 1, y: 0 }
-          : { opacity: 0, scale: 0.92, y: 20 }
-      }
+      animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.92, y: 20 }}
       transition={{
         opacity: { duration: 0.4 },
@@ -512,20 +586,26 @@ export default function CreativeProjectsList({
   description?: any
 }) {
   const [modalProject, setModalProject] = React.useState<any>(null)
+  const [modalLoadingProjectId, setModalLoadingProjectId] = React.useState<
+    string | null
+  >(null)
+  const modalAbortRef = useRef<AbortController | null>(null)
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(
     initialCategory || null,
   )
+  const [pendingCategory, setPendingCategory] = React.useState<
+    string | null | undefined
+  >(undefined)
   const [isMobile, setIsMobile] = React.useState(false)
   const [showSkeleton, setShowSkeleton] = React.useState(false)
-  const [readyImageKeys, setReadyImageKeys] = React.useState<Set<string>>(
-    () => new Set(),
-  )
-  const [readyTitleImageKeys, setReadyTitleImageKeys] = React.useState<
-    Set<string>
-  >(() => new Set())
+  const categoryTransitionRef = useRef(0)
 
   useEffect(() => {
-    if (initialCategory) setSelectedCategory(initialCategory)
+    if (initialCategory) {
+      setSelectedCategory(initialCategory)
+      setPendingCategory(undefined)
+      setShowSkeleton(false)
+    }
   }, [initialCategory])
 
   useEffect(() => {
@@ -541,21 +621,15 @@ export default function CreativeProjectsList({
 
     if (isProfessionalKind(p)) {
       let url = `/productions/${p.slug.current}`
-      if (item.categorySectionKey && p.categorySections) {
-        const coreKey = normalizeCategoryKey(item.categorySectionKey)
-        const sec = p.categorySections.find((s) => s._key.startsWith(coreKey))
-        if (sec?.category?.slug?.current) url += `#${sec.category.slug.current}`
-      }
+      const sec = getCuratedCategorySection(item)
+      if (sec?.category?.slug?.current) url += `#${sec.category.slug.current}`
       return url
     }
 
-    if (isPersonalKind(p) && p.projectSize === 'large' && p.slug?.current) {
+    if (isLargePersonalKind(p) && p.slug?.current) {
       let url = `/studio-works/${p.slug.current}`
-      if (item.categorySectionKey && p.categorySections) {
-        const coreKey = normalizeCategoryKey(item.categorySectionKey)
-        const sec = p.categorySections.find((s) => s._key.startsWith(coreKey))
-        if (sec?.category?.slug?.current) url += `#${sec.category.slug.current}`
-      }
+      const sec = getCuratedCategorySection(item, selectedCategory)
+      if (sec?.category?.slug?.current) url += `#${sec.category.slug.current}`
       return url
     }
 
@@ -573,7 +647,7 @@ export default function CreativeProjectsList({
     if (!p) return { type: 'none' }
 
     const isPersonal = isPersonalKind(p)
-    const isLargePersonal = isPersonal && p.projectSize === 'large'
+    const isLargePersonal = isLargePersonalKind(p)
 
     // modal: small personal
     if (isPersonal && !isLargePersonal) {
@@ -586,6 +660,48 @@ export default function CreativeProjectsList({
 
     return { type: 'none' }
   }
+
+  const closeModal = React.useCallback(() => {
+    modalAbortRef.current?.abort()
+    modalAbortRef.current = null
+    setModalLoadingProjectId(null)
+    setModalProject(null)
+  }, [])
+
+  const openModalProject = React.useCallback(async (project: any) => {
+    if (!project?._id) return
+
+    modalAbortRef.current?.abort()
+    const controller = new AbortController()
+    modalAbortRef.current = controller
+    setModalLoadingProjectId(project._id)
+
+    try {
+      const params = new URLSearchParams({ projectId: project._id })
+      const response = await fetch(`/api/project-modal?${params.toString()}`, {
+        signal: controller.signal,
+        cache: 'no-store',
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to load project modal: ${response.status}`)
+      }
+
+      const data = await response.json()
+      if (!controller.signal.aborted) {
+        setModalProject(data.project)
+      }
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        console.error(error)
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setModalLoadingProjectId(null)
+        modalAbortRef.current = null
+      }
+    }
+  }, [])
 
   const brushColors = [
     '#FFB6C1',
@@ -648,39 +764,39 @@ export default function CreativeProjectsList({
       .flatMap((item) => {
         const p = item.project
         const categories: [string, any][] = []
+        const addCategory = (cat: any) => {
+          if (!cat?.slug?.current) return
+          categories.push([
+            cat.slug.current,
+            {
+              id: cat.slug.current,
+              title: cat.title,
+              titleImageUrl: cat.titleImage?.asset?.url,
+            },
+          ])
+        }
 
         if (
           item.categorySectionKey &&
-          (isProfessionalKind(p) ||
-            (isPersonalKind(p) && p.projectSize === 'large'))
+          (isProfessionalKind(p) || isLargePersonalKind(p))
         ) {
-          const coreKey = normalizeCategoryKey(item.categorySectionKey)
-          const sec = p.categorySections?.find((s) =>
-            s._key.startsWith(coreKey),
-          )
-          if (sec?.category?.slug?.current) {
-            categories.push([
-              sec.category.slug.current,
-              {
-                id: sec.category.slug.current,
-                title: sec.category.title,
-                titleImageUrl: sec.category.titleImage?.asset?.url,
-              },
-            ])
+          const sec = getCuratedCategorySection(item)
+          addCategory(sec?.category)
+        }
+
+        if (
+          !item.categorySectionKey &&
+          isLargePersonalKind(p) &&
+          Array.isArray(p.categorySections)
+        ) {
+          for (const sec of p.categorySections) {
+            addCategory(sec?.category)
           }
         }
 
         if (isPersonalKind(p) && p.projectSize !== 'large' && p.categories) {
           p.categories.forEach((cat) => {
-            if (!cat?.slug?.current) return
-            categories.push([
-              cat.slug.current,
-              {
-                id: cat.slug.current,
-                title: cat.title,
-                titleImageUrl: cat.titleImage?.asset?.url,
-              },
-            ])
+            addCategory(cat)
           })
         }
 
@@ -690,108 +806,80 @@ export default function CreativeProjectsList({
     return Array.from(new Map(pairs).values())
   }, [featuredProjects])
 
-  const filteredProjects = useMemo(() => {
-    if (!selectedCategory) {
+  const filterProjectsForCategory = React.useCallback(
+    (categoryId: string | null) => {
+      if (!categoryId) {
+        return featuredProjects.filter((item) => {
+          if (!item.project) return true
+          return item.hideOnDefaultList !== true
+        })
+      }
+
       return featuredProjects.filter((item) => {
-        if (!item.project) return true
-        return item.hideOnDefaultList !== true
+        if (!item.project) return false
+        const p = item.project
+
+        if (isPersonalKind(p) && p.projectSize !== 'large') {
+          return p.categories?.some((cat) => cat.slug.current === categoryId)
+        }
+
+        if (
+          p.categorySections &&
+          (isProfessionalKind(p) || isLargePersonalKind(p))
+        ) {
+          const sec = getCuratedCategorySection(item, categoryId)
+          return sec?.category?.slug?.current === categoryId
+        }
+
+        return false
       })
-    }
+    },
+    [featuredProjects],
+  )
 
-    return featuredProjects.filter((item) => {
-      if (!item.project) return false
-      const p = item.project
-
-      if (isPersonalKind(p) && p.projectSize !== 'large') {
-        return p.categories?.some(
-          (cat) => cat.slug.current === selectedCategory,
-        )
-      }
-
-      if (
-        item.categorySectionKey &&
-        p.categorySections &&
-        (isProfessionalKind(p) ||
-          (isPersonalKind(p) && p.projectSize === 'large'))
-      ) {
-        const coreKey = normalizeCategoryKey(item.categorySectionKey)
-        const sec = p.categorySections.find((s) => s._key.startsWith(coreKey))
-        return sec?.category?.slug?.current === selectedCategory
-      }
-
-      return false
-    })
-  }, [featuredProjects, selectedCategory])
-
-  const expectedImageKeys = useMemo(() => {
-    return filteredProjects
-      .filter((item) => {
-        if (!item?.project) return false
-        const preview = coverOrPreviewForItem(item)
-        return preview.type === 'image'
-      })
-      .map((item) => item._key)
-  }, [filteredProjects])
-
-  const expectedImageKeySet = useMemo(
-    () => new Set(expectedImageKeys),
-    [expectedImageKeys],
+  const filteredProjects = useMemo(
+    () => filterProjectsForCategory(selectedCategory),
+    [filterProjectsForCategory, selectedCategory],
   )
 
   const handleSelectCategory = (id: string | null) => {
+    const nextCategory = selectedCategory === id ? null : id
+    const transitionId = categoryTransitionRef.current + 1
+    categoryTransitionRef.current = transitionId
+
     setShowSkeleton(true)
-    setReadyImageKeys(new Set())
-    setReadyTitleImageKeys(new Set())
+    setPendingCategory(nextCategory)
+
     try {
       const url = new URL(window.location.href)
-      if (id) url.searchParams.set('category', id)
+      if (nextCategory) url.searchParams.set('category', nextCategory)
       else url.searchParams.delete('category')
       window.history.replaceState({}, '', url.toString())
     } catch {}
+
     window.scrollTo({ top: 0, behavior: 'smooth' })
-    setSelectedCategory(selectedCategory === id ? null : id)
+
+    const imageUrls = getInitialPreviewImageUrls(nextCategory)
+    const minimumDelay = new Promise((resolve) =>
+      window.setTimeout(resolve, CATEGORY_TRANSITION_MIN_MS),
+    )
+    const preload = Promise.all(imageUrls.map(preloadImageUrl))
+    const maxDelay = new Promise((resolve) =>
+      window.setTimeout(resolve, CATEGORY_TRANSITION_MAX_MS),
+    )
+
+    void Promise.all([minimumDelay, Promise.race([preload, maxDelay])]).then(
+      () => {
+        if (categoryTransitionRef.current !== transitionId) return
+        setSelectedCategory(nextCategory)
+        setPendingCategory(undefined)
+        requestAnimationFrame(() => setShowSkeleton(false))
+      },
+    )
   }
 
-  // Hide the skeleton as soon as the first image is ready
-  useEffect(() => {
-    if (showSkeleton && readyImageKeys.size > 0) {
-      setShowSkeleton(false)
-    }
-  }, [showSkeleton, readyImageKeys])
-
-  // Safety timeout so skeleton doesn't hang forever
-  useEffect(() => {
-    if (!showSkeleton) return
-    const timer = window.setTimeout(() => setShowSkeleton(false), 3000)
-    return () => window.clearTimeout(timer)
-  }, [showSkeleton])
-
-  const handleCardImageReady = React.useCallback(
-    (itemKey: string) => {
-      if (!expectedImageKeySet.has(itemKey)) return
-
-      setReadyImageKeys((prev) => {
-        if (prev.has(itemKey)) return prev
-        const next = new Set(prev)
-        next.add(itemKey)
-        return next
-      })
-    },
-    [expectedImageKeySet],
-  )
-
-  const handleTitleImageReady = React.useCallback((itemKey: string) => {
-    setReadyTitleImageKeys((prev) => {
-      if (prev.has(itemKey)) return prev
-      const next = new Set(prev)
-      next.add(itemKey)
-      return next
-    })
-  }, [])
-
-  const currentCategory = selectedCategory
-    ? allCategories.find((c) => c.id === selectedCategory)
-    : null
+  const displayCategory =
+    pendingCategory !== undefined ? pendingCategory : selectedCategory
 
   if (!featuredProjects?.length) {
     return (
@@ -817,20 +905,24 @@ export default function CreativeProjectsList({
   }
 
   function getSectionTextExtract(section: any, index?: number) {
-    if (!section?.content) return undefined
-    const textBlocks = section.content.filter(
+    const sectionContent = section?.previewTextContent || section?.content
+    if (!sectionContent) return undefined
+    const textBlocks = sectionContent.filter(
       (block: any) =>
         block?._type === 'textBlock' || block?._type === 'textWithImage',
     )
     if (!textBlocks.length) return undefined
     const idx = Math.max(0, (index ?? 1) - 1)
     const target = textBlocks[idx] || textBlocks[textBlocks.length - 1]
-    const content = target.content || target.text
-    const plain = portableTextToPlain(content)
+    const textContent = target.content || target.text
+    const plain = portableTextToPlain(textContent)
     return plain || undefined
   }
 
-  function coverOrPreviewForItem(item: FeaturedProject): PreviewResult {
+  function coverOrPreviewForItem(
+    item: FeaturedProject,
+    categoryId: string | null = selectedCategory,
+  ): PreviewResult {
     const p = item.project
     if (!p) return { type: 'image', image: undefined }
 
@@ -863,16 +955,8 @@ export default function CreativeProjectsList({
       return { type: 'image', image: p.coverImage }
     }
 
-    if (
-      (isProfessionalKind(p) || p.projectSize === 'large') &&
-      item.categorySectionKey &&
-      p.categorySections?.length
-    ) {
-      const coreKey = normalizeCategoryKey(item.categorySectionKey)
-      const sec = p.categorySections.find((s) => s._key.startsWith(coreKey))
-
-      if (!sec) return { type: 'image', image: p.coverImage }
-
+    const sec = getCuratedCategorySection(item, categoryId)
+    if ((isProfessionalKind(p) || isLargePersonalKind(p)) && sec) {
       const previewMode =
         stripInvisible(sec.preview?.mode) ||
         stripInvisible(sec.preview?._type) ||
@@ -899,25 +983,33 @@ export default function CreativeProjectsList({
         return { type: 'image', image: sec.preview.image }
       }
 
-      if (sec?.content) {
-        for (const block of sec.content) {
-          if (
-            (block?._type === 'imageBlock' ||
-              block?._type === 'imageGallery') &&
-            block?.images?.length
-          ) {
-            const firstImage = block.images.find((img: SanityImageSource) =>
-              hasImageAsset(img),
-            )
-            if (firstImage) return { type: 'image', image: firstImage }
-          }
-        }
+      if (hasImageAsset(sec.firstImage)) {
+        return { type: 'image', image: sec.firstImage }
       }
 
       return { type: 'image', image: p.coverImage }
     }
 
     return { type: 'image', image: p.coverImage }
+  }
+
+  function getInitialPreviewImageUrls(categoryId: string | null) {
+    const limit = isMobile ? 2 : 4
+
+    return filterProjectsForCategory(categoryId)
+      .flatMap((item) => {
+        if ((item as any).kind === 'blank' || !item.project) return []
+
+        const preview = coverOrPreviewForItem(item, categoryId)
+        if (preview.type !== 'image' || !hasImageAsset(preview.image)) return []
+
+        const url = buildImageUrl(
+          preview.image,
+          GRID_PREVIEW_IMAGE_WIDTH,
+        )
+        return url ? [url] : []
+      })
+      .slice(0, limit)
   }
 
   const MOBILE_DIVISOR = 1.6
@@ -939,7 +1031,7 @@ export default function CreativeProjectsList({
             }}
             titleVariant='stacked'
             categories={allCategories}
-            selectedCategory={selectedCategory}
+            selectedCategory={displayCategory}
             onSelectCategory={handleSelectCategory}
           />
         )
@@ -952,7 +1044,7 @@ export default function CreativeProjectsList({
               isStudioWorks={true}
               groupSlug={groupSlug}
               onSelectCategory={handleSelectCategory}
-              selectedCategory={selectedCategory}
+              selectedCategory={displayCategory}
             />
           )}
 
@@ -1017,25 +1109,7 @@ export default function CreativeProjectsList({
               const action = getCardAction(item)
 
               const openModal = () => {
-                setModalProject({
-                  _id: p._id,
-                  title: p.title,
-                  titleStyle: p.titleStyle,
-                  titleImageUrl: p.titleImage?.asset?.url,
-                  coverImageUrl:
-                    preview.type === 'image'
-                      ? buildImageUrl(preview.image)
-                      : undefined,
-                  coverImage: p.coverImage,
-                  description: p.description,
-                  descriptionRich: p.descriptionRich,
-                  content: p.content,
-                  writingContent: p.writingContent,
-                  writingLayout: p.writingLayout,
-                  images: p.images,
-                  year: p.year,
-                  projectSubtype: p.projectSubtype,
-                })
+                void openModalProject(p)
               }
 
               return (
@@ -1049,10 +1123,6 @@ export default function CreativeProjectsList({
                   brushRotation={brushRotation}
                   brushColor={brushColor}
                   onOpenModal={openModal}
-                  onImageReady={() => handleCardImageReady(item._key)}
-                  isImageReady={
-                    preview.type === 'text' || readyImageKeys.has(item._key)
-                  }
                   childrenBrushAndTitle={
                     item.project.titleImage?.asset?.url ? (
                       <div
@@ -1068,27 +1138,21 @@ export default function CreativeProjectsList({
                           className='relative origin-left scale-75 md:scale-100'
                           style={{
                             rotate: `${brushRotation(item._key)}deg`,
-                            opacity: readyTitleImageKeys.has(item._key) ? 1 : 0,
-                            transition: 'opacity 180ms ease-out',
                           }}
                         >
-                          {readyTitleImageKeys.has(item._key) && (
-                            <RealBrush
-                              seed={`category:${item.project._id}`}
-                              color={brushColor(item.project)}
-                              className='absolute -inset-x-2 bottom-0 h-14 inset-y-1 -z-10'
-                            />
-                          )}
+                          <RealBrush
+                            seed={`category:${item.project._id}`}
+                            color={brushColor(item.project)}
+                            className='absolute -inset-x-2 bottom-0 h-14 inset-y-1 -z-10'
+                          />
                           <div className='py-2'>
-                            <Image
+                            <PaintedTitleImage
                               src={item.project.titleImage.asset.url}
                               alt={item.project.title}
                               width={500}
                               height={500}
                               className='object-contain h-12 w-auto'
                               draggable={false}
-                              onLoad={() => handleTitleImageReady(item._key)}
-                              onError={() => handleTitleImageReady(item._key)}
                             />
                           </div>
                         </div>
@@ -1105,8 +1169,17 @@ export default function CreativeProjectsList({
       <ProjectModal
         key={modalProject?._id || modalProject?.title || 'empty-modal'}
         project={modalProject}
-        onClose={() => setModalProject(null)}
+        onClose={closeModal}
       />
+
+      {modalLoadingProjectId && !modalProject && (
+        <div
+          className='fixed inset-0 z-50 flex items-center justify-center bg-white/75 backdrop-blur-sm'
+          onClick={closeModal}
+        >
+          <ThreeDotsLoader className='w-full py-20' />
+        </div>
+      )}
     </>
   )
 }

@@ -15,12 +15,27 @@ export default function ProjectSectionsStackedNavClient({
   categories,
   titleVariant = 'stacked',
   groupTitleImages,
+  projectTitle,
+  projectTitleTargetId,
+  mobileCategoryNavRevealTargetId,
 }: {
   categories: CategoryItem[]
   titleVariant?: TitleVariant
   groupTitleImages?: GroupTitleImages
+  projectTitle?: {
+    title: string
+    titleImageUrl?: string
+    brushColor?: string
+  }
+  projectTitleTargetId?: string
+  mobileCategoryNavRevealTargetId?: string
 }) {
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [showProjectTitle, setShowProjectTitle] = useState(false)
+  const [showMobileCategoryNav, setShowMobileCategoryNav] = useState(
+    !mobileCategoryNavRevealTargetId,
+  )
+  const [showScrollTopButton, setShowScrollTopButton] = useState(false)
   const ids = useMemo(() => categories.map((c) => c.id), [categories])
 
   // When true, we ignore IntersectionObserver updates (prevents flicker during smooth scroll)
@@ -102,6 +117,111 @@ export default function ProjectSectionsStackedNavClient({
     // 4) Unlock once we've arrived (or after timeout)
     unlockWhenSettled(targetY)
   }
+
+  const onSelectProjectTitle = () => {
+    setActiveId(null)
+    lockRef.current = true
+    window.history.replaceState({}, '', window.location.pathname)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    unlockWhenSettled(0)
+  }
+
+  useEffect(() => {
+    if (!projectTitleTargetId) return
+
+    let raf: number | null = null
+
+    const update = () => {
+      raf = null
+      const el = document.getElementById(projectTitleTargetId)
+      if (!el) {
+        setShowProjectTitle(false)
+        return
+      }
+
+      setShowProjectTitle(el.getBoundingClientRect().bottom <= 0)
+    }
+
+    const requestUpdate = () => {
+      if (raf) return
+      raf = requestAnimationFrame(update)
+    }
+
+    requestUpdate()
+    const timer = window.setTimeout(requestUpdate, 150)
+
+    window.addEventListener('scroll', requestUpdate, { passive: true })
+    window.addEventListener('resize', requestUpdate)
+
+    return () => {
+      window.clearTimeout(timer)
+      window.removeEventListener('scroll', requestUpdate)
+      window.removeEventListener('resize', requestUpdate)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [projectTitleTargetId])
+
+  useEffect(() => {
+    if (!mobileCategoryNavRevealTargetId) {
+      setShowMobileCategoryNav(true)
+      return
+    }
+
+    let raf: number | null = null
+
+    const update = () => {
+      raf = null
+      const el = document.getElementById(mobileCategoryNavRevealTargetId)
+      if (!el) {
+        setShowMobileCategoryNav(true)
+        return
+      }
+
+      setShowMobileCategoryNav(el.getBoundingClientRect().bottom <= 0)
+    }
+
+    const requestUpdate = () => {
+      if (raf) return
+      raf = requestAnimationFrame(update)
+    }
+
+    requestUpdate()
+    const timer = window.setTimeout(requestUpdate, 150)
+
+    window.addEventListener('scroll', requestUpdate, { passive: true })
+    window.addEventListener('resize', requestUpdate)
+
+    return () => {
+      window.clearTimeout(timer)
+      window.removeEventListener('scroll', requestUpdate)
+      window.removeEventListener('resize', requestUpdate)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [mobileCategoryNavRevealTargetId])
+
+  useEffect(() => {
+    let raf: number | null = null
+
+    const update = () => {
+      raf = null
+      setShowScrollTopButton(window.scrollY > 160)
+    }
+
+    const requestUpdate = () => {
+      if (raf) return
+      raf = requestAnimationFrame(update)
+    }
+
+    requestUpdate()
+    window.addEventListener('scroll', requestUpdate, { passive: true })
+    window.addEventListener('resize', requestUpdate)
+
+    return () => {
+      window.removeEventListener('scroll', requestUpdate)
+      window.removeEventListener('resize', requestUpdate)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
 
   // Highlight current section while scrolling
   useEffect(() => {
@@ -212,6 +332,12 @@ export default function ProjectSectionsStackedNavClient({
       showAllCategories={false}
       titleVariant={titleVariant}
       groupTitleImages={groupTitleImages}
+      projectTitle={projectTitle}
+      showProjectTitle={showProjectTitle}
+      showMobileCategoryNav={showMobileCategoryNav}
+      showScrollTopButton={showScrollTopButton}
+      onSelectProjectTitle={onSelectProjectTitle}
+      onScrollToTop={onSelectProjectTitle}
       categories={categories}
       selectedCategory={activeId}
       onSelectCategory={onSelectCategory}

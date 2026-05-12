@@ -4,6 +4,14 @@ const CORE_KEY_LEN = 12
 
 const coreKey = (key?: string) => (key || '').slice(0, CORE_KEY_LEN)
 
+const isLargePersonalProject = (project: any) =>
+  project?.projectKind === 'personal' && project?.projectSize === 'large'
+
+const addCategorySlug = (out: Set<string>, category: any) => {
+  const slug = category?.slug?.current
+  if (slug) out.add(slug)
+}
+
 export function collectAllowedCategories(featured: any[]): Set<string> {
   const out = new Set<string>()
 
@@ -21,8 +29,19 @@ export function collectAllowedCategories(featured: any[]): Set<string> {
       const sec = project.categorySections?.find((s: any) =>
         s?._key?.startsWith(ck)
       )
-      const slug = sec?.category?.slug?.current
-      if (slug) out.add(slug)
+      addCategorySlug(out, sec?.category)
+      continue
+    }
+
+    // A large personal project can be curated as a whole project. In that case
+    // let it appear under each of its category sections.
+    if (
+      isLargePersonalProject(project) &&
+      Array.isArray(project.categorySections)
+    ) {
+      for (const sec of project.categorySections) {
+        addCategorySlug(out, sec?.category)
+      }
       continue
     }
 
@@ -33,8 +52,7 @@ export function collectAllowedCategories(featured: any[]): Set<string> {
       Array.isArray(project.categories)
     ) {
       for (const cat of project.categories) {
-        const slug = cat?.slug?.current
-        if (slug) out.add(slug)
+        addCategorySlug(out, cat)
       }
     }
   }

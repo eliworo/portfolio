@@ -1,8 +1,10 @@
 'use client'
 
+import type { PointerEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import RealBrush from './drawings/RealBrush'
+import ImageLightbox from './ImageLightbox'
+import BlendArrow, { type BlendRect } from './BlendArrow'
 
 interface CarouselImage {
   id: string
@@ -15,7 +17,36 @@ interface CarouselImage {
 
 const SHOW_THRESHOLD = 10 // px
 const MAX_Y_OFFSET_VH = 4
-const LANE_PADDING_VH = 6
+const LANE_PADDING_TOP_VH = MAX_Y_OFFSET_VH
+const LANE_PADDING_BOTTOM_VH = 5
+const TAP_MOVE_THRESHOLD_PX = 8
+
+type ArrowBlendState = {
+  width: number
+  height: number
+  rects: BlendRect[]
+}
+
+const EMPTY_ARROW_BLEND: ArrowBlendState = {
+  width: 0,
+  height: 0,
+  rects: [],
+}
+
+function equalArrowBlendState(a: ArrowBlendState, b: ArrowBlendState) {
+  if (a.width !== b.width || a.height !== b.height) return false
+  if (a.rects.length !== b.rects.length) return false
+
+  return a.rects.every((rect, index) => {
+    const other = b.rects[index]
+    return (
+      rect.x === other.x &&
+      rect.y === other.y &&
+      rect.width === other.width &&
+      rect.height === other.height
+    )
+  })
+}
 
 export default function CarouselGalleryClient({
   images,
@@ -25,11 +56,69 @@ export default function CarouselGalleryClient({
   aspectRatio: string
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const tapStartRef = useRef<{ x: number; y: number } | null>(null)
+  const leftArrowRef = useRef<HTMLButtonElement>(null)
+  const rightArrowRef = useRef<HTMLButtonElement>(null)
 
   const [showLeft, setShowLeft] = useState(false)
   const [showRight, setShowRight] = useState(true)
+  const [lightboxImage, setLightboxImage] = useState<CarouselImage | null>(null)
+  const [leftArrowBlend, setLeftArrowBlend] =
+    useState<ArrowBlendState>(EMPTY_ARROW_BLEND)
+  const [rightArrowBlend, setRightArrowBlend] =
+    useState<ArrowBlendState>(EMPTY_ARROW_BLEND)
 
   const scrollStateRafRef = useRef<number | null>(null)
+  const measureArrowBlendState = (
+    arrow: HTMLButtonElement | null,
+  ): ArrowBlendState => {
+    const scrollEl = scrollRef.current
+    if (!arrow || !scrollEl) return EMPTY_ARROW_BLEND
+
+    const arrowRect = arrow.getBoundingClientRect()
+    const mediaEls = Array.from(
+      scrollEl.querySelectorAll<HTMLElement>('[data-carousel-media]'),
+    )
+    const rects = mediaEls.flatMap((mediaEl) => {
+      const mediaRect = mediaEl.getBoundingClientRect()
+      const x = Math.max(arrowRect.left, mediaRect.left)
+      const y = Math.max(arrowRect.top, mediaRect.top)
+      const right = Math.min(arrowRect.right, mediaRect.right)
+      const bottom = Math.min(arrowRect.bottom, mediaRect.bottom)
+      const width = right - x
+      const height = bottom - y
+
+      if (width <= 1 || height <= 1) return []
+
+      return [
+        {
+          x: Math.round(x - arrowRect.left),
+          y: Math.round(y - arrowRect.top),
+          width: Math.round(width),
+          height: Math.round(height),
+        },
+      ]
+    })
+
+    return {
+      width: Math.round(arrowRect.width),
+      height: Math.round(arrowRect.height),
+      rects,
+    }
+  }
+
+  const updateArrowBlendStates = () => {
+    const nextLeft = measureArrowBlendState(leftArrowRef.current)
+    const nextRight = measureArrowBlendState(rightArrowRef.current)
+
+    setLeftArrowBlend((prev) =>
+      equalArrowBlendState(prev, nextLeft) ? prev : nextLeft,
+    )
+    setRightArrowBlend((prev) =>
+      equalArrowBlendState(prev, nextRight) ? prev : nextRight,
+    )
+  }
+
   const requestScrollStateUpdate = () => {
     if (scrollStateRafRef.current) return
     scrollStateRafRef.current = requestAnimationFrame(() => {
@@ -44,6 +133,7 @@ export default function CarouselGalleryClient({
 
       setShowLeft((prev) => (prev === nextLeft ? prev : nextLeft))
       setShowRight((prev) => (prev === nextRight ? prev : nextRight))
+      updateArrowBlendStates()
     })
   }
 
@@ -97,14 +187,30 @@ export default function CarouselGalleryClient({
     })
   }
 
+  const handleImagePointerDown = (e: PointerEvent) => {
+    tapStartRef.current = { x: e.clientX, y: e.clientY }
+  }
+
+  const handleImagePointerUp = (e: PointerEvent, image: CarouselImage) => {
+    const start = tapStartRef.current
+    tapStartRef.current = null
+
+    if (!start) return
+
+    const moved = Math.hypot(e.clientX - start.x, e.clientY - start.y)
+    if (moved > TAP_MOVE_THRESHOLD_PX) return
+
+    setLightboxImage(image)
+  }
+
   return (
-    // IMPORTANT: isolate makes z-index deterministic inside this component
-    <div className='relative isolate group py-12 overflow-visible'>
+    <div className='relative group overflow-visible'>
       {/* Arrows: force above everything */}
       {/* Arrows: top row, grouped */}
       <div className='absolute bottom-16 right-0 z-[999] flex items-start pointer-events-none px-4 lg:px-6'>
         <div className='flex items-center gap-3 pointer-events-auto'>
           <button
+            ref={leftArrowRef}
             type='button'
             onClick={() => scrollByPage('left')}
             className={`transition-opacity duration-300 relative ${
@@ -112,27 +218,16 @@ export default function CarouselGalleryClient({
             }`}
             aria-label='Previous'
           >
-            <div className='absolute inset-x-0 top-1/2 -translate-y-[45%] -z-10 pointer-events-none'>
-              <RealBrush
-                seed='carousel-arrow:left'
-                color='#eee'
-                className='absolute -inset-x-3 -inset-y-4'
-                style={{ height: 44 }}
-              />
-            </div>
-
-            <Image
-              src='/images/arrowRightLogo.png'
-              alt='Previous'
-              width={150}
-              height={150}
-              className='h-8 lg:h-10 w-auto rotate-180 relative z-10'
-              draggable={false}
-              priority
+            <BlendArrow
+              direction='left'
+              bounds={leftArrowBlend}
+              blendRects={leftArrowBlend.rects}
+              className='h-8 w-[54px] lg:h-10 lg:w-[68px]'
             />
           </button>
 
           <button
+            ref={rightArrowRef}
             type='button'
             onClick={() => scrollByPage('right')}
             className={`transition-opacity duration-300 relative ${
@@ -140,23 +235,11 @@ export default function CarouselGalleryClient({
             }`}
             aria-label='Next'
           >
-            <div className='absolute inset-x-0 top-1/2 -translate-y-[45%] -z-10 pointer-events-none'>
-              <RealBrush
-                seed='carousel-arrow:right'
-                color='#eee'
-                className='absolute -inset-x-3 -rotate-180 -inset-y-6'
-                style={{ height: 44 }}
-              />
-            </div>
-
-            <Image
-              src='/images/arrowRightLogo.png'
-              alt='Next'
-              width={150}
-              height={150}
-              className='h-8 lg:h-10 w-auto relative z-10'
-              draggable={false}
-              priority
+            <BlendArrow
+              direction='right'
+              bounds={rightArrowBlend}
+              blendRects={rightArrowBlend.rects}
+              className='h-8 w-[54px] lg:h-10 lg:w-[68px]'
             />
           </button>
         </div>
@@ -168,8 +251,8 @@ export default function CarouselGalleryClient({
         onScroll={requestScrollStateUpdate}
         className='overflow-x-auto overflow-y-hidden no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none]'
         style={{
-          paddingTop: `${LANE_PADDING_VH}vh`,
-          paddingBottom: `${LANE_PADDING_VH}vh`,
+          paddingTop: `${LANE_PADDING_TOP_VH}vh`,
+          paddingBottom: `${LANE_PADDING_BOTTOM_VH}vh`,
         }}
       >
         <div className='flex w-max items-end'>
@@ -190,7 +273,9 @@ export default function CarouselGalleryClient({
             return (
               <figure
                 key={image.id ?? String(idx)}
-                className='flex-shrink-0 relative m-0 leading-none transition-all duration-200 hover:z-50'
+                className='flex-shrink-0 relative m-0 leading-none transition-all duration-200 hover:z-50 cursor-zoom-in'
+                onPointerDown={handleImagePointerDown}
+                onPointerUp={(e) => handleImagePointerUp(e, image)}
                 style={{
                   marginLeft: idx === 0 ? 0 : roundedOverlap,
                   transform: `translate3d(0, ${yOffset}vh, 0)`,
@@ -198,6 +283,7 @@ export default function CarouselGalleryClient({
                 }}
               >
                 <div
+                  data-carousel-media
                   className='relative h-[52vh] sm:h-[56vh] lg:h-[62vh] max-h-[680px]'
                   style={{
                     aspectRatio: `${w}/${h}`,
@@ -231,6 +317,11 @@ export default function CarouselGalleryClient({
           display: none;
         }
       `}</style>
+
+      <ImageLightbox
+        image={lightboxImage}
+        onClose={() => setLightboxImage(null)}
+      />
     </div>
   )
 }

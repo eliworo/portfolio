@@ -1,15 +1,14 @@
 'use client'
 
 import ReactDOM from 'react-dom'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import Image from 'next/image'
 import { FiInstagram } from 'react-icons/fi'
 import { BiLogoFacebookSquare } from 'react-icons/bi'
 import HorizontalLine from './lines/HorizontalLine'
-import RealBrush from './drawings/RealBrush'
 import VerticalLine from './lines/VerticalLine'
-const CONTACT_BRUSH_COLOR = '#E5E7EB'
+import { useOptimizedImagePreload } from './useOptimizedImagePreload'
 interface ContactNavProps {
   contact: {
     email?: string | null
@@ -33,28 +32,42 @@ export default function ContactNav({
   const [isMeasured, setIsMeasured] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
 
-  const navItems = [
-    {
-      id: 'email',
-      title: contact?.email,
-      href: contact?.email ? `mailto:${contact.email}` : undefined,
-    },
-    {
-      id: 'instagram',
-      title: 'Instagram',
-      href: contact?.instagram || undefined,
-    },
-    {
-      id: 'facebook',
-      title: 'Facebook',
-      href: contact?.facebook || undefined,
-    },
-    {
-      id: 'cv',
-      title: 'Download CV',
-      href: cv?.asset?.url || undefined,
-    },
-  ].filter((item) => item.href)
+  const navItems = useMemo(
+    () =>
+      [
+        {
+          id: 'email',
+          title: contact?.email,
+          href: contact?.email ? `mailto:${contact.email}` : undefined,
+        },
+        {
+          id: 'instagram',
+          title: 'Instagram',
+          href: contact?.instagram || undefined,
+        },
+        {
+          id: 'facebook',
+          title: 'Facebook',
+          href: contact?.facebook || undefined,
+        },
+        {
+          id: 'cv',
+          title: 'Download CV',
+          href: cv?.asset?.url || undefined,
+        },
+      ].filter((item) => item.href),
+    [contact?.email, contact?.facebook, contact?.instagram, cv?.asset?.url],
+  )
+  const preloadImages = useMemo(
+    () => [{ src: contactImageUrl, width: 420, quality: 70 }],
+    [contactImageUrl],
+  )
+
+  useOptimizedImagePreload(preloadImages, {
+    width: 420,
+    quality: 70,
+    timeout: 500,
+  })
 
   useEffect(() => {
     if (!contentRef.current || !titleRef.current) return
@@ -110,7 +123,7 @@ export default function ContactNav({
 
   return (
     <motion.div
-      className='fixed bottom-4 xl:top-8 right-4 z-40 flex items-start pointer-events-none'
+      className='fixed bottom-6 right-4 z-40 flex items-end pointer-events-none'
       initial={{ x: hideOffset }}
       animate={{
         x: isHovered ? 0 : hideOffset,
@@ -128,7 +141,7 @@ export default function ContactNav({
       />
       <BlurryBackdrop show={isHovered} />
       <div
-        className='flex items-end xl:items-start pointer-events-auto'
+        className='flex items-end pointer-events-auto'
         ref={(node) => {
           contentRef.current = node
           menuRef.current = node
@@ -147,24 +160,13 @@ export default function ContactNav({
         >
           {contactImageUrl && (
             <div className='relative'>
-              {/* RealBrush underneath */}
-              <div
-                className='absolute inset-x-0 top-1/2 -translate-y-[45%] -z-10 pointer-events-none xl:hidden'
-                style={{ height: '100%' }}
-              >
-                <RealBrush
-                  seed='contact-nav:title'
-                  color={CONTACT_BRUSH_COLOR}
-                  className='absolute -inset-x-3'
-                  style={{ height: 44 }}
-                />
-              </div>
-
               <Image
                 src={contactImageUrl}
                 alt='Contact'
                 width={1000}
                 height={1000}
+                quality={70}
+                sizes='240px'
                 className='object-contain h-10 xl:h-12 w-auto select-none pointer-events-none relative z-10'
               />
             </div>
@@ -173,7 +175,7 @@ export default function ContactNav({
           {/* slightly smaller */}
         </div>
 
-        <ul className='-space-y-1 relative ml-1'>
+        <ul className='-space-y-2 relative ml-1'>
           <div className='absolute left-0 top-0 h-full'>
             <VerticalLine className='h-full' theme={{ fill: 'black' }} />
           </div>

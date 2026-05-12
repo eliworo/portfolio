@@ -15,38 +15,35 @@ export default function ThreeDotsLoader({
     >
       <div className={`${dotClassName} relative`}>
         <Image
-          src='/images/cercleRempliLogo.png'
+          src='/images/optimized/cercleRempliLogo-80.webp'
           alt='Loading...'
-          width={50}
-          height={50}
+          width={80}
+          height={86}
           className='animate-bounce h-full w-full'
           style={{ animationDelay: '0s' }}
           priority
-          unoptimized
         />
       </div>
       <div className={`${dotClassName} relative`}>
         <Image
-          src='/images/cercleRempliLogo.png'
+          src='/images/optimized/cercleRempliLogo-80.webp'
           alt='Loading...'
-          width={50}
-          height={50}
+          width={80}
+          height={86}
           className='animate-bounce h-full w-full'
           style={{ animationDelay: '0.2s' }}
           priority
-          unoptimized
         />
       </div>
       <div className={`${dotClassName} relative`}>
         <Image
-          src='/images/cercleRempliLogo.png'
+          src='/images/optimized/cercleRempliLogo-80.webp'
           alt='Loading...'
-          width={50}
-          height={50}
+          width={80}
+          height={86}
           className='animate-bounce h-full w-full'
           style={{ animationDelay: '0.4s' }}
           priority
-          unoptimized
         />
       </div>
     </div>

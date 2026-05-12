@@ -1,14 +1,12 @@
 import React from 'react'
-import {useClient, useFormValue, set, unset} from 'sanity'
+import {useClient, useFormValue, set, unset, type StringInputProps} from 'sanity'
 
-type Props = {
-  value?: string
-  onChange: (patch: any) => void
-  path: (string | number)[]
-  elementProps?: React.SelectHTMLAttributes<HTMLSelectElement>
-}
-
-export default function CategorySectionSelect({value, onChange, path, elementProps}: Props) {
+export default function CategorySectionSelect({
+  value,
+  onChange,
+  path,
+  elementProps,
+}: StringInputProps) {
   const baseClient = useClient({apiVersion: '2023-10-01'})
   const client = React.useMemo(
     () => baseClient.withConfig({perspective: 'previewDrafts'}),
@@ -112,7 +110,7 @@ export default function CategorySectionSelect({value, onChange, path, elementPro
       <label style={{display: 'block', marginBottom: 6, fontWeight: 600}}>Category section</label>
       <select
         {...elementProps}
-        value={value || ''}
+        value={typeof value === 'string' ? value : ''}
         onChange={(e) => {
           const v = e.target.value
           onChange(v ? set(v) : unset())

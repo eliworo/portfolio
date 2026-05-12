@@ -2,16 +2,13 @@ import {
   CogIcon,
   CaseIcon,
   TagIcon,
-  ComposeIcon,
   UserIcon,
   DocumentIcon,
   FolderIcon,
   HomeIcon,
   StackCompactIcon,
-  MenuIcon,
 } from '@sanity/icons'
 import type {StructureBuilder, StructureResolver} from 'sanity/structure'
-import pluralize from 'pluralize-esm'
 import {orderableDocumentListDeskItem} from '@sanity/orderable-document-list'
 
 /**
@@ -68,17 +65,43 @@ export const structure: StructureResolver = (S: StructureBuilder, context) =>
                         context,
                       }),
 
-                      // Browse by Project Type
                       S.listItem()
-                        .title('Browse by Group')
+                        .title('Browse by Project Type')
+                        .icon(CaseIcon)
                         .child(
-                          S.documentTypeList('projectType')
-                            .title('Project Groups')
-                            .child((typeId) =>
+                          S.list()
+                            .title('Browse by Project Type')
+                            .items([
+                              S.listItem()
+                                .title('Professional')
+                                .child(
+                                  S.documentList()
+                                    .title('Professional Projects')
+                                    .filter(
+                                      '_type == "project" && projectKind == "professional"',
+                                    ),
+                                ),
+                              S.listItem()
+                                .title('Personal')
+                                .child(
+                                  S.documentList()
+                                    .title('Personal Projects')
+                                    .filter('_type == "project" && projectKind == "personal"'),
+                                ),
+                            ]),
+                        ),
+
+                      S.listItem()
+                        .title('Browse by Category')
+                        .icon(TagIcon)
+                        .child(
+                          S.documentTypeList('category')
+                            .title('Browse by Category')
+                            .child((categoryId) =>
                               S.documentList()
-                                .title('Projects in this group')
-                                .filter('_type == "project" && projectType._ref == $typeId')
-                                .params({typeId}),
+                                .title('Projects in this category')
+                                .filter('_type == "project" && references($categoryId)')
+                                .params({categoryId}),
                             ),
                         ),
                     ]),

@@ -1,6 +1,9 @@
 import { notFound } from 'next/navigation'
 import { sanityFetch } from '@/sanity/lib/live'
-import { studioWorksQuery } from '@/sanity/lib/queries'
+import {
+  studioWorksMetadataQuery,
+  studioWorksQuery,
+} from '@/sanity/lib/queries'
 import type { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
 
@@ -40,7 +43,7 @@ export async function generateMetadata(
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const { data: studioWorks } = await sanityFetch({
-    query: studioWorksQuery,
+    query: studioWorksMetadataQuery,
     stega: false,
   })
 
@@ -95,7 +98,7 @@ export default async function StudioWorksPage({
         <header className='hidden md:block px-4 pt-16 sm:pt-20 xl:py-28 xl:pt-32'>
           <div className='md:max-lg:ml-[10vw] md:max-lg:max-w-[46vw] md:grid md:grid-cols-12 md:gap-x-16'>
             <div className='md:col-start-5 md:col-span-6 md:row-start-1 md:max-w-[80ch]'>
-              <div className='text-lg md:text-xl xl:text-2xl leading-snug font-sans'>
+              <div className='text-lg md:text-xl xl:text-2xl leading-tight font-sans'>
                 <StudioWorksPortableText value={studioWorks.description} />
               </div>
             </div>

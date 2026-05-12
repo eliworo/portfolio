@@ -1,7 +1,6 @@
-import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { sanityFetch } from '@/sanity/lib/live'
-import { projectQuery, studioWorksQuery } from '@/sanity/lib/queries'
+import { projectQuery } from '@/sanity/lib/queries'
 import { ContentRenderer } from '@/app/components/ContentRenderer'
 import CategoryNav from '@/app/components/CategoryNav'
 import { ProjectCredits } from '@/app/components/ProjectCredits'
@@ -9,6 +8,7 @@ import ScrollToHash from '@/app/components/ScrollToHash'
 import { Metadata, ResolvingMetadata } from 'next'
 import { resolveOpenGraphImage } from '@/sanity/lib/utils'
 import ProjectSectionsStackedNavClient from '@/app/components/ProjectSectionsStackedNavClient'
+import PaintedTitleImage from '@/app/components/PaintedTitleImage'
 
 type Category = {
   _id: string
@@ -65,20 +65,13 @@ export async function generateMetadata(
 export default async function StudioWorksProjectPage(props: Props) {
   const { projectSlug } = await props.params
 
-  const [projectResult, studioWorksResult] = await Promise.all([
-    sanityFetch({
-      query: projectQuery,
-      params: { projectSlug },
-      stega: false,
-    }),
-    sanityFetch({
-      query: studioWorksQuery,
-      stega: false,
-    }),
-  ])
+  const { data } = await sanityFetch({
+    query: projectQuery,
+    params: { projectSlug },
+    stega: false,
+  })
 
-  const project = projectResult.data as unknown as Project
-  const studioWorksPage = studioWorksResult.data as any
+  const project = data as unknown as Project
 
   // Only show projects that belong to studio-works (personal large projects)
   if (
@@ -99,7 +92,7 @@ export default async function StudioWorksProjectPage(props: Props) {
   const useStackedTitles = true
 
   return (
-    <main className='min-h-screen xl:pl-54 xl:px-68'>
+    <main className='min-h-screen min-[1180px]:pl-54 min-[1180px]:px-68'>
       <ScrollToHash />
 
       {categoryNavItems.length > 0 &&
@@ -120,12 +113,12 @@ export default async function StudioWorksProjectPage(props: Props) {
           />
         ))}
 
-      <div className='px-8 pt-32 sm:pt-20 lg:pt-16'>
-        <header className='mb-10 lg:mb-16'>
-          <div className='lg:grid lg:grid-cols-12 lg:gap-x-10 lg:items-start'>
+      <div className='px-8 pt-32 sm:pt-20 min-[1180px]:pt-16'>
+        <header className='mb-10 min-[1180px]:mb-16'>
+          <div className='min-[1180px]:grid min-[1180px]:grid-cols-12 min-[1180px]:gap-x-10 min-[1180px]:items-start'>
             {project?.titleImage?.asset?.url && (
-              <div className='lg:col-span-8 xl:-ml-44'>
-                <Image
+              <div className='min-[1180px]:col-span-8 min-[1180px]:-ml-44'>
+                <PaintedTitleImage
                   src={project.titleImage.asset.url}
                   alt={project.title}
                   width={1200}
@@ -134,19 +127,19 @@ export default async function StudioWorksProjectPage(props: Props) {
                   className='
                     object-contain
                     w-[85vw] max-w-[980px]
-                    lg:w-full lg:max-w-none
+                    min-[1180px]:w-full min-[1180px]:max-w-none
                     h-auto
                     -rotate-3
                     mx-auto
-                    lg:mx-0
+                    min-[1180px]:mx-0
                   '
                 />
               </div>
             )}
 
             {project.description && (
-              <div className='mt-8 lg:mt-16 lg:col-start-1 lg:col-span-9'>
-                <p className='text-xl leading-snug tracking-tight lg:text-4xl max-w-7xl'>
+              <div className='mt-8 min-[1180px]:mt-16 min-[1180px]:col-start-1 min-[1180px]:col-span-9'>
+                <p className='text-2xl leading-tight tracking-tight sm:text-3xl min-[1180px]:text-4xl max-w-7xl'>
                   {project.description}
                 </p>
               </div>
@@ -155,13 +148,13 @@ export default async function StudioWorksProjectPage(props: Props) {
         </header>
 
         {project.content && (
-          <section className='mb-16 lg:mb-24'>
+          <section className='mb-16 min-[1180px]:mb-24'>
             <ContentRenderer content={project.content} />
           </section>
         )}
 
         {project.categorySections && project.categorySections.length > 0 && (
-          <section className='space-y-20 lg:space-y-24'>
+          <section className='space-y-20 min-[1180px]:space-y-24'>
             {project.categorySections.map((section) => (
               <section
                 key={section.category._id}
@@ -175,7 +168,7 @@ export default async function StudioWorksProjectPage(props: Props) {
           </section>
         )}
 
-        <section className='mt-16 lg:my-32' data-credits-section>
+        <section className='mt-16 min-[1180px]:my-32' data-credits-section>
           <ProjectCredits
             credits={project.credits}
             press={project.press}

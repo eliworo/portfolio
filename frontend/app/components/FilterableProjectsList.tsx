@@ -1,9 +1,11 @@
 'use client'
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useEffect, useMemo, useTransition } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'motion/react'
 import CategoryNav from './CategoryNav'
+import { useOptimizedImagePreload } from './useOptimizedImagePreload'
+import PaintedTitleImage from './PaintedTitleImage'
 import { ProjectGroupQueryResult } from '@/sanity.types'
 
 interface FilterableProjectsListProps {
@@ -26,28 +28,36 @@ export default function FilterableProjectsList({
   const [isPending, startTransition] = useTransition()
 
   // build category / project lists for nav
-  const allCategories = projects
-    .flatMap(
-      (project) =>
-        project.categories
-          ?.filter((cat) => cat && cat._id && cat.slug?.current)
-          .map((cat) => ({
-            id: cat.slug?.current || '',
-            title: cat.title || 'Untitled',
-            titleImageUrl: cat?.titleImage?.asset?.url || undefined,
-          })) || []
-    )
-    .filter(
-      (cat, index, self) =>
-        cat.id && index === self.findIndex((c) => c.id === cat.id)
-    )
+  const allCategories = useMemo(
+    () =>
+      projects
+        .flatMap(
+          (project) =>
+            project.categories
+              ?.filter((cat) => cat && cat._id && cat.slug?.current)
+              .map((cat) => ({
+                id: cat.slug?.current || '',
+                title: cat.title || 'Untitled',
+                titleImageUrl: cat?.titleImage?.asset?.url || undefined,
+              })) || [],
+        )
+        .filter(
+          (cat, index, self) =>
+            cat.id && index === self.findIndex((c) => c.id === cat.id),
+        ),
+    [projects],
+  )
 
-  const allProjects = projects.map((project) => ({
-    id: project._id,
-    title: project.title || 'Untitled',
-    slug: project.slug,
-    titleImageUrl: project.titleImage?.asset?.url || undefined,
-  }))
+  const allProjects = useMemo(
+    () =>
+      projects.map((project) => ({
+        id: project._id,
+        title: project.title || 'Untitled',
+        slug: project.slug,
+        titleImageUrl: project.titleImage?.asset?.url || undefined,
+      })),
+    [projects],
+  )
 
   // read initial category from URL on mount
   useEffect(() => {
@@ -104,6 +114,29 @@ export default function FilterableProjectsList({
   const currentCategory = selectedCategory
     ? allCategories.find((c) => c.id === selectedCategory)
     : null
+  const titlePreloadImages = useMemo(
+    () => [
+      { src: groupTitleImageUrl, width: 800, quality: 70 },
+      ...allCategories.map((category) => ({
+        src: category.titleImageUrl,
+        width: 800,
+        quality: 70,
+      })),
+      ...allProjects.map((project) => ({
+        src: project.titleImageUrl,
+        width: 420,
+        quality: 70,
+      })),
+    ],
+    [allCategories, allProjects, groupTitleImageUrl],
+  )
+
+  useOptimizedImagePreload(titlePreloadImages, {
+    width: 800,
+    quality: 70,
+    concurrency: 3,
+    eager: true,
+  })
 
   return (
     <>
@@ -131,11 +164,12 @@ export default function FilterableProjectsList({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.3 }}
             >
-              <Image
+              <PaintedTitleImage
                 src={currentCategory.titleImageUrl}
                 alt={currentCategory.title}
                 width={600}
                 height={200}
+                sizes='(max-width: 1024px) 100vw, 600px'
                 className='object-contain h-auto'
               />
             </motion.div>
@@ -148,11 +182,12 @@ export default function FilterableProjectsList({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.3 }}
             >
-              <Image
+              <PaintedTitleImage
                 src={groupTitleImageUrl}
                 alt={groupTitle || 'Project Group Title'}
                 width={600}
                 height={200}
+                sizes='(max-width: 1024px) 100vw, 600px'
                 className='object-contain h-auto'
               />
             </motion.div>

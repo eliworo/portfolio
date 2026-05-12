@@ -1,8 +1,8 @@
 'use client'
 
 import React from 'react'
-import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
+import PaintedTitleImage from '../components/PaintedTitleImage'
 
 export default function StudioWorksTitleBlock({
   groupTitleImageUrl,
@@ -39,7 +39,7 @@ export default function StudioWorksTitleBlock({
             transition={{ duration: 0.3 }}
             className='origin-left -rotate-3 lg:rotate-0'
           >
-            <Image
+            <PaintedTitleImage
               src={img}
               alt={alt}
               width={1000}

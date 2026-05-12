@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation'
 import VerticalLine from './lines/VerticalLine'
 import HorizontalLine from './lines/HorizontalLine'
 import PaintBrush from './drawings/PaintBrush'
+import { useOptimizedImagePreload } from './useOptimizedImagePreload'
+import PaintedTitleImage from './PaintedTitleImage'
 
 interface CategoryNavProps {
   items?: Array<{
@@ -62,7 +64,7 @@ export default function CategoryNav({
       {
         id: '__all__',
         title: 'All categories',
-        titleImageUrl: '/images/AllCategoriesLogo.png',
+        titleImageUrl: '/images/optimized/AllCategoriesLogo-800.webp',
       },
       ...baseNavItems,
     ]
@@ -78,6 +80,24 @@ export default function CategoryNav({
 
   const [activeItem, setActiveItem] = useState<string | null>(selected)
   const [isHovered, setIsHovered] = useState(false)
+  const preloadImages = useMemo(
+    () => [
+      { src: projectTitleImageUrl, width: 800, quality: 70 },
+      ...navItems.map((item) => ({
+        src: item.titleImageUrl,
+        width: 400,
+        quality: 70,
+      })),
+    ],
+    [navItems, projectTitleImageUrl],
+  )
+
+  useOptimizedImagePreload(preloadImages, {
+    width: 400,
+    quality: 70,
+    concurrency: 3,
+    eager: true,
+  })
 
   useEffect(() => {
     if (!contentRef.current || !titleRef.current) return
@@ -233,31 +253,32 @@ export default function CategoryNav({
                 />
                 {projectTitleImageUrl && isProjectPage ? (
                   <>
-                    <Image
+                    <PaintedTitleImage
                       src={projectTitleImageUrl}
                       alt='Project Title'
                       width={400}
                       height={400}
+                      sizes='200px'
                       className='object-contain h-8 w-auto select-none pointer-events-none'
                     />
-                    <Image
-                      src='/images/ByCategory.png'
+                    <PaintedTitleImage
+                      src='/images/optimized/ByCategory-600.webp'
                       alt='By Category'
-                      width={400}
-                      height={400}
+                      width={600}
+                      height={148}
                       className='object-contain h-8 w-auto select-none pointer-events-none'
                     />
                   </>
                 ) : (
-                  <Image
+                  <PaintedTitleImage
                     src={
                       title === 'projects by woronoff'
-                        ? '/images/WoronoffByProject.png'
-                        : '/images/WoronoffByCategory-2.png'
+                        ? '/images/optimized/WoronoffByProject-700.webp'
+                        : '/images/optimized/WoronoffByCategory-2-700.webp'
                     }
                     alt='Woronoff By Category'
-                    width={600}
-                    height={600}
+                    width={700}
+                    height={title === 'projects by woronoff' ? 98 : 128}
                     className='object-contain h-10 w-auto select-none pointer-events-none'
                   />
                 )}
@@ -293,7 +314,7 @@ export default function CategoryNav({
                       (!activeItem && item.id === '__all__')) && (
                       <span className='absolute left-1/2 bottom-0 -z-10 h-7 w-[calc(100%+18px)] -translate-x-1/2 pointer-events-none'>
                         <Image
-                          src='/images/brushMenu.png'
+                          src='/images/optimized/brushMenu-160.webp'
                           alt=''
                           fill
                           className='object-fill'
@@ -301,11 +322,12 @@ export default function CategoryNav({
                       </span>
                     )}
                     {item.titleImageUrl ? (
-                      <Image
+                      <PaintedTitleImage
                         src={item.titleImageUrl}
                         alt={item.title}
                         width={200}
                         height={200}
+                        sizes='200px'
                         className='object-contain h-8 w-auto relative z-10'
                       />
                     ) : (

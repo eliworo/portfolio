@@ -1,20 +1,23 @@
 'use client'
 
-import React, { useRef, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'motion/react'
 import HorizontalLine from './lines/HorizontalLine'
 import VerticalLine from './lines/VerticalLine'
-import RealBrush from './drawings/RealBrush'
+import { useOptimizedImagePreload } from './useOptimizedImagePreload'
+import PaintedTitleImage from './PaintedTitleImage'
 import { NavigationImagesQueryResult } from '@/sanity.types'
 
 type NavigationProps = {
   navImages: NavigationImagesQueryResult
 }
 
-const NAV_BRUSH_COLOR = '#D9D9D9'
-const NAV_BRUSH_HEIGHT_PX = 42
+const NAV_HOVER_FILTER =
+  'brightness(0) saturate(100%) invert(24%) sepia(99%) saturate(2529%) hue-rotate(210deg) brightness(95%) contrast(111%)'
+const LOGO_ON_CLIP_PATH =
+  'polygon(calc(55% - 5px) calc(36% - 5px), 100% calc(36% - 5px), 100% calc(63% + 4px), calc(55% - 5px) calc(63% + 4px), calc(55% - 5px) calc(56% + 3px), calc(63% + 2px) calc(56% + 3px), calc(63% + 2px) calc(47% - 3px), calc(55% - 5px) calc(47% - 3px))'
 
 function buildNavStructure(navImages: NavigationProps['navImages']) {
   const mainCategories = [
@@ -31,7 +34,6 @@ function buildNavStructure(navImages: NavigationProps['navImages']) {
               title: project.title,
               slug: `/${group.slug}/p/${project.slug}`,
               titleImage: project.titleImage,
-              coverImage: project.coverImage,
             })) ?? [],
         })) ?? [],
     },
@@ -43,7 +45,36 @@ function buildNavStructure(navImages: NavigationProps['navImages']) {
 }
 
 export default function Navigation({ navImages }: NavigationProps) {
-  const navigationData = buildNavStructure(navImages)
+  const navigationData = useMemo(() => buildNavStructure(navImages), [navImages])
+  const navPreloadImages = useMemo(() => {
+    const images: Array<{ src?: string | null; width: number; quality: number }> =
+      []
+
+    images.push({ src: navImages?.homepage?.logo?.asset?.url, width: 240, quality: 72 })
+    images.push({ src: navImages?.works?.titleImage?.asset?.url, width: 360, quality: 70 })
+    images.push({ src: navImages?.about?.titleImage?.asset?.url, width: 360, quality: 70 })
+    images.push({
+      src: navImages?.commissions?.titleImage?.asset?.url,
+      width: 360,
+      quality: 70,
+    })
+
+    navImages?.projectGroups?.forEach((group) => {
+      images.push({ src: group.titleImage?.asset?.url, width: 360, quality: 70 })
+      group.projects?.forEach((project) => {
+        images.push({ src: project.titleImage?.asset?.url, width: 360, quality: 70 })
+      })
+    })
+
+    return images
+  }, [navImages])
+
+  useOptimizedImagePreload(navPreloadImages, {
+    width: 360,
+    quality: 70,
+    concurrency: 4,
+    eager: true,
+  })
 
   // states
   const [showMenu, setShowMenu] = useState(false)
@@ -89,46 +120,38 @@ export default function Navigation({ navImages }: NavigationProps) {
   function renderNavLabel({
     imageUrl,
     title,
-    seed,
     isActive,
   }: {
     imageUrl?: string | null
     title: string
-    seed: string
     isActive: boolean
   }) {
+    const imageStyle = {
+      width: 'auto',
+      maxHeight: '35px',
+      filter: isActive ? NAV_HOVER_FILTER : undefined,
+    }
+
     return (
       <span className='relative inline-block w-fit'>
-        {isActive && (
-          <span
-            className='absolute inset-x-0 bottom-0 flex items-end justify-center z-0 pointer-events-none'
-            style={{ height: '110%' }}
-          >
-            <RealBrush
-              seed={`nav:${seed}`}
-              color={NAV_BRUSH_COLOR}
-              className='absolute -inset-x-2 bottom-0'
-              style={{
-                height: NAV_BRUSH_HEIGHT_PX,
-              }}
-            />
-          </span>
-        )}
-
         {imageUrl ? (
-          <Image
+          <PaintedTitleImage
             src={imageUrl}
             alt={title}
-            width={150}
-            height={50}
-            style={{
-              width: 'auto',
-              maxHeight: '35px',
-            }}
-            className='relative z-10 object-contain'
+            width={180}
+            height={60}
+            sizes='180px'
+            style={imageStyle}
+            className='object-contain transition-[filter] duration-150'
           />
         ) : (
-          <span className='relative z-10 text-lg font-medium'>{title}</span>
+          <span
+            className={`text-lg font-medium transition-colors duration-150 ${
+              isActive ? 'text-blue' : 'text-black'
+            }`}
+          >
+            {title}
+          </span>
         )}
       </span>
     )
@@ -159,15 +182,38 @@ export default function Navigation({ navImages }: NavigationProps) {
             href='/'
             className='cursor-pointer relative z-10'
             onMouseEnter={handleLogoHover}
+            onFocus={handleLogoHover}
           >
             {navImages?.homepage?.logo?.asset?.url ? (
-              <Image
-                src={navImages.homepage.logo.asset.url}
-                alt='E'
-                width={115}
-                height={115}
-                className='object-contain'
-              />
+              <span className='relative block w-[115px]'>
+                <Image
+                  src={navImages.homepage.logo.asset.url}
+                  alt='E'
+                  width={115}
+                  height={115}
+                  quality={72}
+                  sizes='115px'
+                  priority
+                  className='object-contain'
+                />
+                <Image
+                  src={navImages.homepage.logo.asset.url}
+                  alt=''
+                  aria-hidden='true'
+                  width={115}
+                  height={115}
+                  quality={72}
+                  sizes='115px'
+                  priority
+                  className={`absolute inset-0 object-contain transition-opacity duration-150 ${
+                    showMenu ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  style={{
+                    clipPath: LOGO_ON_CLIP_PATH,
+                    filter: NAV_HOVER_FILTER,
+                  }}
+                />
+              </span>
             ) : (
               <div className='text-6xl font-bold'>E</div>
             )}
@@ -218,7 +264,7 @@ export default function Navigation({ navImages }: NavigationProps) {
                         return (
                           <li key={category.title} className='relative w-fit'>
                             <div
-                              className='group cursor-pointer transition-opacity hover:opacity-90'
+                              className='group cursor-pointer'
                               onMouseEnter={() =>
                                 setActiveCategory(category.title)
                               }
@@ -226,11 +272,13 @@ export default function Navigation({ navImages }: NavigationProps) {
                               <Link
                                 href={category.slug}
                                 onClick={handleCloseMenu}
+                                onFocus={() =>
+                                  setActiveCategory(category.title)
+                                }
                               >
                                 {renderNavLabel({
                                   imageUrl,
                                   title: category.title,
-                                  seed: category.title,
                                   isActive: activeCategory === category.title,
                                 })}
                               </Link>
@@ -263,17 +311,13 @@ export default function Navigation({ navImages }: NavigationProps) {
                                         </div>
                                         {category.subCategories.map(
                                           (subCategory) => {
-                                            const hasImage =
-                                              subCategory?.titleImage?.asset
-                                                ?.url
-
                                             return (
                                               <li
                                                 key={`${category.title}-${subCategory.title}`}
                                                 className='relative w-fit'
                                               >
                                                 <div
-                                                  className='group cursor-pointer transition-opacity hover:opacity-90'
+                                                  className='group cursor-pointer'
                                                   onMouseEnter={() =>
                                                     setActiveSubCategory(
                                                       subCategory.title ?? null,
@@ -283,6 +327,12 @@ export default function Navigation({ navImages }: NavigationProps) {
                                                   <Link
                                                     href={subCategory.slug}
                                                     onClick={handleCloseMenu}
+                                                    onFocus={() =>
+                                                      setActiveSubCategory(
+                                                        subCategory.title ??
+                                                          null,
+                                                      )
+                                                    }
                                                   >
                                                     {renderNavLabel({
                                                       imageUrl:
@@ -290,7 +340,6 @@ export default function Navigation({ navImages }: NavigationProps) {
                                                           ?.asset?.url,
                                                       title:
                                                         subCategory.title || '',
-                                                      seed: `${category.title}:${subCategory.title || 'item'}`,
                                                       isActive:
                                                         activeSubCategory ===
                                                         subCategory.title,

@@ -86,11 +86,11 @@ export default async function RootLayout({
           )}
           {/* The <SanityLive> component is responsible for making all sanityFetch calls in your application live, so should always be rendered. */}
           <SanityLive onError={handleError} />
-          <div className='hidden xl:block'>
+          <div className='hidden min-[1180px]:block'>
             <Navigation navImages={navImages} />
           </div>
 
-          <div className='block xl:hidden'>
+          <div className='block min-[1180px]:hidden'>
             <MobileNavigation navImages={navImages} />
           </div>
 

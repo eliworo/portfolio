@@ -33,6 +33,23 @@ function toPlainText(blocks: any): string | undefined {
   return text || undefined
 }
 
+function imageDimensions(
+  image: any,
+  fallback: { width: number; height: number },
+) {
+  const dimensions = image?.asset?.metadata?.dimensions
+  const width =
+    typeof dimensions?.width === 'number' && dimensions.width > 0
+      ? dimensions.width
+      : fallback.width
+  const height =
+    typeof dimensions?.height === 'number' && dimensions.height > 0
+      ? dimensions.height
+      : fallback.height
+
+  return { width, height }
+}
+
 export async function generateMetadata(
   _props: any,
   parent: ResolvingMetadata,
@@ -64,6 +81,19 @@ export default async function AboutPage() {
     return null
   }
 
+  const aboutLogoDimensions = imageDimensions(aboutPage.logo, {
+    width: 600,
+    height: 200,
+  })
+  const profileImageDimensions = imageDimensions(aboutPage.profileImage, {
+    width: 1200,
+    height: 1800,
+  })
+  const arteosLogoDimensions = imageDimensions(aboutPage.arteosLogo, {
+    width: 400,
+    height: 1000,
+  })
+
   const portableTextComponents = {
     block: {
       normal: ({ children }: any) => (
@@ -91,15 +121,16 @@ export default async function AboutPage() {
           <Image
             src={aboutPage.arteosLogo.asset.url}
             alt='Arteos Logo'
-            width={100}
-            height={1000}
+            width={arteosLogoDimensions.width}
+            height={arteosLogoDimensions.height}
             className='w-auto h-44 lg:h-64 object-contain'
+            unoptimized
           />
         </div>
       )}
       <div className='bg-black rounded-[2px] px-6 lg:px-6 py-6 lg:py-8 relative lg:absolute lg:left-44 lg:top-16 w-[65vw] lg:max-w-[17vw] ml-28 lg:ml-0 mt-28 lg:mt-0'>
         <div className='max-w-full lg:max-w-74 bg-white text-black rounded-[2px] -rotate-6 p-4'>
-          <p className='text-sm lg:text-base leading-snug'>
+          <p className='text-sm lg:text-base leading-tight'>
             {aboutPage.arteosDescription}
           </p>
         </div>
@@ -110,7 +141,7 @@ export default async function AboutPage() {
   return (
     <main className='w-full min-h-screen relative overflow-hidden'>
       {Array.isArray(aboutPage.quote) && aboutPage.quote.length > 0 && (
-        <div className='text-base lg:text-2xl leading-snug lg:max-w-[60vw] lg:ml-132 mt-70 mb-8 lg:mb-0 px-8 pl-20 lg:px-8 lg:mt-32'>
+        <div className='text-base lg:text-2xl leading-tight lg:max-w-[60vw] lg:ml-132 mt-70 mb-8 lg:mb-0 px-8 pl-20 lg:px-8 lg:mt-32'>
           <PortableText
             value={aboutPage.quote}
             components={portableTextComponents}
@@ -122,9 +153,10 @@ export default async function AboutPage() {
           <Image
             src={aboutPage.logo.asset.url}
             alt='About Logo'
-            width={600}
-            height={200}
+            width={aboutLogoDimensions.width}
+            height={aboutLogoDimensions.height}
             className='object-contain w-auto h-[150px] lg:h-[200px]'
+            unoptimized
           />
         </div>
       )}
@@ -137,9 +169,11 @@ export default async function AboutPage() {
                 <Image
                   src={aboutPage.profileImage.asset.url}
                   alt={aboutPage.profileImage.alt || 'Profile Image'}
-                  width={400}
-                  height={600}
+                  width={profileImageDimensions.width}
+                  height={profileImageDimensions.height}
                   className='w-[80vw] lg:w-full lg:max-w-lg h-auto object-cover'
+                  sizes='(min-width: 1024px) 512px, 80vw'
+                  unoptimized
                 />
                 {aboutPage.profileImage.credit && (
                   <p className='text-xs text-gray-600 mt-2 text-left lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200'>
@@ -152,7 +186,7 @@ export default async function AboutPage() {
 
           <div className='space-y-12 -mt-124 px-4 lg:mt-0 lg:-ml-80 z-10 w-full lg:max-w-[30vw]'>
             {Array.isArray(aboutPage.bioTop) && aboutPage.bioTop.length > 0 && (
-              <div className='text-sm lg:text-xl max-w-none leading-snug pl-34 lg:px-0'>
+              <div className='text-sm lg:text-xl max-w-none leading-tight pl-34 lg:px-0'>
                 <PortableText
                   value={aboutPage.bioTop}
                   components={portableTextComponents}
@@ -168,7 +202,7 @@ export default async function AboutPage() {
 
         {Array.isArray(aboutPage.bioBottom) &&
           aboutPage.bioBottom.length > 0 && (
-            <div className='mt-0 lg:mt-16 px-16 lg:px-64 lg:max-w-7xl max-w-none w-full text-sm lg:text-xl leading-snug'>
+            <div className='mt-0 lg:mt-16 px-16 lg:px-64 lg:max-w-7xl max-w-none w-full text-sm lg:text-xl leading-tight'>
               <PortableText
                 value={aboutPage.bioBottom}
                 components={portableTextComponents}

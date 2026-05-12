@@ -192,10 +192,10 @@ export function ProjectCredits({
               </BrushTitle> */}
 
               <Image
-                src={'/images/CreditsLogo.png'}
+                src={'/images/optimized/CreditsLogo-700.webp'}
                 alt='PRODUCTIONS'
-                width={800}
-                height={215}
+                width={700}
+                height={188}
                 className='h-7 w-auto mb-4'
               />
 
@@ -221,10 +221,10 @@ export function ProjectCredits({
               </BrushTitle> */}
               <div className='text-sm lg:text-lg'>
                 <Image
-                  src={'/images/pressLogo.png'}
+                  src={'/images/optimized/pressLogo-700.webp'}
                   alt='PRODUCTIONS'
-                  width={800}
-                  height={335}
+                  width={700}
+                  height={293}
                   className='h-7 w-auto mb-4'
                 />
                 <PortableText value={press} components={components} />
@@ -243,10 +243,10 @@ export function ProjectCredits({
               </BrushTitle> */}
               <div className='text-sm lg:text-lg'>
                 <Image
-                  src={'/images/datesLogo.png'}
+                  src={'/images/optimized/datesLogo-700.webp'}
                   alt='PRODUCTIONS'
-                  width={800}
-                  height={297}
+                  width={700}
+                  height={260}
                   className='h-7 w-auto mb-4'
                 />
                 <PortableText value={tournee} components={tourneeComponents} />

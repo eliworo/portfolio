@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
     loaderFile: './sanity/lib/sanityImageLoader.ts',
     deviceSizes: [320, 420, 640, 768, 1024, 1280, 1600, 1920],
     imageSizes: [32, 48, 64, 96, 128, 256, 384, 512],
+    qualities: [70, 72, 75, 85],
     remotePatterns: [
       {
         protocol: 'https',

@@ -7,6 +7,7 @@ import CoverImage from './CoverImage'
 import NextImage from 'next/image'
 import CarouselGalleryClient from './CarouselGalleryClient'
 import ImageGalleryGrid from './ImageGalleryGrid'
+import ImageLightboxTrigger from './ImageLightboxTrigger'
 import BrushFrame from './drawings/BrushFrame'
 import BrushFrameRaster from './drawings/BrushFrameRaster'
 import VerticalLine from './lines/VerticalLine'
@@ -148,7 +149,9 @@ const aspectRatioMap: Record<string, string> = {
 }
 
 const isEmbedProviderUrl = (url: string) =>
-  url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')
+  url.includes('youtube.com') ||
+  url.includes('youtu.be') ||
+  url.includes('vimeo.com')
 
 const getEmbedUrl = (url: string) => {
   if (url.includes('youtube.com') || url.includes('youtu.be')) {
@@ -162,6 +165,23 @@ const getEmbedUrl = (url: string) => {
     return `https://player.vimeo.com/video/${videoId}`
   }
   return url
+}
+
+const getLightboxImage = (image?: any) => {
+  if (!image) return null
+
+  try {
+    const url = image.asset?.url || urlFor(image).width(2400).quality(90).url()
+    if (!url) return null
+
+    return {
+      url,
+      alt: image.alt || '',
+      caption: image.caption,
+    }
+  } catch {
+    return null
+  }
 }
 
 function renderVideoMedia({
@@ -204,17 +224,29 @@ function renderVideoMedia({
           </video>
         )}
       </div>
-      {caption && <figcaption className='text-sm text-gray-600 mt-3 text-left'>{caption}</figcaption>}
+      {caption && (
+        <figcaption className='text-sm text-gray-600 mt-3 text-left'>
+          {caption}
+        </figcaption>
+      )}
     </figure>
   )
 }
 
 export function ContentRenderer({ content }: { content: ContentBlock[] }) {
   return (
-    <div className='space-y-8 xl:space-y-16'>
+    <div>
       {(content || []).map((block, index) => {
+        const previousBlock = content[index - 1]
+        const spacingClass =
+          index === 0
+            ? ''
+            : previousBlock?._type === 'headingBlock'
+              ? 'mt-2 lg:mt-5 xl:mt-6'
+              : 'mt-10 lg:mt-14 xl:mt-20'
+
         return (
-          <div key={index}>
+          <div key={index} className={spacingClass}>
             {block._type === 'textBlock' && <TextBlockRenderer block={block} />}
             {block._type === 'headingBlock' && (
               <HeadingBlockRenderer block={block} />
@@ -294,12 +326,14 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
           })
         ) : block.leftMedia?.image ? (
           <figure className='w-full leading-none h-fit relative group'>
-            <CoverImage image={block.leftMedia.image} />
+            <ImageLightboxTrigger image={getLightboxImage(block.leftMedia.image)}>
+              <CoverImage image={block.leftMedia.image} />
+            </ImageLightboxTrigger>
             {(block.leftMedia.image.caption ||
               block.leftMedia.image.material ||
               block.leftMedia.image.dimensions ||
               block.leftMedia.image.year) && (
-              <figcaption className='h-auto text-xs lg:text-sm text-gray-600 block leading-snug mt-2 ml-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 lg:pointer-events-none lg:group-hover:pointer-events-auto'>
+              <figcaption className='h-auto text-xs lg:text-sm text-gray-600 block leading-tight mt-2 ml-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 lg:pointer-events-none lg:group-hover:pointer-events-auto'>
                 {block.leftMedia.image.caption && (
                   <p>{block.leftMedia.image.caption}</p>
                 )}{' '}
@@ -316,14 +350,14 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
       <div
         className={`w-full ${
           isCollage
-            ? 'relative z-20 hover:z-[999] has-[iframe:hover]:z-[999]'
+            ? 'relative z-20 hover:z-[999] has-[iframe:hover]:z-[999] md:[margin-left:var(--media-overlap)]'
             : ''
         }`}
         style={
           isCollage
             ? {
-                marginLeft: overlapPx,
                 transform: `translateY(${rightYOffset}vh)`,
+                ['--media-overlap' as any]: `${overlapPx}px`,
               }
             : undefined
         }
@@ -338,12 +372,14 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
           })
         ) : block.rightMedia?.image ? (
           <figure className='w-full leading-none h-fit relative group'>
-            <CoverImage image={block.rightMedia.image} />
+            <ImageLightboxTrigger image={getLightboxImage(block.rightMedia.image)}>
+              <CoverImage image={block.rightMedia.image} />
+            </ImageLightboxTrigger>
             {(block.rightMedia.image.caption ||
               block.rightMedia.image.material ||
               block.rightMedia.image.dimensions ||
               block.rightMedia.image.year) && (
-              <figcaption className='h-auto text-xs lg:text-sm text-gray-600 block leading-snug mt-2 ml-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 lg:pointer-events-none lg:group-hover:pointer-events-auto'>
+              <figcaption className='h-auto text-xs lg:text-sm text-gray-600 block leading-tight mt-2 ml-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 lg:pointer-events-none lg:group-hover:pointer-events-auto'>
                 {block.rightMedia.image.caption && (
                   <p>{block.rightMedia.image.caption}</p>
                 )}{' '}
@@ -362,8 +398,8 @@ function MediaWithMediaRenderer({ block }: { block: MediaWithMedia }) {
 function TextBlockRenderer({ block }: { block: TextBlock }) {
   const columnClasses = {
     full: 'max-w-4xl',
-    two: 'columns-2 gap-8 max-w-6xl',
-    three: 'columns-1 xl:columns-3 gap-8 max-w-7xl',
+    two: 'columns-1 lg:columns-2 gap-8 max-w-6xl',
+    three: 'columns-1 lg:columns-3 gap-8 max-w-7xl',
   }
 
   const alignmentClasses = {
@@ -374,7 +410,7 @@ function TextBlockRenderer({ block }: { block: TextBlock }) {
 
   return (
     <div
-      className={`text-sm xl:text-xl leading-snug ${columnClasses[block.columns]} ${
+      className={`text-sm xl:text-xl leading-tight ${columnClasses[block.columns]} ${
         alignmentClasses[block.alignment]
       }`}
     >
@@ -396,29 +432,35 @@ function TextBlockRenderer({ block }: { block: TextBlock }) {
               </h3>
             ),
             h4: ({ children }) => (
-              <h4 className='text-lg font-semibold mb-4 whitespace-pre-wrap'>
+              <h4 className='text-lg font-semibold mb-4 whitespace-pre-wrap leading-tight'>
                 {children}
               </h4>
             ),
             blockquote: ({ children }) => (
-              <blockquote className='ml-16 relative flex gap-3 mb-4 pl-6 whitespace-pre-wrap'>
-                <div className='absolute left-0 top-0 h-full'>
-                  <VerticalLine className='h-full' theme={{ fill: 'black' }} />
+              <blockquote className='-mt-1 mb-4 ml-8 sm:ml-12 lg:ml-16 grid grid-cols-[14px_minmax(0,1fr)] gap-x-4 sm:gap-x-5 whitespace-pre-wrap italic'>
+                <div className='relative w-[14px] self-stretch'>
+                  <VerticalLine
+                    className='absolute left-0 top-0 h-full w-[9px]'
+                    preserveAspectRatio='none'
+                    theme={{ fill: 'black' }}
+                  />
                 </div>
-                <span className='italic flex-1'>{children}</span>
+                <span>{children}</span>
               </blockquote>
             ),
           },
           types: {
             image: ({ value }) => (
               <figure className='my-8'>
-                <Image
-                  src={urlFor(value).url()}
-                  alt={value.alt || ''}
-                  width={800}
-                  height={600}
-                  className='w-full rounded-lg'
-                />
+                <ImageLightboxTrigger image={getLightboxImage(value)}>
+                  <Image
+                    src={urlFor(value).url()}
+                    alt={value.alt || ''}
+                    width={800}
+                    height={600}
+                    className='w-full rounded-lg'
+                  />
+                </ImageLightboxTrigger>
                 {value.caption && (
                   <figcaption className='text-center text-sm text-gray-600 mt-2'>
                     {value.caption}
@@ -440,7 +482,9 @@ function TextBlockRenderer({ block }: { block: TextBlock }) {
               <span className='underline'>{children}</span>
             ),
             link: ({ children, value }) => (
-              <PortableLinkMark value={value as any}>{children}</PortableLinkMark>
+              <PortableLinkMark value={value as any}>
+                {children}
+              </PortableLinkMark>
             ),
           },
         }}
@@ -499,23 +543,19 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
     return Math.round(offset * 100) / 100
   }
 
-  // Generate overlap for multi-image layouts
   const getOverlap = (index: number) => {
     if (index === 0 || !isCollage) return 0
-    return -40 // Overlap amount in pixels
+    return -40
   }
 
   if (isCollage && layout.includes('row')) {
     // Collage mode for multi-image layouts
     const imageCount = block.images?.length || 0
-
-    // Adjust width based on number of images
-    const widthClass =
-      imageCount === 2
-        ? 'w-[50%]' // 2 images take more space
-        : imageCount === 3
-          ? 'w-[33%]' // 3 images medium space
-          : 'w-[25%]' // 4+ images smaller
+    const overlapPx = 40
+    const itemWidth =
+      imageCount > 1
+        ? `calc((100% + ${(imageCount - 1) * overlapPx}px) / ${imageCount})`
+        : '100%'
 
     return (
       <div
@@ -528,20 +568,23 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
           return (
             <figure
               key={idx}
-              className={`flex-shrink-0 relative ${widthClass} leading-none h-fit group [z-index:var(--z)] hover:z-[999]`}
+              className='flex-shrink-0 relative leading-none h-fit group [z-index:var(--z)] hover:z-[999]'
               style={{
+                width: itemWidth,
                 marginLeft: overlap,
                 transform: `translateY(${yOffset}vh)`,
                 // Tailwind can override this because it's not the zIndex property directly
                 ['--z' as any]: idx,
               }}
             >
-              <CoverImage image={image} />
+              <ImageLightboxTrigger image={getLightboxImage(image)}>
+                <CoverImage image={image} />
+              </ImageLightboxTrigger>
               {(image.caption ||
                 image.material ||
                 image.dimensions ||
                 image.year) && (
-                <figcaption className='h-auto text-xs lg:text-sm text-gray-600 block leading-snug mt-2 ml-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 lg:pointer-events-none lg:group-hover:pointer-events-auto'>
+                <figcaption className='h-auto text-xs lg:text-sm text-gray-600 block leading-tight mt-2 ml-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 lg:pointer-events-none lg:group-hover:pointer-events-auto'>
                   {image.caption && <p>{image.caption}</p>}{' '}
                   {image.year && <span>({image.year})</span>}
                 </figcaption>
@@ -562,12 +605,14 @@ function ImageBlockRenderer({ block }: { block: ImageBlock }) {
     >
       {(block.images ?? []).map((image, idx) => (
         <figure key={idx} className='w-full leading-none h-fit relative group'>
-          <CoverImage image={image} />
+          <ImageLightboxTrigger image={getLightboxImage(image)}>
+            <CoverImage image={image} />
+          </ImageLightboxTrigger>
           {(image.caption ||
             image.material ||
             image.dimensions ||
             image.year) && (
-            <figcaption className='h-auto text-xs lg:text-sm text-gray-600 block leading-snug mt-2 ml-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 lg:pointer-events-none lg:group-hover:pointer-events-auto'>
+            <figcaption className='h-auto text-xs lg:text-sm text-gray-600 block leading-tight mt-2 ml-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 lg:pointer-events-none lg:group-hover:pointer-events-auto'>
               {image.caption && <p>{image.caption}</p>}{' '}
               {image.year && <span>({image.year})</span>}
             </figcaption>
@@ -712,14 +757,16 @@ function TextWithImageRenderer({ block }: { block: TextWithImage }) {
       <figure
         className={`w-full ${sizeClasses[block.imageSize]} leading-none h-fit relative group`}
       >
-        <CoverImage image={block.image} />
+        <ImageLightboxTrigger image={getLightboxImage(block.image)}>
+          <CoverImage image={block.image} />
+        </ImageLightboxTrigger>
         {block.image.caption && (
-          <figcaption className='mt-2 text-xs lg:text-sm text-gray-600 leading-snug lg:absolute lg:-bottom-8 lg:left-0 lg:w-full lg:pr-2 lg:py-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200'>
+          <figcaption className='mt-2 text-xs lg:text-sm text-gray-600 leading-tight lg:absolute lg:-bottom-8 lg:left-0 lg:w-full lg:pr-2 lg:py-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200'>
             {block.image.caption}
           </figcaption>
         )}
       </figure>
-      <div className='flex-1 text-sm xl:text-lg leading-snug'>
+      <div className='flex-1 text-sm xl:text-lg leading-tight'>
         <PortableText
           value={block.text}
           components={{
@@ -735,7 +782,9 @@ function TextWithImageRenderer({ block }: { block: TextWithImage }) {
                 </BrushStrongMark>
               ),
               link: ({ children, value }) => (
-                <PortableLinkMark value={value as any}>{children}</PortableLinkMark>
+                <PortableLinkMark value={value as any}>
+                  {children}
+                </PortableLinkMark>
               ),
             },
           }}

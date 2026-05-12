@@ -13,6 +13,7 @@ type Props = {
   className?: string
   blurDataURL?: string
   priority?: boolean
+  unoptimized?: boolean
   overlay?: (ready: boolean) => React.ReactNode
   revealEffect?: 'blur' | 'pixelate' | 'pixelate-blur'
   onReady?: () => void
@@ -38,6 +39,7 @@ export function ProgressiveRevealImage({
   className,
   blurDataURL,
   priority,
+  unoptimized,
   overlay,
   revealEffect = 'pixelate-blur',
   onReady,
@@ -142,6 +144,7 @@ export function ProgressiveRevealImage({
             sizes={sizes}
             className={className}
             priority={priority}
+            unoptimized={unoptimized}
             placeholder={blurDataURL ? 'blur' : undefined}
             blurDataURL={blurDataURL}
             onLoad={() => {
@@ -174,6 +177,7 @@ export function ProgressiveRevealImage({
             sizes={sizes}
             className={className}
             priority={priority}
+            unoptimized={unoptimized}
             placeholder={blurDataURL ? 'blur' : undefined}
             blurDataURL={blurDataURL}
             onLoad={() => {

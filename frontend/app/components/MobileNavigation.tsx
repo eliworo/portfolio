@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -8,6 +8,8 @@ import { NavigationImagesQueryResult } from '@/sanity.types'
 import HamburgerHorizontalLine from './lines/HamburgerHorizontalLine'
 import HorizontalLine from './lines/HorizontalLine'
 import VerticalLine from './lines/VerticalLine'
+import { useOptimizedImagePreload } from './useOptimizedImagePreload'
+import PaintedTitleImage from './PaintedTitleImage'
 
 type MobileNavigationProps = {
   navImages: NavigationImagesQueryResult
@@ -18,29 +20,52 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
 
   const toggleMenu = () => setIsOpen(!isOpen)
 
-  const mainCategories = [
-    {
-      title: 'WORKS',
-      slug: '/works',
-      imageUrl: navImages?.works?.titleImage?.asset?.url,
-      subCategories:
-        navImages?.projectGroups?.map((group) => ({
-          title: group.title,
-          slug: `/${group.slug}`,
-          imageUrl: group.titleImage?.asset?.url,
-        })) ?? [],
-    },
-    {
-      title: 'ABOUT',
-      slug: '/about',
-      imageUrl: navImages?.about?.titleImage?.asset?.url,
-    },
-    {
-      title: 'COMMISSIONS',
-      slug: '/commissions',
-      imageUrl: navImages?.commissions?.titleImage?.asset?.url,
-    },
-  ]
+  const mainCategories = useMemo(
+    () => [
+      {
+        title: 'WORKS',
+        slug: '/works',
+        imageUrl: navImages?.works?.titleImage?.asset?.url,
+        subCategories:
+          navImages?.projectGroups?.map((group) => ({
+            title: group.title,
+            slug: `/${group.slug}`,
+            imageUrl: group.titleImage?.asset?.url,
+          })) ?? [],
+      },
+      {
+        title: 'ABOUT',
+        slug: '/about',
+        imageUrl: navImages?.about?.titleImage?.asset?.url,
+      },
+      {
+        title: 'COMMISSIONS',
+        slug: '/commissions',
+        imageUrl: navImages?.commissions?.titleImage?.asset?.url,
+      },
+    ],
+    [navImages],
+  )
+
+  const navPreloadImages = useMemo(
+    () =>
+      mainCategories.flatMap((category) => [
+        { src: category.imageUrl, width: 400, quality: 70 },
+        ...(category.subCategories?.map((subCategory) => ({
+          src: subCategory.imageUrl,
+          width: 300,
+          quality: 70,
+        })) ?? []),
+      ]),
+    [mainCategories],
+  )
+
+  useOptimizedImagePreload(navPreloadImages, {
+    width: 360,
+    quality: 70,
+    concurrency: 4,
+    eager: true,
+  })
 
   return (
     <>
@@ -51,6 +76,9 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
             alt='E'
             width={200}
             height={200}
+            quality={72}
+            sizes='72px'
+            priority
             className='object-contain w-18 h-auto'
           />
         ) : (
@@ -66,18 +94,18 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
         <div className='relative w-12 h-12 mr-2'>
           {!isOpen ? (
             <Image
-              src='/images/hamburger.png'
+              src='/images/optimized/sandwish3-180.webp'
               alt='Open menu'
-              width={600}
-              height={600}
+              width={180}
+              height={83}
               className='absolute inset-0 m-auto object-contain h-12 w-12 -rotate-1'
             />
           ) : (
             <Image
-              src='/images/close.png'
+              src='/images/optimized/close-180.webp'
               alt='Close menu'
-              width={400}
-              height={400}
+              width={180}
+              height={217}
               className='absolute inset-0 m-auto object-contain h-12 w-12'
             />
           )}
@@ -164,11 +192,13 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
                               className=''
                             >
                               {category.imageUrl ? (
-                                <Image
+                                <PaintedTitleImage
                                   src={category.imageUrl}
                                   alt={category.title}
                                   width={200}
                                   height={50}
+                                  sizes='200px'
+                                  wrapperClassName='min-h-[40px] items-center'
                                   className='object-contain object-left h-auto max-h-[40px] w-auto'
                                 />
                               ) : (
@@ -185,11 +215,13 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
                             className='w-fit'
                           >
                             {category.imageUrl ? (
-                              <Image
+                              <PaintedTitleImage
                                 src={category.imageUrl}
                                 alt={category.title}
                                 width={200}
                                 height={50}
+                                sizes='200px'
+                                wrapperClassName='min-h-[40px] items-center'
                                 className='object-contain object-left h-auto max-h-[40px]'
                               />
                             ) : (
@@ -222,11 +254,13 @@ export default function MobileNavigation({ navImages }: MobileNavigationProps) {
                                     className='block'
                                   >
                                     {sub.imageUrl ? (
-                                      <Image
+                                      <PaintedTitleImage
                                         src={sub.imageUrl}
                                         alt={sub.title || ''}
                                         width={150}
                                         height={40}
+                                        sizes='150px'
+                                        wrapperClassName='min-h-[40px] items-center'
                                         className='object-contain h-auto max-h-[40px] object-left'
                                       />
                                     ) : (

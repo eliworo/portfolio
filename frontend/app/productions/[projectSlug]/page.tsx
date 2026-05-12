@@ -11,6 +11,7 @@ import { resolveOpenGraphImage } from '@/sanity/lib/utils'
 import { ProjectNavigation } from '@/app/components/ProjectNavigation'
 import ProjectSectionsStackedNavClient from '@/app/components/ProjectSectionsStackedNavClient'
 import RealBrush from '@/app/components/drawings/RealBrush'
+import PaintedTitleImage from '@/app/components/PaintedTitleImage'
 
 type Category = {
   _id: string
@@ -25,9 +26,11 @@ type CategorySection = {
 }
 
 type Project = {
+  _id: string
   title: string
   titleImage?: { asset?: { url?: string | null } } | null
   description?: string
+  brushColor?: string | null
   ticketsUrl?: string
   projectKind?: string
   projectTypeSlug?: string
@@ -37,6 +40,34 @@ type Project = {
   tournee?: any
   content?: any
   coverImage?: any
+}
+
+const projectBrushColors = [
+  '#FFB6C1',
+  '#98D8C8',
+  '#F7DC6F',
+  '#BEBBDA',
+  '#F8B88B',
+  '#347980',
+  '#ccc',
+]
+
+function hashString(str: string) {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i)
+    hash |= 0
+  }
+  return Math.abs(hash)
+}
+
+function getProjectBrushColor(project: Project) {
+  const customColor = project.brushColor?.trim()
+  if (customColor && /^#[0-9A-Fa-f]{6}$/.test(customColor)) {
+    return customColor
+  }
+
+  return projectBrushColors[hashString(project._id) % projectBrushColors.length]
 }
 
 export async function generateMetadata(
@@ -122,9 +153,10 @@ export default async function ProductionsProjectPage({
     }))
 
   const useStackedTitles = true
+  const projectBrushColor = getProjectBrushColor(project)
 
   return (
-    <main className='min-h-screen xl:pl-54 xl:px-68'>
+    <main className='min-h-screen min-[1180px]:pl-54 min-[1180px]:px-68'>
       <ScrollToHash />
 
       {categoryNavItems.length > 0 &&
@@ -134,6 +166,13 @@ export default async function ProductionsProjectPage({
             groupTitleImages={{
               horizontal: project.titleImage?.asset?.url ?? undefined,
             }}
+            projectTitle={{
+              title: project.title,
+              titleImageUrl: project.titleImage?.asset?.url ?? undefined,
+              brushColor: projectBrushColor,
+            }}
+            projectTitleTargetId='project-title-anchor'
+            mobileCategoryNavRevealTargetId='project-description-anchor'
             titleVariant='stacked'
           />
         ) : (
@@ -146,12 +185,12 @@ export default async function ProductionsProjectPage({
         ))}
 
       {/* Content wrapper: one place controls page padding & rhythm */}
-      <div className='px-8 pt-32 sm:pt-20 lg:pt-16'>
+      <div className='px-8 pt-32 pb-4 sm:pt-20 min-[1180px]:pt-16 min-[1180px]:pb-0'>
         {/* HEADER: title image + description in FLOW */}
 
-        <header className='mb-10 lg:mb-16'>
+        <header className='mb-10 min-[1180px]:mb-16'>
           {project.ticketsUrl && (
-            <div className='fixed right-8 top-22 lg:top-8 xl:right-16 z-10'>
+            <div className='fixed right-8 top-22 min-[1180px]:top-8 min-[1180px]:right-16 z-10'>
               <a
                 href={project.ticketsUrl}
                 target='_blank'
@@ -172,10 +211,10 @@ export default async function ProductionsProjectPage({
                 />
                 {/* Tickets logo on top */}
                 <Image
-                  src='/images/ticketsLogo-blanc.png'
+                  src='/images/optimized/ticketsLogo-blanc-700.webp'
                   alt='Tickets'
-                  width={800}
-                  height={269}
+                  width={700}
+                  height={235}
                   className='h-6 lg:h-7 w-auto relative z-10'
                   draggable={false}
                   priority
@@ -183,11 +222,14 @@ export default async function ProductionsProjectPage({
               </a>
             </div>
           )}
-          <div className='lg:grid lg:grid-cols-12 lg:gap-x-10 lg:items-start'>
+          <div className='min-[1180px]:grid min-[1180px]:grid-cols-12 min-[1180px]:gap-x-10 min-[1180px]:items-start'>
             {/* Title image */}
             {project?.titleImage?.asset?.url && (
-              <div className='lg:col-span-8 xl:-ml-44'>
-                <Image
+              <div
+                id='project-title-anchor'
+                className='min-[1180px]:col-span-8 min-[1180px]:-ml-44'
+              >
+                <PaintedTitleImage
                   src={project.titleImage.asset.url}
                   alt={project.title}
                   width={1200}
@@ -196,11 +238,11 @@ export default async function ProductionsProjectPage({
                   className='
                     object-contain
                     w-[85vw] max-w-[980px]
-                    lg:w-full lg:max-w-none
+                    min-[1180px]:w-full min-[1180px]:max-w-none
                     h-auto
                     -rotate-3
                     mx-auto
-                    lg:mx-0
+                    min-[1180px]:mx-0
                   '
                 />
 
@@ -215,8 +257,11 @@ export default async function ProductionsProjectPage({
 
             {/* Description */}
             {project.description && (
-              <div className='mt-8 lg:mt-16 lg:col-start-1 lg:col-span-9'>
-                <p className='text-xl leading-snug tracking-tight lg:text-4xl max-w-7xl'>
+              <div
+                id='project-description-anchor'
+                className='mt-8 min-[1180px]:mt-16 min-[1180px]:col-start-1 min-[1180px]:col-span-9'
+              >
+                <p className='text-2xl leading-tight tracking-tight sm:text-3xl min-[1180px]:text-4xl max-w-7xl'>
                   {project.description}
                 </p>
               </div>
@@ -226,14 +271,14 @@ export default async function ProductionsProjectPage({
 
         {/* Main content */}
         {project.content && (
-          <section className='mb-16 lg:mb-24'>
+          <section className='mb-16 min-[1180px]:mb-24'>
             <ContentRenderer content={project.content} />
           </section>
         )}
 
         {/* Category sections */}
         {project.categorySections && project.categorySections.length > 0 && (
-          <section className='space-y-20 lg:space-y-24'>
+          <section className='space-y-20 min-[1180px]:space-y-24'>
             {project.categorySections.map((section) => (
               <section
                 key={section.category._id}
@@ -250,13 +295,22 @@ export default async function ProductionsProjectPage({
         )}
 
         {/* Credits */}
-        <section className='mt-16 lg:my-32' data-credits-section>
+        <section className='mt-16 min-[1180px]:my-32' data-credits-section>
           <ProjectCredits
             credits={project.credits}
             press={project.press}
             tournee={project.tournee}
           />
         </section>
+
+        {(prevProject || nextProject) && (
+          <nav className='min-[1180px]:hidden' aria-label='Adjacent productions'>
+            <ProjectNavigation
+              prevProject={prevProject}
+              nextProject={nextProject}
+            />
+          </nav>
+        )}
       </div>
     </main>
   )

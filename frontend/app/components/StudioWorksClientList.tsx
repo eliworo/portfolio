@@ -7,7 +7,7 @@ export default function StudioWorksClientList(props: any) {
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    const update = () => setIsMobile(window.innerWidth < 768)
+    const update = () => setIsMobile(window.innerWidth < 1024)
     update()
     window.addEventListener('resize', update)
     return () => window.removeEventListener('resize', update)
@@ -16,7 +16,7 @@ export default function StudioWorksClientList(props: any) {
   return (
     <CreativeProjectsList
       {...props}
-      // mobile => CategoryNav, desktop => stacked titles
+      // mobile/tablet => CategoryNav, desktop => stacked titles
       useStackedTitles={!isMobile}
     />
   )

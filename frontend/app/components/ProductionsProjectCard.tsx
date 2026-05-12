@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'motion/react'
 import CoverImage from './CoverImage'
 import RealBrush from './drawings/RealBrush'
+import PaintedTitleImage from './PaintedTitleImage'
 
 type ProductionsProjectCardProps = {
   priority?: boolean
@@ -52,6 +52,10 @@ type ProductionsProjectCardProps = {
   }
 }
 
+type ProductionProject = NonNullable<
+  ProductionsProjectCardProps['item']['project']
+>
+
 const brushColors = [
   '#FFB6C1',
   '#98D8C8',
@@ -69,6 +73,17 @@ function hashString(str: string) {
     hash |= 0 // Convert to 32bit integer
   }
   return Math.abs(hash)
+}
+
+function getProjectBrushColor(project: ProductionProject | null) {
+  if (!project) return brushColors[0]
+
+  const customColor = project.brushColor?.trim()
+  if (customColor && /^#[0-9A-Fa-f]{6}$/.test(customColor)) {
+    return customColor
+  }
+
+  return brushColors[hashString(project._id) % brushColors.length]
 }
 
 const getPositionClasses = (position?: string | null) => {
@@ -98,7 +113,6 @@ export default function ProductionsProjectCard({
   priority = false,
 }: ProductionsProjectCardProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const [titleImageReady, setTitleImageReady] = useState(false)
   const [hasDesktopOffsets, setHasDesktopOffsets] = useState(false)
 
   useEffect(() => {
@@ -114,18 +128,7 @@ export default function ProductionsProjectCard({
   // Move hooks BEFORE the early return
   // Use project ID to get consistent color and rotation
   const brushColor = useMemo(() => {
-    if (!item.project) return brushColors[0]
-
-    // Check if project has a custom brush color
-    if (
-      item.project.brushColor &&
-      /^#[0-9A-Fa-f]{6}$/.test(item.project.brushColor)
-    ) {
-      return item.project.brushColor
-    }
-
-    // Fallback to hash-based color selection
-    return brushColors[hashString(item.project._id) % brushColors.length]
+    return getProjectBrushColor(item.project)
   }, [item.project])
 
   // Generate subtle random rotation (-3 to +3 degrees)
@@ -178,28 +181,24 @@ export default function ProductionsProjectCard({
               >
                 <div
                   className='relative'
-                style={{
-                  rotate: `${brushRotation}deg`,
-                  opacity: titleImageReady ? 1 : 0,
-                  transition: 'opacity 180ms ease-out',
-                }}
+                  style={{
+                    rotate: `${brushRotation}deg`,
+                  }}
                 >
-                  {titleImageReady && (
-                    <RealBrush
-                      seed={`category:${item.project._id}`}
-                      color={brushColor}
-                      className='absolute -inset-x-2 bottom-0 h-14 inset-y-1 -z-10'
-                    />
-                  )}
+                  <RealBrush
+                    seed={`category:${item.project._id}`}
+                    color={brushColor}
+                    className='absolute -inset-x-2 bottom-0 h-14 inset-y-1 -z-10'
+                  />
                   <div className='py-2'>
-                    <Image
+                    <PaintedTitleImage
                       src={item.project.titleImage.asset.url}
                       alt={item.project.title || 'Project'}
                       width={500}
                       height={500}
+                      sizes='(min-width: 1024px) 320px, 220px'
+                      priority={priority}
                       className='object-contain h-12 w-auto'
-                      onLoad={() => setTitleImageReady(true)}
-                      onError={() => setTitleImageReady(true)}
                     />
                   </div>
                 </div>

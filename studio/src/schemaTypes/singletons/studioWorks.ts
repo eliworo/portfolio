@@ -1,6 +1,9 @@
 import {defineField, defineType} from 'sanity'
 import {StackCompactIcon, TextIcon} from '@sanity/icons'
 import CategorySectionSelect from '../../../components/CategorySectionSelect'
+import FeaturedProjectPreview, {
+  CATEGORY_REF_PREVIEW_PREFIX,
+} from '../../../components/FeaturedProjectPreview'
 
 export const studioWorks = defineType({
   name: 'studioWorks',
@@ -82,6 +85,7 @@ export const studioWorks = defineType({
         {
           type: 'object',
           name: 'featuredItem',
+          components: {preview: FeaturedProjectPreview},
           fields: [
             defineField({
               name: 'kind',
@@ -222,7 +226,8 @@ export const studioWorks = defineType({
 
               // 2) Existing project logic (unchanged, just renamed variables)
               let typeLabel = ''
-              let categoryLabel = null
+              let categoryLabel: string | null = null
+              let categoryRef: string | null = null
               let previewMedia = media
 
               if (projectKind === 'professional') {
@@ -247,7 +252,9 @@ export const studioWorks = defineType({
               if (section && categorySections) {
                 const sec = categorySections.find((s: any) => s._key?.startsWith(section))
                 if (sec) {
-                  categoryLabel = `Category: ${sec.category?.title || 'Unknown'}`
+                  const categoryTitle = sec.category?.title
+                  categoryRef = sec.category?._ref || null
+                  categoryLabel = `Category: ${categoryTitle || '…'}`
                   if (sec.preview?.mode === 'image' && sec.preview.image) {
                     previewMedia = sec.preview.image
                   } else if (sec.preview?.mode === 'text') {
@@ -261,6 +268,9 @@ export const studioWorks = defineType({
               return {
                 title: title || 'Untitled',
                 subtitle: parts.join(' • '),
+                description: categoryRef
+                  ? `${CATEGORY_REF_PREVIEW_PREFIX}${categoryRef}`
+                  : undefined,
                 media: previewMedia,
               }
             },
